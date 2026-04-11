@@ -1,0 +1,99 @@
+.root {
+    -fx-accent: #6c5ce7;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+/* Table Design */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #ddd;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+}
+
+.table-view .column-header-background {
+    -fx-background-color: #6c5ce7;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.table-view .column-header {
+    -fx-background-color: transparent;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+
+.table-view .table-row-cell:odd {
+    -fx-background-color: #f9f9f9;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: #a29bfe;
+    -fx-text-fill: white;
+}
+
+/* Premium Form Components */
+.form-card {
+    -fx-background-color: white;
+    -fx-background-radius: 15;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 10, 0, 0, 5);
+    -fx-padding: 20;
+}
+
+.section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2d3436;
+    -fx-padding: 0 0 5 0;
+    -fx-border-color: #6c5ce7;
+    -fx-border-width: 0 0 2 0;
+}
+
+.button {
+    -fx-background-color: linear-gradient(to right, #6c5ce7, #a29bfe);
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-background-radius: 20;
+    -fx-cursor: hand;
+    -fx-transition: 0.3s;
+}
+
+.button:hover {
+    -fx-background-color: linear-gradient(to right, #a29bfe, #6c5ce7);
+    -fx-scale-x: 1.05;
+    -fx-scale-y: 1.05;
+}
+
+.text-field, .password-field, .combo-box {
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #dfe6e9;
+    -fx-background-color: white;
+    -fx-padding: 5 10 5 10;
+}
+
+.text-field:focused, .password-field:focused, .combo-box:focused {
+    -fx-border-color: #6c5ce7;
+    -fx-effect: dropshadow(three-pass-box, rgba(108, 92, 231, 0.2), 5, 0, 0, 0);
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: #2d3436;
+}
+
+/* ScrollPane Styling */
+.scroll-pane {
+    -fx-background-color: transparent;
+}
+
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+.error-label {
+    -fx-text-fill: #e74c3c;
+    -fx-font-size: 11px;
+}
