@@ -11,6 +11,7 @@
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -26,7 +27,7 @@
                 </padding>
                 <Label text="StudySprint" styleClass="header-title" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="createGroupButton" text="➕ Créer un groupe" onAction="#onAdd" styleClass="create-btn" />
+                <Button fx:id="createGroupButton" text="Créer un groupe" onAction="#onCreateGroup" styleClass="create-btn" />
             </HBox>
         </VBox>
     </top>
@@ -37,26 +38,54 @@
                 <Insets top="16" right="24" bottom="20" left="24" />
             </padding>
 
-            <HBox spacing="10" alignment="CENTER_LEFT">
-                <TextField fx:id="searchField" promptText="Rechercher par nom ou matière..." styleClass="search-input" HBox.hgrow="ALWAYS" />
-                <ComboBox fx:id="sortCombo" prefWidth="160" styleClass="filter-combo" />
-                <ComboBox fx:id="roleCombo" prefWidth="150" styleClass="filter-combo" />
+            <HBox spacing="24" alignment="CENTER_LEFT" styleClass="tabs-bar">
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="tab-item">
+                    <Button fx:id="groupsTabButton" text="Groupes" onAction="#onGroupsTab" styleClass="tab-btn" />
+                    <Label fx:id="groupsTabCountLabel" text="0" styleClass="count-pill" />
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="tab-item">
+                    <Button fx:id="invitationsTabButton" text="Invitations" onAction="#onInvitationsTab" styleClass="tab-btn" />
+                    <Label fx:id="invitationsTabCountLabel" text="0" styleClass="count-pill" />
+                </HBox>
+
+                <HBox spacing="8" alignment="CENTER_LEFT" styleClass="tab-item">
+                    <Button fx:id="feedbacksTabButton" text="Feedbacks" onAction="#onFeedbacksTab" styleClass="tab-btn" />
+                    <Label fx:id="feedbacksTabCountLabel" text="0" styleClass="count-pill" />
+                </HBox>
             </HBox>
 
-            <HBox alignment="CENTER_LEFT" spacing="6">
-                <Label text="Groupes" styleClass="section-title" />
-                <Label fx:id="groupsCountLabel" text="0" styleClass="count-pill" />
-            </HBox>
+            <StackPane>
+                <VBox fx:id="groupsContentPane" spacing="16">
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <TextField fx:id="searchField" promptText="Rechercher par nom ou matière..." styleClass="search-input" HBox.hgrow="ALWAYS" />
+                        <ComboBox fx:id="sortCombo" prefWidth="160" styleClass="filter-combo" />
+                        <ComboBox fx:id="roleCombo" prefWidth="150" styleClass="filter-combo" />
+                    </HBox>
 
-            <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll">
-                <content>
-                    <FlowPane fx:id="groupCardsPane" hgap="14" vgap="14" prefWrapLength="1100" styleClass="cards-grid">
-                        <padding>
-                            <Insets top="2" right="2" bottom="10" left="2" />
-                        </padding>
-                    </FlowPane>
-                </content>
-            </ScrollPane>
+                    <Label fx:id="groupsCountLabel" text="0" styleClass="count-pill" visible="false" managed="false" />
+
+                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll">
+                        <content>
+                            <FlowPane fx:id="groupCardsPane" hgap="14" vgap="14" prefWrapLength="1100" styleClass="cards-grid">
+                                <padding>
+                                    <Insets top="2" right="2" bottom="10" left="2" />
+                                </padding>
+                            </FlowPane>
+                        </content>
+                    </ScrollPane>
+                </VBox>
+
+                <VBox fx:id="invitationsContentPane" spacing="10" styleClass="empty-panel" visible="false" managed="false">
+                    <Label text="Invitations" styleClass="empty-title" />
+                    <Label text="La section invitations sera disponible bientôt." styleClass="empty-subtitle" />
+                </VBox>
+
+                <VBox fx:id="feedbacksContentPane" spacing="10" styleClass="empty-panel" visible="false" managed="false">
+                    <Label text="Feedbacks" styleClass="empty-title" />
+                    <Label text="La section feedbacks sera disponible bientôt." styleClass="empty-subtitle" />
+                </VBox>
+            </StackPane>
         </VBox>
     </center>
 </BorderPane>

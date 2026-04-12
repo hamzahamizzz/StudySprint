@@ -13,20 +13,32 @@ import java.util.List;
 
 public class GroupPostService {
     private final Connection connection;
+    private static List<GroupPost> cache;
+    private static boolean cacheDirty = true;
 
+    // Initialize database connection for post operations
     public GroupPostService() {
         this.connection = MyDatabase.getConnection();
     }
 
     // Retrieve all group posts
     public List<GroupPost> getAll() {
+        if (cache == null || cacheDirty) {
+            cache = fetchAllFromDatabase();
+            cacheDirty = false;
+        }
+        return cache;
+    }
+
+    // Fetch all posts from the database (used to refresh the cache).
+    private List<GroupPost> fetchAllFromDatabase() {
         String sql = "SELECT * FROM group_posts ORDER BY created_at DESC";
         List<GroupPost> posts = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                posts.add(mapRow(rs));
+                posts.add(mapRowToPost(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch all group posts", e);
@@ -35,23 +47,16 @@ public class GroupPostService {
         return posts;
     }
 
+    // Mark the in-memory cache as dirty.
+    private static void markCacheDirty() {
+        cacheDirty = true;
+    }
+
     // Get all posts for a specific group
     public List<GroupPost> getByGroup(int groupId) {
-        String sql = "SELECT * FROM group_posts WHERE group_id = ? ORDER BY created_at DESC";
-        List<GroupPost> posts = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, groupId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    posts.add(mapRow(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to fetch group posts", e);
-        }
-
-        return posts;
+        return getAll().stream()
+                .filter(p -> p.getGroupId() == groupId)
+                .toList();
     }
 
     // Search posts by keyword in title/body fields
@@ -63,6 +68,7 @@ public class GroupPostService {
                 .toList();
     }
 
+    // Insert a new group post into database
     public void add(GroupPost p) {
         String sql = "INSERT INTO group_posts (post_type, title, body, attachment_url, ai_summary, ai_category, ai_tags, created_at, group_id, author_id, parent_post_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -88,8 +94,11 @@ public class GroupPostService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add group post", e);
         }
+
+        markCacheDirty();
     }
 
+    // Update an existing group post in database
     public void update(GroupPost p) {
         String sql = "UPDATE group_posts SET post_type = ?, title = ?, body = ?, attachment_url = ?, ai_summary = ?, ai_category = ?, ai_tags = ?, created_at = ?, group_id = ?, author_id = ?, parent_post_id = ? WHERE id = ?";
 
@@ -114,8 +123,11 @@ public class GroupPostService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update group post", e);
         }
+
+        markCacheDirty();
     }
 
+    // Delete a group post by identifier
     public void delete(int id) {
         String sql = "DELETE FROM group_posts WHERE id = ?";
 
@@ -125,6 +137,8 @@ public class GroupPostService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete group post", e);
         }
+
+        markCacheDirty();
     }
 
     // Filter posts by type (Text, Image, Video, Poll, etc)
@@ -141,8 +155,8 @@ public class GroupPostService {
                 .toList();
     }
 
-    // Get posts with specific category tag
-    public List<GroupPost> getPostsWithCategory(String category) {
+    // Filter posts by AI category.
+    public List<GroupPost> filterByCategory(String category) {
         return getAll().stream()
                 .filter(p -> p.getAiCategory() != null && p.getAiCategory().equalsIgnoreCase(category))
                 .toList();
@@ -155,14 +169,15 @@ public class GroupPostService {
                 .count();
     }
 
-    // Get posts with attachments
-    public List<GroupPost> getPostsWithAttachments() {
+    // Filter posts that have an attachment.
+    public List<GroupPost> filterWithAttachment() {
         return getAll().stream()
                 .filter(p -> p.getAttachmentUrl() != null && !p.getAttachmentUrl().isBlank())
                 .toList();
     }
 
-    private GroupPost mapRow(ResultSet rs) throws SQLException {
+    // Map a SQL result row to GroupPost model
+    private GroupPost mapRowToPost(ResultSet rs) throws SQLException {
         return new GroupPost(
                 rs.getInt("id"),
                 rs.getString("post_type"),

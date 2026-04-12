@@ -11,9 +11,10 @@ public class HelloApplication extends Application {
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/fxml/groupes/GroupListView.fxml"));
-        Scene scene = new Scene(fxmlLoader.load(), 1000, 650);
+        Scene scene = new Scene(fxmlLoader.load());
         stage.setTitle("StudySprint - Groupes");
         stage.setScene(scene);
+        stage.setMaximized(true);
         stage.show();
     }
-}
+}   

@@ -10,29 +10,47 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class PostRatingService {
     private final Connection connection;
+    private static List<PostRating> cache;
+    private static boolean cacheDirty = true;
 
+    // Initialize database connection for rating operations
     public PostRatingService() {
         this.connection = MyDatabase.getConnection();
     }
 
     // Retrieve all post ratings
     public List<PostRating> getAll() {
+        if (cache == null || cacheDirty) {
+            cache = fetchAllFromDatabase();
+            cacheDirty = false;
+        }
+        return cache;
+    }
+
+    // Fetch all ratings from the database (used to refresh the cache).
+    private List<PostRating> fetchAllFromDatabase() {
         String sql = "SELECT * FROM post_rating ORDER BY created_at DESC";
         List<PostRating> ratings = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                ratings.add(mapRow(rs));
+                ratings.add(mapRowToRating(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch all post ratings", e);
         }
 
         return ratings;
+    }
+
+    // Mark the in-memory cache as dirty.
+    private static void markCacheDirty() {
+        cacheDirty = true;
     }
 
     // Rate or update rating (validates 1-5 range)
@@ -45,12 +63,12 @@ public class PostRatingService {
                 .filter(r -> r.getPostId() == postId && r.getUserId() == userId)
                 .findFirst()
                 .ifPresentOrElse(
-                    r -> updateRating(r.getId(), rating),
-                    () -> addRating(postId, userId, rating)
+                    r -> updateRatingById(r.getId(), rating),
+                    () -> insertRating(postId, userId, rating)
                 );
     }
 
-    // Calculate average rating for a post
+    // Calculate average rating for a post.
     public double averageRating(int postId) {
         return getAll().stream()
                 .filter(r -> r.getPostId() == postId)
@@ -66,14 +84,16 @@ public class PostRatingService {
                 .toList();
     }
 
-    // Get user's rating for a post (returns Optional)
-    public java.util.Optional<PostRating> getUserRating(int postId, int userId) {
+    // Get one user rating for a post.
+    public Optional<PostRating> getUserRating(int postId, int userId) {
         return getAll().stream()
                 .filter(r -> r.getPostId() == postId && r.getUserId() == userId)
                 .findFirst();
     }
 
-    private void addRating(int postId, int userId, int rating) {
+    // Insert a new rating record for user and post
+    // Insert a new rating for a user and post.
+    private void insertRating(int postId, int userId, int rating) {
         String sql = "INSERT INTO post_rating (rating, created_at, post_id, user_id) VALUES (?, ?, ?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -85,9 +105,13 @@ public class PostRatingService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add post rating", e);
         }
+
+        markCacheDirty();
     }
 
-    private void updateRating(int id, int rating) {
+    // Update an existing rating value by identifier
+    // Update an existing rating by its identifier.
+    private void updateRatingById(int id, int rating) {
         String sql = "UPDATE post_rating SET rating = ?, created_at = ? WHERE id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -98,9 +122,12 @@ public class PostRatingService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update post rating", e);
         }
+
+        markCacheDirty();
     }
 
-    private PostRating mapRow(ResultSet rs) throws SQLException {
+    // Map a SQL result row to PostRating model
+    private PostRating mapRowToRating(ResultSet rs) throws SQLException {
         return new PostRating(
                 rs.getInt("id"),
                 rs.getShort("rating"),

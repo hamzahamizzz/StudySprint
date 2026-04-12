@@ -9,30 +9,48 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 public class GroupService {
     private final Connection connection;
+    private static List<StudyGroup> cache;
+    private static boolean cacheDirty = true;
 
+    // Initialize database connection for group operations
     public GroupService() {
         this.connection = MyDatabase.getConnection();
     }
 
     // Retrieve all study groups - base method for stream filtering
     public List<StudyGroup> getAll() {
+        if (cache == null || cacheDirty) {
+            cache = fetchAllFromDatabase();
+            cacheDirty = false;
+        }
+        return cache;
+    }
+
+    // Fetch all study groups from the database (used to refresh the cache).
+    private List<StudyGroup> fetchAllFromDatabase() {
         String sql = "SELECT * FROM study_groups";
         List<StudyGroup> groups = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                groups.add(mapRow(rs));
+                groups.add(mapRowToStudyGroup(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch study groups", e);
         }
 
         return groups;
+    }
+
+    // Mark the in-memory cache as dirty.
+    private static void markCacheDirty() {
+        cacheDirty = true;
     }
 
     // Search groups by keyword in name/subject fields
@@ -44,20 +62,17 @@ public class GroupService {
                 .toList();
     }
 
-    // Sort groups by column (name, created_at, privacy)
+    // Sort groups by a supported column.
     public List<StudyGroup> sortBy(String column) {
         return switch (column != null ? column.toLowerCase() : "") {
             case "name" -> getAll().stream()
-                    .sorted((g1, g2) -> (g1.getName() != null && g2.getName() != null) 
-                            ? g1.getName().compareTo(g2.getName()) : 0)
+                .sorted(Comparator.comparing(StudyGroup::getName, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                     .toList();
             case "created_at" -> getAll().stream()
-                    .sorted((g1, g2) -> (g1.getCreatedAt() != null && g2.getCreatedAt() != null)
-                            ? g1.getCreatedAt().compareTo(g2.getCreatedAt()) : 0)
+                .sorted(Comparator.comparing(StudyGroup::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
                     .toList();
             case "privacy" -> getAll().stream()
-                    .sorted((g1, g2) -> (g1.getPrivacy() != null && g2.getPrivacy() != null)
-                            ? g1.getPrivacy().compareTo(g2.getPrivacy()) : 0)
+                .sorted(Comparator.comparing(StudyGroup::getPrivacy, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER)))
                     .toList();
             default -> getAll();
         };
@@ -65,21 +80,10 @@ public class GroupService {
 
     // Get group by ID
     public StudyGroup getById(int id) {
-        String sql = "SELECT * FROM study_groups WHERE id = ?";
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, id);
-
-            try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) {
-                    return mapRow(rs);
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to fetch study group by id", e);
-        }
-
-        return null;
+        return getAll().stream()
+                .filter(g -> g.getId() == id)
+                .findFirst()
+                .orElse(null);
     }
 
     // Filter groups by privacy setting
@@ -110,6 +114,7 @@ public class GroupService {
                 .count();
     }
 
+    // Insert a new study group into database
     public void add(StudyGroup g) {
         String sql = "INSERT INTO study_groups (name, description, privacy, subject, created_at, updated_at, last_activity, created_by_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -136,8 +141,11 @@ public class GroupService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add study group", e);
         }
+
+        markCacheDirty();
     }
 
+    // Update an existing study group in database
     public void update(StudyGroup g) {
         String sql = "UPDATE study_groups SET name = ?, description = ?, privacy = ?, subject = ?, updated_at = ?, last_activity = ?, created_by_id = ? WHERE id = ?";
 
@@ -162,8 +170,11 @@ public class GroupService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update study group", e);
         }
+
+        markCacheDirty();
     }
 
+    // Delete a study group by identifier
     public void delete(int id) {
         String sql = "DELETE FROM study_groups WHERE id = ?";
 
@@ -173,9 +184,12 @@ public class GroupService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete study group", e);
         }
+
+        markCacheDirty();
     }
 
-    private StudyGroup mapRow(ResultSet rs) throws SQLException {
+    // Map a SQL result row to StudyGroup model
+    private StudyGroup mapRowToStudyGroup(ResultSet rs) throws SQLException {
         return new StudyGroup(
                 rs.getInt("id"),
                 rs.getString("name"),

@@ -13,20 +13,32 @@ import java.util.List;
 
 public class GroupInvitationService {
     private final Connection connection;
+    private static List<GroupInvitation> cache;
+    private static boolean cacheDirty = true;
 
+    // Initialize database connection for invitation operations
     public GroupInvitationService() {
         this.connection = MyDatabase.getConnection();
     }
 
     // Retrieve all group invitations
     public List<GroupInvitation> getAll() {
+        if (cache == null || cacheDirty) {
+            cache = fetchAllFromDatabase();
+            cacheDirty = false;
+        }
+        return cache;
+    }
+
+    // Fetch all invitations from the database (used to refresh the cache).
+    private List<GroupInvitation> fetchAllFromDatabase() {
         String sql = "SELECT * FROM group_invitation ORDER BY invited_at DESC";
         List<GroupInvitation> invitations = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                invitations.add(mapRow(rs));
+                invitations.add(mapRowToInvitation(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch all group invitations", e);
@@ -35,24 +47,19 @@ public class GroupInvitationService {
         return invitations;
     }
 
-    public List<GroupInvitation> getByGroup(int groupId) {
-        String sql = "SELECT * FROM group_invitation WHERE group_id = ? ORDER BY invited_at DESC";
-        List<GroupInvitation> invitations = new ArrayList<>();
-
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setInt(1, groupId);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    invitations.add(mapRow(rs));
-                }
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException("Failed to fetch group invitations", e);
-        }
-
-        return invitations;
+    // Mark the in-memory cache as dirty.
+    private static void markCacheDirty() {
+        cacheDirty = true;
     }
 
+    // Get all invitations for a specific group
+    public List<GroupInvitation> getByGroup(int groupId) {
+        return getAll().stream()
+                .filter(inv -> inv.getGroupId() == groupId)
+                .toList();
+    }
+
+    // Insert a new group invitation into database
     public void add(GroupInvitation inv) {
         String sql = "INSERT INTO group_invitation (email, invited_at, code, status, role, responded_at, token, message, expires_at, group_id, invited_by_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -69,13 +76,20 @@ public class GroupInvitationService {
             ps.setString(8, inv.getMessage());
             ps.setTimestamp(9, inv.getExpiresAt());
             ps.setInt(10, inv.getGroupId());
-            ps.setInt(11, inv.getInvitedById());
+            if (inv.getInvitedById() != null) {
+                ps.setInt(11, inv.getInvitedById());
+            } else {
+                ps.setNull(11, java.sql.Types.INTEGER);
+            }
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add group invitation", e);
         }
+
+        markCacheDirty();
     }
 
+    // Update invitation status and response timestamp
     public void updateStatus(int id, String status) {
         String sql = "UPDATE group_invitation SET status = ?, responded_at = ? WHERE id = ?";
 
@@ -87,8 +101,11 @@ public class GroupInvitationService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to update invitation status", e);
         }
+
+        markCacheDirty();
     }
 
+    // Delete an invitation by identifier
     public void delete(int id) {
         String sql = "DELETE FROM group_invitation WHERE id = ?";
 
@@ -98,6 +115,8 @@ public class GroupInvitationService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete group invitation", e);
         }
+
+        markCacheDirty();
     }
 
     // Filter invitations by status (Pending, Accepted, Declined, Expired)
@@ -129,7 +148,8 @@ public class GroupInvitationService {
                 .count();
     }
 
-    private GroupInvitation mapRow(ResultSet rs) throws SQLException {
+    // Map a SQL result row to GroupInvitation model
+    private GroupInvitation mapRowToInvitation(ResultSet rs) throws SQLException {
         return new GroupInvitation(
                 rs.getInt("id"),
                 rs.getString("email"),
@@ -142,7 +162,7 @@ public class GroupInvitationService {
                 rs.getString("message"),
                 rs.getTimestamp("expires_at"),
                 rs.getInt("group_id"),
-                rs.getInt("invited_by_id")
+                rs.getObject("invited_by_id") == null ? null : rs.getInt("invited_by_id")
         );
     }
 }

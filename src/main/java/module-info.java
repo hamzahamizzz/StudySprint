@@ -2,10 +2,12 @@ module com.example.studysprint {
     requires javafx.controls;
     requires javafx.fxml;
     requires java.sql;
+    requires java.desktop;
     requires jakarta.persistence;
 
     requires org.controlsfx.controls;
     requires org.kordamp.ikonli.javafx;
+    requires org.kordamp.ikonli.fontawesome5;
     requires org.kordamp.bootstrapfx.core;
 
     opens com.example.studysprint to javafx.fxml;

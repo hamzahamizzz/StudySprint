@@ -16,13 +16,13 @@
     <padding>
         <Insets top="12" right="12" bottom="12" left="12" />
     </padding>
-    <Label text="Name" styleClass="field-label" GridPane.rowIndex="0" GridPane.columnIndex="0" />
-    <TextField fx:id="nameField" promptText="Group name" styleClass="field-input" GridPane.rowIndex="0" GridPane.columnIndex="1" />
+    <Label text="Nom" styleClass="field-label" GridPane.rowIndex="0" GridPane.columnIndex="0" />
+    <TextField fx:id="nameField" promptText="Nom du groupe" styleClass="field-input" GridPane.rowIndex="0" GridPane.columnIndex="1" />
 
     <Label text="Description" styleClass="field-label" GridPane.rowIndex="1" GridPane.columnIndex="0" />
-    <TextArea fx:id="descriptionField" promptText="Group description" prefRowCount="4" styleClass="field-input" GridPane.rowIndex="1" GridPane.columnIndex="1" />
+    <TextArea fx:id="descriptionField" promptText="Description du groupe" prefRowCount="4" styleClass="field-input" GridPane.rowIndex="1" GridPane.columnIndex="1" />
 
-    <Label text="Privacy" styleClass="field-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />
+    <Label text="Confidentialite" styleClass="field-label" GridPane.rowIndex="2" GridPane.columnIndex="0" />
     <ChoiceBox fx:id="privacyChoice" styleClass="field-input" GridPane.rowIndex="2" GridPane.columnIndex="1">
         <items>
             <FXCollections fx:factory="observableArrayList">
@@ -32,6 +32,6 @@
         </items>
     </ChoiceBox>
 
-    <Label text="Subject" styleClass="field-label" GridPane.rowIndex="3" GridPane.columnIndex="0" />
-    <TextField fx:id="subjectField" promptText="Subject" styleClass="field-input" GridPane.rowIndex="3" GridPane.columnIndex="1" />
+    <Label text="Matiere" styleClass="field-label" GridPane.rowIndex="3" GridPane.columnIndex="0" />
+    <TextField fx:id="subjectField" promptText="Matiere" styleClass="field-input" GridPane.rowIndex="3" GridPane.columnIndex="1" />
 </GridPane>

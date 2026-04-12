@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:id="rootPane"
+            fx:controller="com.example.studysprint.modules.groupes.controllers.GroupDetailController"
+            stylesheets="@../../styles/groupes-light-blue.css"
+            styleClass="group-page">
+
+    <top>
+        <VBox spacing="0" styleClass="header-shell">
+            <HBox styleClass="header-bar" alignment="CENTER_LEFT">
+                <padding>
+                    <Insets top="10" right="24" bottom="10" left="24" />
+                </padding>
+                <Label fx:id="pageTitleLabel" text="StudySprint" styleClass="header-title" />
+            </HBox>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll">
+            <content>
+                <VBox spacing="16" styleClass="content-area">
+                    <padding>
+                        <Insets top="14" right="24" bottom="20" left="24" />
+                    </padding>
+
+                    <HBox alignment="CENTER_LEFT" spacing="8">
+                        <Button fx:id="backToGroupsButton" text="Retour aux groupes" onAction="#onBackToGroups" styleClass="link-back-btn" />
+                    </HBox>
+
+                    <HBox spacing="16" styleClass="detail-summary-card" alignment="TOP_LEFT">
+                        <Label fx:id="groupAvatarLabel" text="G" styleClass="group-avatar" />
+                        <VBox spacing="4">
+                            <Label fx:id="groupNameLabel" text="Nom du groupe" styleClass="group-title" />
+                            <Label fx:id="groupSubjectLabel" text="Sujet" styleClass="group-subject" />
+                            <VBox spacing="3" styleClass="detail-meta-stack">
+                                <Label fx:id="groupSubjectMetaLabel" text="Matiere" styleClass="group-meta" />
+                                <Label fx:id="groupCreatedLabel" text="Cree il y a 1 jour" styleClass="group-meta" />
+                            </VBox>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS" />
+                        <HBox spacing="10" alignment="TOP_RIGHT" styleClass="detail-header-actions">
+                            <Button fx:id="groupSettingsButton" text="Parametres" onAction="#onGroupSettings" styleClass="detail-outline-btn" />
+                            <Button fx:id="groupDeleteButton" text="Supprimer" onAction="#onDeleteGroup" styleClass="detail-danger-btn" />
+                        </HBox>
+                    </HBox>
+
+                    <HBox spacing="16" alignment="TOP_LEFT">
+                        <VBox spacing="12" HBox.hgrow="ALWAYS">
+                            <HBox fx:id="composeCompactBox" spacing="12" alignment="CENTER_LEFT" styleClass="detail-compose-compact" onMouseClicked="#onOpenComposer">
+                                <Label fx:id="composeAvatarLabel" text="MH" styleClass="detail-ai-avatar" />
+                                <StackPane HBox.hgrow="ALWAYS" styleClass="compose-compact-input-shell">
+                                    <Label text="Partager une question ou une idée..." styleClass="compose-compact-placeholder" />
+                                </StackPane>
+                            </HBox>
+
+                            <VBox fx:id="composeEditorBox" spacing="14" styleClass="detail-compose-editor" visible="false" managed="false">
+                                <HBox spacing="12" alignment="CENTER_LEFT" styleClass="compose-editor-head">
+                                    <Label fx:id="composeEditorAvatarLabel" text="MH" styleClass="detail-ai-avatar" />
+
+                                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="compose-tabs-row">
+                                        <Button fx:id="tabTextButton" text="Texte" onAction="#onComposeTabText" styleClass="compose-tab-btn" />
+                                        <Button fx:id="tabFileButton" text="Fichier" onAction="#onComposeTabFile" styleClass="compose-tab-btn" />
+                                        <Button fx:id="tabLinkButton" text="Lien" onAction="#onComposeTabLink" styleClass="compose-tab-btn" />
+                                    </HBox>
+                                </HBox>
+
+                                <Region styleClass="compose-top-divider" />
+
+                                <VBox fx:id="composeTextPane" spacing="10">
+                                    <TextField fx:id="composeTextTitleField" promptText="Titre de votre post (optionnel)" styleClass="compose-field" />
+                                    <TextArea fx:id="composeTextBodyArea" promptText="Quelle est votre question ou idée?" styleClass="compose-area" wrapText="true" prefRowCount="4" />
+                                </VBox>
+
+                                <VBox fx:id="composeFilePane" spacing="10" visible="false" managed="false">
+                                    <TextField fx:id="composeFileTitleField" promptText="Titre de votre fichier (optionnel)" styleClass="compose-field" />
+                                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="compose-upload-box">
+                                        <Button text="Choisir un fichier" onAction="#onChooseComposeFile" styleClass="compose-upload-btn" />
+                                        <Label fx:id="composeFilePathLabel" text="Aucun fichier selectionne" styleClass="group-meta" maxWidth="260" />
+                                    </HBox>
+                                    <TextArea fx:id="composeFileDescArea" promptText="Ajouter une description..." styleClass="compose-area" wrapText="true" prefRowCount="3" />
+                                </VBox>
+
+                                <VBox fx:id="composeLinkPane" spacing="10" visible="false" managed="false">
+                                    <TextField fx:id="composeLinkTitleField" promptText="Titre du lien (optionnel)" styleClass="compose-field" />
+                                    <TextField fx:id="composeLinkUrlField" promptText="https://exemple.com" styleClass="compose-field" />
+                                    <TextArea fx:id="composeLinkCommentArea" promptText="Ajouter un commentaire..." styleClass="compose-area" wrapText="true" prefRowCount="3" />
+                                </VBox>
+
+                                <HBox alignment="CENTER_RIGHT" spacing="10" styleClass="compose-actions-row">
+                                    <Button text="Annuler" onAction="#onCancelCompose" styleClass="compose-cancel-btn" />
+                                    <Button text="Publier" onAction="#onPublishCompose" styleClass="compose-publish-btn" />
+                                </HBox>
+                            </VBox>
+
+                            <VBox fx:id="postsListBox" spacing="12" styleClass="detail-posts-list">
+                                <padding>
+                                    <Insets top="2" right="2" bottom="10" left="2" />
+                                </padding>
+                            </VBox>
+                        </VBox>
+
+                        <VBox spacing="14" prefWidth="340" minWidth="300" maxWidth="380">
+                            <VBox spacing="10" styleClass="detail-side-card">
+                                <Label fx:id="memberCountLabel" text="Membres (0)" styleClass="detail-side-title" />
+                                <VBox fx:id="membersListBox" spacing="8" />
+                            </VBox>
+
+                            <VBox spacing="10" styleClass="detail-side-card">
+                                <Label text="Informations" styleClass="detail-side-title" />
+                                <HBox><Label text="Matiere:" styleClass="group-meta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="infoSubjectValueLabel" text="-" styleClass="detail-info-value"/></HBox>
+                                <HBox><Label text="Type:" styleClass="group-meta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="infoTypeValueLabel" text="-" styleClass="detail-info-value"/></HBox>
+                                <HBox><Label text="Cree:" styleClass="group-meta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="infoCreatedValueLabel" text="-" styleClass="detail-info-value"/></HBox>
+                                <HBox><Label text="Posts:" styleClass="group-meta"/><Region HBox.hgrow="ALWAYS"/><Label fx:id="infoPostsValueLabel" text="0" styleClass="detail-info-value"/></HBox>
+                            </VBox>
+
+                        </VBox>
+                    </HBox>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

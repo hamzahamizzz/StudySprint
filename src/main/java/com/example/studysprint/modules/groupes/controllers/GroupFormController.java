@@ -1,12 +1,14 @@
 package com.example.studysprint.modules.groupes.controllers;
 
 import com.example.studysprint.modules.groupes.models.StudyGroup;
+import com.example.studysprint.modules.groupes.utils.GroupUiUtils;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
-import javafx.scene.control.Alert;
+import javafx.stage.Window;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.Dialog;
@@ -29,48 +31,44 @@ public class GroupFormController {
     @FXML
     private TextField subjectField;
 
-    @FXML
-    public void initialize() {
-        // Fields are injected from FXML
-    }
-
-    // Display form dialog and return edited StudyGroup or null if cancelled
-    public StudyGroup showDialog(StudyGroup existing) {
+    // Open modal form and return created/edited group, or null when cancelled.
+    public static StudyGroup showDialog(StudyGroup existing, Window owner) {
         try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/groupes/GroupFormView.fxml"));
+            FXMLLoader loader = new FXMLLoader(GroupFormController.class.getResource("/fxml/groupes/GroupFormView.fxml"));
             Parent content = loader.load();
             GroupFormController controller = loader.getController();
 
-            // Populate existing data if editing
-            if (existing != null) {
-                controller.nameField.setText(existing.getName());
-                controller.descriptionField.setText(existing.getDescription());
-                controller.privacyChoice.setValue(existing.getPrivacy());
-                controller.subjectField.setText(existing.getSubject());
-            } else {
-                controller.privacyChoice.setValue("public");
-            }
+            controller.prefill(existing);
 
             Dialog<ButtonType> dialog = new Dialog<>();
+            if (owner != null) {
+                dialog.initOwner(owner);
+            }
             dialog.setTitle(existing == null ? "Ajouter un groupe" : "Modifier le groupe");
             dialog.setHeaderText(existing == null ? "Remplissez les informations du nouveau groupe" : "Mettez a jour les informations du groupe");
 
             DialogPane pane = dialog.getDialogPane();
             pane.setContent(content);
 
-            ButtonType saveType = new ButtonType(existing == null ? "➕ Ajouter" : "💾 Enregistrer");
-            ButtonType cancelType = new ButtonType("✖ Annuler");
+            ButtonType saveType = new ButtonType(existing == null ? "Ajouter" : "Enregistrer", ButtonBar.ButtonData.OK_DONE);
+            ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
             pane.getButtonTypes().addAll(saveType, cancelType);
-            applyDialogStyle(pane);
+            GroupUiUtils.applyDialogStyle(pane, GroupFormController.class);
 
             Button saveButton = (Button) pane.lookupButton(saveType);
             if (saveButton != null) {
                 saveButton.getStyleClass().add("primary-btn");
+                saveButton.setGraphic(GroupUiUtils.icon(existing == null ? "fas-plus" : "fas-save", "detail-dialog-icon"));
                 saveButton.addEventFilter(ActionEvent.ACTION, event -> {
                     if (!controller.validateForm()) {
                         event.consume();
                     }
                 });
+            }
+
+            Button cancelButton = (Button) pane.lookupButton(cancelType);
+            if (cancelButton != null) {
+                cancelButton.setGraphic(GroupUiUtils.icon("fas-times", "detail-dialog-icon"));
             }
 
             Optional<ButtonType> result = dialog.showAndWait();
@@ -80,23 +78,43 @@ public class GroupFormController {
 
             return controller.buildGroupFromForm(existing);
         } catch (IOException e) {
-            showError("Formulaire indisponible", "Impossible d'ouvrir le formulaire pour le moment.", e.getMessage());
+            GroupUiUtils.showError(owner, GroupFormController.class,
+                    "Formulaire indisponible",
+                    "Impossible d'ouvrir le formulaire pour le moment.",
+                    e.getMessage());
             return null;
         }
     }
 
+    // Pre-fill fields in edit mode.
+    private void prefill(StudyGroup existing) {
+        if (existing != null) {
+            nameField.setText(existing.getName());
+            descriptionField.setText(existing.getDescription());
+            privacyChoice.setValue(existing.getPrivacy());
+            subjectField.setText(existing.getSubject());
+        } else {
+            privacyChoice.setValue("public");
+        }
+    }
+
+    // Validate required fields.
     private boolean validateForm() {
         String name = nameField.getText() == null ? "" : nameField.getText().trim();
         String subject = subjectField.getText() == null ? "" : subjectField.getText().trim();
 
         if (name.isBlank() || subject.isBlank()) {
-            showWarning("Validation", "Le nom et la matiere sont obligatoires.");
+            GroupUiUtils.showWarning(nameField.getScene() == null ? null : nameField.getScene().getWindow(),
+                    GroupFormController.class,
+                    "Validation",
+                    "Le nom et la matiere sont obligatoires.");
             return false;
         }
 
         return true;
     }
 
+    // Build group model from form values.
     private StudyGroup buildGroupFromForm(StudyGroup existing) {
         StudyGroup group = existing == null ? new StudyGroup() : existing;
         group.setName(nameField.getText().trim());
@@ -116,34 +134,5 @@ public class GroupFormController {
         }
 
         return group;
-    }
-
-    private void showWarning(String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Attention");
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        applyDialogStyle(alert.getDialogPane());
-        alert.showAndWait();
-    }
-
-    private void showError(String header, String content, String details) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erreur");
-        alert.setHeaderText(header);
-        alert.setContentText(content + (details == null ? "" : "\n" + details));
-        applyDialogStyle(alert.getDialogPane());
-        alert.showAndWait();
-    }
-
-    private void applyDialogStyle(DialogPane pane) {
-        var cssUrl = getClass().getResource("/styles/groupes-light-blue.css");
-        if (cssUrl == null) {
-            return;
-        }
-        String stylesheet = cssUrl.toExternalForm();
-        if (!pane.getStylesheets().contains(stylesheet)) {
-            pane.getStylesheets().add(stylesheet);
-        }
     }
 }

@@ -13,20 +13,32 @@ import java.util.List;
 
 public class PostLikeService {
     private final Connection connection;
+    private static List<PostLike> cache;
+    private static boolean cacheDirty = true;
 
+    // Initialize database connection for like operations
     public PostLikeService() {
         this.connection = MyDatabase.getConnection();
     }
 
     // Retrieve all post likes
     public List<PostLike> getAll() {
+        if (cache == null || cacheDirty) {
+            cache = fetchAllFromDatabase();
+            cacheDirty = false;
+        }
+        return cache;
+    }
+
+    // Fetch all likes from the database (used to refresh the cache).
+    private List<PostLike> fetchAllFromDatabase() {
         String sql = "SELECT * FROM post_like ORDER BY created_at DESC";
         List<PostLike> likes = new ArrayList<>();
 
         try (PreparedStatement ps = connection.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
             while (rs.next()) {
-                likes.add(mapRow(rs));
+                likes.add(mapRowToLike(rs));
             }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to fetch all post likes", e);
@@ -35,39 +47,46 @@ public class PostLikeService {
         return likes;
     }
 
-    // Toggle like: remove if exists, add if not
+    // Mark the in-memory cache as dirty.
+    private static void markCacheDirty() {
+        cacheDirty = true;
+    }
+
+    // Toggle like for one user and post.
     public void toggleLike(int postId, int userId) {
         getAll().stream()
                 .filter(like -> like.getPostId() == postId && like.getUserId() == userId)
                 .findFirst()
                 .ifPresentOrElse(
-                    like -> deleteLike(like.getId()),
-                    () -> addLike(postId, userId)
+                    like -> deleteLikeById(like.getId()),
+                    () -> insertLike(postId, userId)
                 );
     }
 
-    // Count total likes for a post
+    // Count likes for a post.
     public int countByPost(int postId) {
         return (int) getAll().stream()
                 .filter(like -> like.getPostId() == postId)
                 .count();
     }
 
-    // Get all likes for a post
+    // Get likes for a post.
     public List<PostLike> getByPost(int postId) {
         return getAll().stream()
                 .filter(like -> like.getPostId() == postId)
                 .toList();
     }
 
-    // Get all likes by a user
+    // Get likes created by a user.
     public List<PostLike> getByUser(int userId) {
         return getAll().stream()
                 .filter(like -> like.getUserId() == userId)
                 .toList();
     }
 
-    private void addLike(int postId, int userId) {
+    // Insert a like record for user and post
+    // Insert a like record for the given user and post.
+    private void insertLike(int postId, int userId) {
         String sql = "INSERT INTO post_like (created_at, post_id, user_id) VALUES (?, ?, ?)";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -78,9 +97,13 @@ public class PostLikeService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add post like", e);
         }
+
+        markCacheDirty();
     }
 
-    private void deleteLike(int id) {
+    // Delete a like record by identifier
+    // Delete a like record by its identifier.
+    private void deleteLikeById(int id) {
         String sql = "DELETE FROM post_like WHERE id = ?";
 
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -89,9 +112,12 @@ public class PostLikeService {
         } catch (SQLException e) {
             throw new RuntimeException("Failed to delete post like", e);
         }
+
+        markCacheDirty();
     }
 
-    private PostLike mapRow(ResultSet rs) throws SQLException {
+    // Map a SQL result row to PostLike model
+    private PostLike mapRowToLike(ResultSet rs) throws SQLException {
         return new PostLike(
                 rs.getInt("id"),
                 rs.getTimestamp("created_at"),
