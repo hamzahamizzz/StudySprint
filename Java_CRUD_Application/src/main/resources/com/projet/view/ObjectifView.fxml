@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.collections.FXCollections?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.geometry.Insets?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projet.controller.ObjectifController">
+    <center>
+        <TableView fx:id="tableObjectifs" prefWidth="500">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="50" />
+                <TableColumn fx:id="colTitre" text="Titre" prefWidth="150" />
+                <TableColumn fx:id="colDescription" text="Description" prefWidth="150" />
+                <TableColumn fx:id="colDateDebut" text="Début" prefWidth="100" />
+                <TableColumn fx:id="colDateFin" text="Fin" prefWidth="100" />
+                <TableColumn fx:id="colStatut" text="Statut" prefWidth="100" />
+            </columns>
+        </TableView>
+    </center>
+    <right>
+        <VBox spacing="10" style="-fx-padding: 10;" prefWidth="250">
+            <Label text="Ajouter / Modifier Objectif" style="-fx-font-weight: bold;" />
+            <TextField fx:id="txtTitre" promptText="Titre de l'objectif" />
+            <TextArea fx:id="txtDescription" promptText="Description" prefRowCount="3" />
+            <DatePicker fx:id="dpDateDebut" promptText="Date de début" />
+            <DatePicker fx:id="dpDateFin" promptText="Date de fin" />
+            <ComboBox fx:id="cbStatut" prefWidth="150" />
+            <HBox spacing="10" alignment="CENTER">
+                <Button text="Ajouter" onAction="#handleAjouter" />
+                <Button text="Modifier" onAction="#handleModifier" />
+            </HBox>
+            <Button text="Supprimer sélection" onAction="#handleSupprimer" style="-fx-text-fill: red;" />
+        </VBox>
+    </right>
+</BorderPane>
