@@ -15,24 +15,21 @@ import java.util.Optional;
 public class PostRatingService {
     private final Connection connection;
     private static List<PostRating> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for rating operations
     public PostRatingService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all post ratings
     public List<PostRating> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all ratings from the database (used to refresh the cache).
-    private List<PostRating> fetchAllFromDatabase() {
+    private List<PostRating> getAllFromDB() {
         String sql = "SELECT * FROM post_rating ORDER BY created_at DESC";
         List<PostRating> ratings = new ArrayList<>();
 
@@ -48,12 +45,10 @@ public class PostRatingService {
         return ratings;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Rate or update rating (validates 1-5 range)
     public void rate(int postId, int userId, int rating) {
         if (rating < 1 || rating > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
@@ -68,7 +63,6 @@ public class PostRatingService {
                 );
     }
 
-    // Calculate average rating for a post.
     public double averageRating(int postId) {
         return getAll().stream()
                 .filter(r -> r.getPostId() == postId)
@@ -77,22 +71,18 @@ public class PostRatingService {
                 .orElse(0.0);
     }
 
-    // Get all ratings for a post
     public List<PostRating> getByPost(int postId) {
         return getAll().stream()
                 .filter(r -> r.getPostId() == postId)
                 .toList();
     }
 
-    // Get one user rating for a post.
     public Optional<PostRating> getUserRating(int postId, int userId) {
         return getAll().stream()
                 .filter(r -> r.getPostId() == postId && r.getUserId() == userId)
                 .findFirst();
     }
 
-    // Insert a new rating record for user and post
-    // Insert a new rating for a user and post.
     private void insertRating(int postId, int userId, int rating) {
         String sql = "INSERT INTO post_rating (rating, created_at, post_id, user_id) VALUES (?, ?, ?, ?)";
 
@@ -106,11 +96,9 @@ public class PostRatingService {
             throw new RuntimeException("Failed to add post rating", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Update an existing rating value by identifier
-    // Update an existing rating by its identifier.
     private void updateRatingById(int id, int rating) {
         String sql = "UPDATE post_rating SET rating = ?, created_at = ? WHERE id = ?";
 
@@ -123,10 +111,9 @@ public class PostRatingService {
             throw new RuntimeException("Failed to update post rating", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Map a SQL result row to PostRating model
     private PostRating mapRowToRating(ResultSet rs) throws SQLException {
         return new PostRating(
                 rs.getInt("id"),

@@ -14,24 +14,21 @@ import java.util.List;
 public class GroupInvitationService {
     private final Connection connection;
     private static List<GroupInvitation> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for invitation operations
     public GroupInvitationService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all group invitations
     public List<GroupInvitation> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all invitations from the database (used to refresh the cache).
-    private List<GroupInvitation> fetchAllFromDatabase() {
+    private List<GroupInvitation> getAllFromDB() {
         String sql = "SELECT * FROM group_invitation ORDER BY invited_at DESC";
         List<GroupInvitation> invitations = new ArrayList<>();
 
@@ -47,19 +44,16 @@ public class GroupInvitationService {
         return invitations;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Get all invitations for a specific group
     public List<GroupInvitation> getByGroup(int groupId) {
         return getAll().stream()
                 .filter(inv -> inv.getGroupId() == groupId)
                 .toList();
     }
 
-    // Insert a new group invitation into database
     public void add(GroupInvitation inv) {
         String sql = "INSERT INTO group_invitation (email, invited_at, code, status, role, responded_at, token, message, expires_at, group_id, invited_by_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -86,10 +80,9 @@ public class GroupInvitationService {
             throw new RuntimeException("Failed to add group invitation", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Update invitation status and response timestamp
     public void updateStatus(int id, String status) {
         String sql = "UPDATE group_invitation SET status = ?, responded_at = ? WHERE id = ?";
 
@@ -102,10 +95,9 @@ public class GroupInvitationService {
             throw new RuntimeException("Failed to update invitation status", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Delete an invitation by identifier
     public void delete(int id) {
         String sql = "DELETE FROM group_invitation WHERE id = ?";
 
@@ -116,24 +108,21 @@ public class GroupInvitationService {
             throw new RuntimeException("Failed to delete group invitation", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Filter invitations by status (Pending, Accepted, Declined, Expired)
     public List<GroupInvitation> filterByStatus(String status) {
         return getAll().stream()
                 .filter(inv -> inv.getStatus() != null && inv.getStatus().equalsIgnoreCase(status))
                 .toList();
     }
 
-    // Filter invitations by role offered
     public List<GroupInvitation> filterByRole(String role) {
         return getAll().stream()
                 .filter(inv -> inv.getRole() != null && inv.getRole().equalsIgnoreCase(role))
                 .toList();
     }
 
-    // Get all expired invitations
     public List<GroupInvitation> getExpiredInvitations() {
         long now = System.currentTimeMillis();
         return getAll().stream()
@@ -141,14 +130,12 @@ public class GroupInvitationService {
                 .toList();
     }
 
-    // Count pending invitations for a group
     public long countPendingInvitations(int groupId) {
         return getAll().stream()
                 .filter(inv -> inv.getGroupId() == groupId && inv.getStatus() != null && inv.getStatus().equalsIgnoreCase("PENDING"))
                 .count();
     }
 
-    // Map a SQL result row to GroupInvitation model
     private GroupInvitation mapRowToInvitation(ResultSet rs) throws SQLException {
         return new GroupInvitation(
                 rs.getInt("id"),

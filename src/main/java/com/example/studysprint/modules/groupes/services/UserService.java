@@ -11,19 +11,17 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class UserService {
 
-    // Minimal user data needed by the UI.
     public record UserDisplay(String fullName, String email, String initials) {
     }
 
     private final Connection connection;
     private final Map<Integer, UserDisplay> cacheById = new ConcurrentHashMap<>();
 
-    // Initialize database connection for user lookup.
     public UserService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Get a user display (name/email/initials) by id.
+    // Load the user info needed by the UI.
     public UserDisplay getDisplay(Integer userId) {
         if (userId == null) {
             return unknown(null);
@@ -31,7 +29,7 @@ public class UserService {
         return cacheById.computeIfAbsent(userId, this::loadDisplayFromDatabase);
     }
 
-    // Load the user display from the database.
+    // Read the user's name and email from the database.
     private UserDisplay loadDisplayFromDatabase(int userId) {
         String sql = "SELECT prenom, nom, email FROM users WHERE id = ?";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -56,14 +54,14 @@ public class UserService {
         }
     }
 
-    // Build a full name from first name and last name.
+    // Combine first name and last name into one display string.
     private static String buildFullName(String firstName, String lastName) {
         String f = firstName == null ? "" : firstName.trim();
         String l = lastName == null ? "" : lastName.trim();
         return (f + " " + l).trim();
     }
 
-    // Return the first uppercase letter for avatars.
+    // Extract the first letter used in avatar labels.
     private static String initial(String value) {
         if (value == null || value.isBlank()) {
             return "U";
@@ -71,7 +69,7 @@ public class UserService {
         return value.substring(0, 1).toUpperCase();
     }
 
-    // Fallback display when database lookup fails.
+    // Return a fallback identity when the lookup fails.
     private static UserDisplay unknown(Integer userId) {
         String label = userId == null ? "Utilisateur" : ("Utilisateur #" + userId);
         return new UserDisplay(label, "", initial(label));

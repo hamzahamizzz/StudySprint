@@ -1,62 +1,21 @@
 package com.example.studysprint.modules.groupes.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
 import java.sql.Timestamp;
 
-@Entity
-@Table(name = "group_invitation")
 public class GroupInvitation {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "email", nullable = false)
     private String email;
-
-    @Column(name = "invited_at", nullable = false)
     private Timestamp invitedAt;
-
-    @Column(name = "code", nullable = false)
     private String code;
-
-    @Column(name = "status", nullable = false)
     private String status;
-
-    @Column(name = "role", nullable = false)
     private String role;
-
-    @Column(name = "responded_at")
     private Timestamp respondedAt;
-
-    @Column(name = "token")
     private String token;
-
-    @Column(name = "message", columnDefinition = "LONGTEXT")
     private String message;
-
-    @Column(name = "expires_at")
     private Timestamp expiresAt;
-
-    @Column(name = "group_id", nullable = false)
     private Integer groupId;
-
-    @Column(name = "invited_by_id")
     private Integer invitedById;
-
-    @ManyToOne
-    @JoinColumn(name = "group_id", insertable = false, updatable = false)
     private StudyGroup group;
-
-    @ManyToOne
-    @JoinColumn(name = "invited_by_id", insertable = false, updatable = false)
     private User invitedBy;
 
     public GroupInvitation() {

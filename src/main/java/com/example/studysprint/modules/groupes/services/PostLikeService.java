@@ -14,24 +14,21 @@ import java.util.List;
 public class PostLikeService {
     private final Connection connection;
     private static List<PostLike> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for like operations
     public PostLikeService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all post likes
     public List<PostLike> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all likes from the database (used to refresh the cache).
-    private List<PostLike> fetchAllFromDatabase() {
+    private List<PostLike> getAllFromDB() {
         String sql = "SELECT * FROM post_like ORDER BY created_at DESC";
         List<PostLike> likes = new ArrayList<>();
 
@@ -47,12 +44,10 @@ public class PostLikeService {
         return likes;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Toggle like for one user and post.
     public void toggleLike(int postId, int userId) {
         getAll().stream()
                 .filter(like -> like.getPostId() == postId && like.getUserId() == userId)
@@ -63,29 +58,24 @@ public class PostLikeService {
                 );
     }
 
-    // Count likes for a post.
     public int countByPost(int postId) {
         return (int) getAll().stream()
                 .filter(like -> like.getPostId() == postId)
                 .count();
     }
 
-    // Get likes for a post.
     public List<PostLike> getByPost(int postId) {
         return getAll().stream()
                 .filter(like -> like.getPostId() == postId)
                 .toList();
     }
 
-    // Get likes created by a user.
     public List<PostLike> getByUser(int userId) {
         return getAll().stream()
                 .filter(like -> like.getUserId() == userId)
                 .toList();
     }
 
-    // Insert a like record for user and post
-    // Insert a like record for the given user and post.
     private void insertLike(int postId, int userId) {
         String sql = "INSERT INTO post_like (created_at, post_id, user_id) VALUES (?, ?, ?)";
 
@@ -98,11 +88,9 @@ public class PostLikeService {
             throw new RuntimeException("Failed to add post like", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Delete a like record by identifier
-    // Delete a like record by its identifier.
     private void deleteLikeById(int id) {
         String sql = "DELETE FROM post_like WHERE id = ?";
 
@@ -113,10 +101,9 @@ public class PostLikeService {
             throw new RuntimeException("Failed to delete post like", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Map a SQL result row to PostLike model
     private PostLike mapRowToLike(ResultSet rs) throws SQLException {
         return new PostLike(
                 rs.getInt("id"),

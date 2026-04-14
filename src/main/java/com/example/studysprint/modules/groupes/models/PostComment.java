@@ -1,60 +1,26 @@
 package com.example.studysprint.modules.groupes.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.ArrayList;
 
-@Entity
-@Table(name = "post_comment")
 public class PostComment {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "depth", nullable = false)
     private Integer depth;
-
-    @Column(name = "body", nullable = false, columnDefinition = "LONGTEXT")
     private String body;
-
-    @Column(name = "is_bot", nullable = false)
     private Boolean isBot;
-
-    @Column(name = "bot_name")
     private String botName;
-
-    @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
-
-    @Column(name = "post_id", nullable = false)
     private Integer postId;
-
-    @Column(name = "author_id", nullable = false)
     private Integer authorId;
-
-    @Column(name = "parent_comment_id")
     private Integer parentCommentId;
-
-    @ManyToOne
-    @JoinColumn(name = "post_id", insertable = false, updatable = false)
     private GroupPost post;
-
-    @ManyToOne
-    @JoinColumn(name = "author_id", insertable = false, updatable = false)
     private User author;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_comment_id", insertable = false, updatable = false)
     private PostComment parentComment;
+    private List<PostComment> replies;
 
     public PostComment() {
+        this.replies = new ArrayList<>();
     }
 
     public PostComment(Integer id, Integer depth, String body, Boolean isBot, String botName,
@@ -68,6 +34,7 @@ public class PostComment {
         this.postId = postId;
         this.authorId = authorId;
         this.parentCommentId = parentCommentId;
+        this.replies = new ArrayList<>();
     }
 
     public Integer getId() {
@@ -164,6 +131,14 @@ public class PostComment {
 
     public void setParentComment(PostComment parentComment) {
         this.parentComment = parentComment;
+    }
+
+    public List<PostComment> getReplies() {
+        return replies;
+    }
+
+    public void setReplies(List<PostComment> replies) {
+        this.replies = replies;
     }
 
     @Override

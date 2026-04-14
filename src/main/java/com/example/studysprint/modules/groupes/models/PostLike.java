@@ -1,38 +1,13 @@
 package com.example.studysprint.modules.groupes.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
 import java.sql.Timestamp;
 
-@Entity
-@Table(name = "post_like")
 public class PostLike {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
-
-    @Column(name = "post_id", nullable = false)
     private Integer postId;
-
-    @Column(name = "user_id", nullable = false)
     private Integer userId;
-
-    @ManyToOne
-    @JoinColumn(name = "post_id", insertable = false, updatable = false)
     private GroupPost post;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", insertable = false, updatable = false)
     private User user;
 
     public PostLike() {

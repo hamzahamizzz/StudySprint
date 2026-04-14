@@ -15,24 +15,21 @@ import java.util.List;
 public class GroupService {
     private final Connection connection;
     private static List<StudyGroup> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for group operations
     public GroupService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all study groups - base method for stream filtering
     public List<StudyGroup> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all study groups from the database (used to refresh the cache).
-    private List<StudyGroup> fetchAllFromDatabase() {
+    private List<StudyGroup> getAllFromDB() {
         String sql = "SELECT * FROM study_groups";
         List<StudyGroup> groups = new ArrayList<>();
 
@@ -48,12 +45,10 @@ public class GroupService {
         return groups;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Search groups by keyword in name/subject fields
     public List<StudyGroup> search(String keyword) {
         String term = keyword == null ? "" : keyword.trim().toLowerCase();
         return getAll().stream()
@@ -62,7 +57,6 @@ public class GroupService {
                 .toList();
     }
 
-    // Sort groups by a supported column.
     public List<StudyGroup> sortBy(String column) {
         return switch (column != null ? column.toLowerCase() : "") {
             case "name" -> getAll().stream()
@@ -78,7 +72,6 @@ public class GroupService {
         };
     }
 
-    // Get group by ID
     public StudyGroup getById(int id) {
         return getAll().stream()
                 .filter(g -> g.getId() == id)
@@ -86,35 +79,30 @@ public class GroupService {
                 .orElse(null);
     }
 
-    // Filter groups by privacy setting
     public List<StudyGroup> filterByPrivacy(String privacy) {
         return getAll().stream()
                 .filter(g -> g.getPrivacy() != null && g.getPrivacy().equalsIgnoreCase(privacy))
                 .toList();
     }
 
-    // Filter groups by subject/course name
     public List<StudyGroup> filterBySubject(String subject) {
         return getAll().stream()
                 .filter(g -> g.getSubject() != null && g.getSubject().equalsIgnoreCase(subject))
                 .toList();
     }
 
-    // Get groups created by user
     public List<StudyGroup> getByCreator(int creatorId) {
         return getAll().stream()
                 .filter(g -> g.getCreatedById() != null && g.getCreatedById() == creatorId)
                 .toList();
     }
 
-    // Count groups by privacy setting
     public long countByPrivacy(String privacy) {
         return getAll().stream()
                 .filter(g -> g.getPrivacy() != null && g.getPrivacy().equalsIgnoreCase(privacy))
                 .count();
     }
 
-    // Insert a new study group into database
     public void add(StudyGroup g) {
         String sql = "INSERT INTO study_groups (name, description, privacy, subject, created_at, updated_at, last_activity, created_by_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
@@ -142,10 +130,9 @@ public class GroupService {
             throw new RuntimeException("Failed to add study group", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Update an existing study group in database
     public void update(StudyGroup g) {
         String sql = "UPDATE study_groups SET name = ?, description = ?, privacy = ?, subject = ?, updated_at = ?, last_activity = ?, created_by_id = ? WHERE id = ?";
 
@@ -171,10 +158,9 @@ public class GroupService {
             throw new RuntimeException("Failed to update study group", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Delete a study group by identifier
     public void delete(int id) {
         String sql = "DELETE FROM study_groups WHERE id = ?";
 
@@ -185,10 +171,9 @@ public class GroupService {
             throw new RuntimeException("Failed to delete study group", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Map a SQL result row to StudyGroup model
     private StudyGroup mapRowToStudyGroup(ResultSet rs) throws SQLException {
         return new StudyGroup(
                 rs.getInt("id"),

@@ -1,88 +1,47 @@
 package com.example.studysprint.modules.groupes.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.ArrayList;
 
-@Entity
-@Table(name = "users")
 public class User {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "nom", nullable = false)
     private String nom;
-
-    @Column(name = "prenom", nullable = false)
     private String prenom;
-
-    @Column(name = "email", nullable = false)
     private String email;
-
-    @Column(name = "mot_de_passe", nullable = false)
     private String motDePasse;
-
-    @Column(name = "role")
     private String role;
-
-    @Column(name = "statut", nullable = false)
     private String statut;
-
-    @Column(name = "date_inscription", nullable = false)
     private Timestamp dateInscription;
-
-    @Column(name = "updated_at")
     private Timestamp updatedAt;
-
-    @Column(name = "reset_token")
     private String resetToken;
-
-    @Column(name = "reset_token_expires_at")
     private Timestamp resetTokenExpiresAt;
-
-    @Column(name = "last_activity_at")
     private Timestamp lastActivityAt;
-
-    @Column(name = "pays")
     private String pays;
-
-    @Column(name = "telephone")
     private String telephone;
-
-    @Column(name = "annees_experience")
     private Integer anneesExperience;
-
-    @Column(name = "face_descriptor", columnDefinition = "LONGTEXT")
     private String faceDescriptor;
-
-    @Column(name = "discr", nullable = false)
     private String discr;
-
-    @Column(name = "age")
     private Integer age;
-
-    @Column(name = "sexe")
     private String sexe;
-
-    @Column(name = "etablissement")
     private String etablissement;
-
-    @Column(name = "niveau")
     private String niveau;
-
-    @Column(name = "specialite")
     private String specialite;
-
-    @Column(name = "niveau_enseignement")
     private String niveauEnseignement;
+    private List<GroupMember> memberships;
+    private List<GroupPost> posts;
+    private List<PostComment> comments;
+    private List<PostLike> likes;
+    private List<PostRating> ratings;
+    private List<GroupInvitation> invitationsReceived;
 
     public User() {
+        this.memberships = new ArrayList<>();
+        this.posts = new ArrayList<>();
+        this.comments = new ArrayList<>();
+        this.likes = new ArrayList<>();
+        this.ratings = new ArrayList<>();
+        this.invitationsReceived = new ArrayList<>();
     }
 
     public User(Integer id, String nom, String prenom, String email, String motDePasse, String role, String statut,
@@ -113,6 +72,12 @@ public class User {
         this.niveau = niveau;
         this.specialite = specialite;
         this.niveauEnseignement = niveauEnseignement;
+        this.memberships = new ArrayList<>();
+        this.posts = new ArrayList<>();
+        this.comments = new ArrayList<>();
+        this.likes = new ArrayList<>();
+        this.ratings = new ArrayList<>();
+        this.invitationsReceived = new ArrayList<>();
     }
 
     public Integer getId() {
@@ -297,6 +262,54 @@ public class User {
 
     public void setNiveauEnseignement(String niveauEnseignement) {
         this.niveauEnseignement = niveauEnseignement;
+    }
+
+    public List<GroupMember> getMemberships() {
+        return memberships;
+    }
+
+    public void setMemberships(List<GroupMember> memberships) {
+        this.memberships = memberships;
+    }
+
+    public List<GroupPost> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<GroupPost> posts) {
+        this.posts = posts;
+    }
+
+    public List<PostComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<PostComment> comments) {
+        this.comments = comments;
+    }
+
+    public List<PostLike> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<PostLike> likes) {
+        this.likes = likes;
+    }
+
+    public List<PostRating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(List<PostRating> ratings) {
+        this.ratings = ratings;
+    }
+
+    public List<GroupInvitation> getInvitationsReceived() {
+        return invitationsReceived;
+    }
+
+    public void setInvitationsReceived(List<GroupInvitation> invitationsReceived) {
+        this.invitationsReceived = invitationsReceived;
     }
 
     @Override

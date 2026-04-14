@@ -1,52 +1,28 @@
 package com.example.studysprint.modules.groupes.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.ArrayList;
 
-@Entity
-@Table(name = "study_groups")
 public class StudyGroup {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "name", nullable = false)
     private String name;
-
-    @Column(name = "description", columnDefinition = "LONGTEXT")
     private String description;
-
-    @Column(name = "privacy", nullable = false)
     private String privacy;
-
-    @Column(name = "subject")
     private String subject;
-
-    @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
-
-    @Column(name = "updated_at")
     private Timestamp updatedAt;
-
-    @Column(name = "last_activity")
     private Timestamp lastActivity;
-
-    @Column(name = "created_by_id", nullable = false)
     private Integer createdById;
-
-    @ManyToOne
-    @JoinColumn(name = "created_by_id", insertable = false, updatable = false)
     private User createdBy;
+    private List<GroupMember> members;
+    private List<GroupPost> posts;
+    private List<GroupInvitation> invitations;
 
     public StudyGroup() {
+        this.members = new ArrayList<>();
+        this.posts = new ArrayList<>();
+        this.invitations = new ArrayList<>();
     }
 
     public StudyGroup(Integer id, String name, String description, String privacy, String subject,
@@ -60,6 +36,9 @@ public class StudyGroup {
         this.updatedAt = updatedAt;
         this.lastActivity = lastActivity;
         this.createdById = createdById;
+        this.members = new ArrayList<>();
+        this.posts = new ArrayList<>();
+        this.invitations = new ArrayList<>();
     }
 
     public Integer getId() {
@@ -140,6 +119,30 @@ public class StudyGroup {
 
     public void setCreatedBy(User createdBy) {
         this.createdBy = createdBy;
+    }
+
+    public List<GroupMember> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<GroupMember> members) {
+        this.members = members;
+    }
+
+    public List<GroupPost> getPosts() {
+        return posts;
+    }
+
+    public void setPosts(List<GroupPost> posts) {
+        this.posts = posts;
+    }
+
+    public List<GroupInvitation> getInvitations() {
+        return invitations;
+    }
+
+    public void setInvitations(List<GroupInvitation> invitations) {
+        this.invitations = invitations;
     }
 
     @Override

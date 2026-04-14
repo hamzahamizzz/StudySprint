@@ -31,7 +31,7 @@ public class GroupFormController {
     @FXML
     private TextField subjectField;
 
-    // Open modal form and return created/edited group, or null when cancelled.
+    // Open the modal form and return the saved group, or null if the user cancels.
     public static StudyGroup showDialog(StudyGroup existing, Window owner) {
         try {
             FXMLLoader loader = new FXMLLoader(GroupFormController.class.getResource("/fxml/groupes/GroupFormView.fxml"));
@@ -86,7 +86,7 @@ public class GroupFormController {
         }
     }
 
-    // Pre-fill fields in edit mode.
+    // Fill the form when editing an existing group.
     private void prefill(StudyGroup existing) {
         if (existing != null) {
             nameField.setText(existing.getName());
@@ -98,7 +98,7 @@ public class GroupFormController {
         }
     }
 
-    // Validate required fields.
+    // Block submission when required fields are empty.
     private boolean validateForm() {
         String name = nameField.getText() == null ? "" : nameField.getText().trim();
         String subject = subjectField.getText() == null ? "" : subjectField.getText().trim();
@@ -114,7 +114,7 @@ public class GroupFormController {
         return true;
     }
 
-    // Build group model from form values.
+    // Build the StudyGroup object from the form values.
     private StudyGroup buildGroupFromForm(StudyGroup existing) {
         StudyGroup group = existing == null ? new StudyGroup() : existing;
         group.setName(nameField.getText().trim());

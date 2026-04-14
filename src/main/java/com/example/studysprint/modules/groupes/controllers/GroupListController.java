@@ -80,7 +80,7 @@ public class GroupListController {
     private final ObservableList<StudyGroup> data = FXCollections.observableArrayList();
     private StudyGroup selectedGroup;
 
-    // Configure default UI state and load initial data.
+    // Prepare the page and load the first group list.
     @FXML
     public void initialize() {
         createGroupButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
@@ -90,7 +90,6 @@ public class GroupListController {
         updateTabCounters();
     }
 
-    // Wire filter controls to refresh the list.
     private void configureFilters() {
         sortCombo.setItems(FXCollections.observableArrayList(
             "Activite recente",
@@ -109,7 +108,6 @@ public class GroupListController {
         roleCombo.valueProperty().addListener((obs, oldVal, newVal) -> applyFilters());
     }
 
-    // Reload groups from service and refresh counters.
     private void loadGroups() {
         try {
             data.setAll(groupService.getAll());
@@ -124,7 +122,6 @@ public class GroupListController {
         }
     }
 
-    // Rebuild in-memory list from current search and sort selections.
     private void applyFilters() {
         String keyword = searchField.getText();
         try {
@@ -143,7 +140,6 @@ public class GroupListController {
         }
     }
 
-    // Sort current in-memory groups according to selected filter.
     private void sortCurrentGroups() {
         String sortBy = sortCombo.getValue();
         Comparator<StudyGroup> comparator;
@@ -168,7 +164,6 @@ public class GroupListController {
         FXCollections.sort(data, comparator);
     }
 
-    // Render filtered groups as cards.
     private void renderCards() {
         groupCardsPane.getChildren().clear();
 
@@ -191,25 +186,22 @@ public class GroupListController {
         groupsTabCountLabel.setText(String.valueOf(visibleCount));
     }
 
-    // Switch to groups tab.
     @FXML
     private void onGroupsTab() {
         selectTab("groups");
     }
 
-    // Switch to invitations tab.
     @FXML
     private void onInvitationsTab() {
         selectTab("invitations");
     }
 
-    // Switch to feedbacks tab.
     @FXML
     private void onFeedbacksTab() {
         selectTab("feedbacks");
     }
 
-    // Update active tab button and visible content pane.
+    // Show or hide the content area linked to the selected tab.
     private void selectTab(String tab) {
         boolean groupsActive = "groups".equals(tab);
         boolean invitationsActive = "invitations".equals(tab);
@@ -227,7 +219,6 @@ public class GroupListController {
         feedbacksContentPane.setManaged(feedbacksActive);
     }
 
-    // Apply tab active state class.
     private void setTabActive(Button tabButton, boolean active) {
         if (!tabButton.getStyleClass().contains("tab-btn")) {
             tabButton.getStyleClass().add("tab-btn");
@@ -238,14 +229,13 @@ public class GroupListController {
         }
     }
 
-    // Refresh counters displayed in tab headers.
     private void updateTabCounters() {
         groupsTabCountLabel.setText(String.valueOf(data.size()));
         invitationsTabCountLabel.setText("0");
         feedbacksTabCountLabel.setText("0");
     }
 
-    // Build one group card.
+    // Build the visual card used to display one group.
     private VBox buildGroupCard(StudyGroup group, String role) {
         VBox card = new VBox(8);
         card.getStyleClass().add("group-card");
@@ -270,7 +260,7 @@ public class GroupListController {
         Label members = new Label("Membres: " + memberCount);
         members.getStyleClass().add("group-meta");
 
-            Label activity = new Label("Derniere activite : " + GroupUiUtils.formatRelativeTime(group.getLastActivity()));
+        Label activity = new Label("Derniere activite : " + GroupUiUtils.formatRelativeTime(group.getLastActivity()));
         activity.getStyleClass().add("group-meta");
 
         MenuItem openItem = new MenuItem("Ouvrir");
@@ -316,7 +306,7 @@ public class GroupListController {
         return card;
     }
 
-    // Build static "join group" card.
+    // Build the card that opens the group creation flow.
     private VBox buildJoinGroupCard() {
         VBox card = new VBox();
         card.getStyleClass().addAll("group-card", "join-card");
@@ -330,14 +320,13 @@ public class GroupListController {
         return card;
     }
 
-    // Highlight currently selected card.
+    // Store the selected group and highlight its card.
     private void selectCard(StudyGroup group, VBox selectedCard) {
         selectedGroup = group;
         groupCardsPane.getChildren().forEach(node -> node.getStyleClass().remove("group-card-selected"));
         selectedCard.getStyleClass().add("group-card-selected");
     }
 
-    // Open create dialog and persist a new group.
     @FXML
     private void onCreateGroup() {
         try {
@@ -359,7 +348,6 @@ public class GroupListController {
         }
     }
 
-    // Open edit dialog and persist updates.
     private void onEditSelected(StudyGroup selected) {
         try {
             StudyGroup updated = GroupFormController.showDialog(selected, groupCardsPane.getScene().getWindow());
@@ -380,7 +368,6 @@ public class GroupListController {
         }
     }
 
-    // Confirm and delete selected group.
     private void onDeleteSelected(StudyGroup selected) {
         selectedGroup = selected;
 
@@ -423,7 +410,7 @@ public class GroupListController {
         }
     }
 
-    // Open detail page for selected group.
+    // Open the detail view for the selected group.
     private void openGroup(StudyGroup group) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/groupes/GroupDetailView.fxml"));
@@ -441,7 +428,7 @@ public class GroupListController {
         }
     }
 
-    // Infer current user role in a group.
+    // Infer the current user's visible role inside a group.
     private String inferRole(StudyGroup group) {
         if (group.getCreatedById() != null && group.getCreatedById() == CURRENT_USER_ID) {
             return "Admin";
@@ -463,7 +450,6 @@ public class GroupListController {
         return "Membre";
     }
 
-    // Map role label to CSS badge modifier class.
     private String roleBadgeClass(String role) {
         if (role == null) {
             return "role-pill-member";

@@ -16,24 +16,21 @@ import java.util.Locale;
 public class GroupMemberService {
     private final Connection connection;
     private static List<GroupMember> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for member operations
     public GroupMemberService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all group members
     public List<GroupMember> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all members from the database (used to refresh the cache).
-    private List<GroupMember> fetchAllFromDatabase() {
+    private List<GroupMember> getAllFromDB() {
         String sql = "SELECT * FROM group_members ORDER BY joined_at DESC";
         List<GroupMember> members = new ArrayList<>();
 
@@ -49,19 +46,16 @@ public class GroupMemberService {
         return members;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Get all members of a specific group
     public List<GroupMember> getByGroup(int groupId) {
         return getAll().stream()
                 .filter(m -> m.getGroupId() == groupId)
                 .toList();
     }
 
-    // Insert a new member into a group
     public void add(GroupMember m) {
         String sql = "INSERT INTO group_members (member_role, joined_at, group_id, user_id) VALUES (?, ?, ?, ?)";
         Timestamp joinedAt = m.getJoinedAt() != null ? m.getJoinedAt() : new Timestamp(System.currentTimeMillis());
@@ -77,10 +71,9 @@ public class GroupMemberService {
             throw new RuntimeException("Failed to add group member", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Delete a group member by identifier
     public void delete(int id) {
         String sql = "DELETE FROM group_members WHERE id = ?";
 
@@ -91,10 +84,9 @@ public class GroupMemberService {
             throw new RuntimeException("Failed to delete group member", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Update member role by identifier
     public void updateRole(int id, String role) {
         String sql = "UPDATE group_members SET member_role = ? WHERE id = ?";
         String normalizedRole = normalizeRole(role);
@@ -107,15 +99,13 @@ public class GroupMemberService {
             throw new RuntimeException("Failed to update member role", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Count members in a group.
     public int countMembersForGroup(int groupId) {
         return getByGroup(groupId).size();
     }
 
-    // Get member role for a user in a group.
     public Optional<String> getMemberRoleForUser(int groupId, int userId) {
         return getAll().stream()
                 .filter(m -> m.getGroupId() == groupId && m.getUserId() == userId)
@@ -123,21 +113,18 @@ public class GroupMemberService {
                 .findFirst();
     }
 
-    // Filter members by role (Admin, Moderator, Member)
     public List<GroupMember> filterMembersByRole(String role) {
         return getAll().stream()
                 .filter(m -> m.getMemberRole() != null && m.getMemberRole().equalsIgnoreCase(role))
                 .toList();
     }
 
-    // Count members with specific role across all groups
     public long countMembersWithRole(String role) {
         return getAll().stream()
                 .filter(m -> m.getMemberRole() != null && m.getMemberRole().equalsIgnoreCase(role))
                 .count();
     }
 
-    // Map a SQL result row to GroupMember model
     private GroupMember mapRowToMember(ResultSet rs) throws SQLException {
         return new GroupMember(
                 rs.getInt("id"),
@@ -148,7 +135,6 @@ public class GroupMemberService {
         );
     }
 
-    // Normalize role values before saving to the database.
     private String normalizeRole(String role) {
         if (role == null) {
             return "member";

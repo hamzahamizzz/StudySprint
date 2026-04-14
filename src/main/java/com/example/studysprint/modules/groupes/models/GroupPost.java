@@ -1,69 +1,33 @@
 package com.example.studysprint.modules.groupes.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
-
 import java.sql.Timestamp;
+import java.util.List;
+import java.util.ArrayList;
 
-@Entity
-@Table(name = "group_posts")
 public class GroupPost {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
-
-    @Column(name = "post_type", nullable = false)
     private String postType;
-
-    @Column(name = "title")
     private String title;
-
-    @Column(name = "body", nullable = false, columnDefinition = "LONGTEXT")
     private String body;
-
-    @Column(name = "attachment_url")
     private String attachmentUrl;
-
-    @Column(name = "ai_summary", columnDefinition = "LONGTEXT")
     private String aiSummary;
-
-    @Column(name = "ai_category")
     private String aiCategory;
-
-    @Column(name = "ai_tags", columnDefinition = "LONGTEXT")
     private String aiTags;
-
-    @Column(name = "created_at", nullable = false)
     private Timestamp createdAt;
-
-    @Column(name = "group_id", nullable = false)
     private Integer groupId;
-
-    @Column(name = "author_id", nullable = false)
     private Integer authorId;
-
-    @Column(name = "parent_post_id")
     private Integer parentPostId;
-
-    @ManyToOne
-    @JoinColumn(name = "group_id", insertable = false, updatable = false)
     private StudyGroup group;
-
-    @ManyToOne
-    @JoinColumn(name = "author_id", insertable = false, updatable = false)
     private User author;
-
-    @ManyToOne
-    @JoinColumn(name = "parent_post_id", insertable = false, updatable = false)
     private GroupPost parentPost;
+    private List<PostComment> comments;
+    private List<PostLike> likes;
+    private List<PostRating> ratings;
 
     public GroupPost() {
+        this.comments = new ArrayList<>();
+        this.likes = new ArrayList<>();
+        this.ratings = new ArrayList<>();
     }
 
     public GroupPost(Integer id, String postType, String title, String body, String attachmentUrl,
@@ -81,6 +45,9 @@ public class GroupPost {
         this.groupId = groupId;
         this.authorId = authorId;
         this.parentPostId = parentPostId;
+        this.comments = new ArrayList<>();
+        this.likes = new ArrayList<>();
+        this.ratings = new ArrayList<>();
     }
 
     public Integer getId() {
@@ -201,6 +168,30 @@ public class GroupPost {
 
     public void setParentPost(GroupPost parentPost) {
         this.parentPost = parentPost;
+    }
+
+    public List<PostComment> getComments() {
+        return comments;
+    }
+
+    public void setComments(List<PostComment> comments) {
+        this.comments = comments;
+    }
+
+    public List<PostLike> getLikes() {
+        return likes;
+    }
+
+    public void setLikes(List<PostLike> likes) {
+        this.likes = likes;
+    }
+
+    public List<PostRating> getRatings() {
+        return ratings;
+    }
+
+    public void setRatings(List<PostRating> ratings) {
+        this.ratings = ratings;
     }
 
     @Override

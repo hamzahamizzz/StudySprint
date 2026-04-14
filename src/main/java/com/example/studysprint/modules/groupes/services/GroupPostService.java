@@ -14,24 +14,21 @@ import java.util.List;
 public class GroupPostService {
     private final Connection connection;
     private static List<GroupPost> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for post operations
     public GroupPostService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all group posts
     public List<GroupPost> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all posts from the database (used to refresh the cache).
-    private List<GroupPost> fetchAllFromDatabase() {
+    private List<GroupPost> getAllFromDB() {
         String sql = "SELECT * FROM group_posts ORDER BY created_at DESC";
         List<GroupPost> posts = new ArrayList<>();
 
@@ -47,19 +44,16 @@ public class GroupPostService {
         return posts;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Get all posts for a specific group
     public List<GroupPost> getByGroup(int groupId) {
         return getAll().stream()
                 .filter(p -> p.getGroupId() == groupId)
                 .toList();
     }
 
-    // Search posts by keyword in title/body fields
     public List<GroupPost> search(String keyword) {
         String term = keyword == null ? "" : keyword.trim().toLowerCase();
         return getAll().stream()
@@ -68,7 +62,6 @@ public class GroupPostService {
                 .toList();
     }
 
-    // Insert a new group post into database
     public void add(GroupPost p) {
         String sql = "INSERT INTO group_posts (post_type, title, body, attachment_url, ai_summary, ai_category, ai_tags, created_at, group_id, author_id, parent_post_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -95,10 +88,9 @@ public class GroupPostService {
             throw new RuntimeException("Failed to add group post", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Update an existing group post in database
     public void update(GroupPost p) {
         String sql = "UPDATE group_posts SET post_type = ?, title = ?, body = ?, attachment_url = ?, ai_summary = ?, ai_category = ?, ai_tags = ?, created_at = ?, group_id = ?, author_id = ?, parent_post_id = ? WHERE id = ?";
 
@@ -124,10 +116,9 @@ public class GroupPostService {
             throw new RuntimeException("Failed to update group post", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Delete a group post by identifier
     public void delete(int id) {
         String sql = "DELETE FROM group_posts WHERE id = ?";
 
@@ -138,45 +129,39 @@ public class GroupPostService {
             throw new RuntimeException("Failed to delete group post", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Filter posts by type (Text, Image, Video, Poll, etc)
     public List<GroupPost> filterByPostType(String postType) {
         return getAll().stream()
                 .filter(p -> p.getPostType() != null && p.getPostType().equalsIgnoreCase(postType))
                 .toList();
     }
 
-    // Get all posts authored by user
     public List<GroupPost> filterByAuthor(int authorId) {
         return getAll().stream()
                 .filter(p -> p.getAuthorId() == authorId)
                 .toList();
     }
 
-    // Filter posts by AI category.
     public List<GroupPost> filterByCategory(String category) {
         return getAll().stream()
                 .filter(p -> p.getAiCategory() != null && p.getAiCategory().equalsIgnoreCase(category))
                 .toList();
     }
 
-    // Count total posts by author
     public long countPostsByAuthor(int authorId) {
         return getAll().stream()
                 .filter(p -> p.getAuthorId() == authorId)
                 .count();
     }
 
-    // Filter posts that have an attachment.
     public List<GroupPost> filterWithAttachment() {
         return getAll().stream()
                 .filter(p -> p.getAttachmentUrl() != null && !p.getAttachmentUrl().isBlank())
                 .toList();
     }
 
-    // Map a SQL result row to GroupPost model
     private GroupPost mapRowToPost(ResultSet rs) throws SQLException {
         return new GroupPost(
                 rs.getInt("id"),

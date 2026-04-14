@@ -14,24 +14,21 @@ import java.util.List;
 public class PostCommentService {
     private final Connection connection;
     private static List<PostComment> cache;
-    private static boolean cacheDirty = true;
+    private static boolean cacheInvalide = true;
 
-    // Initialize database connection for comment operations
     public PostCommentService() {
         this.connection = MyDatabase.getConnection();
     }
 
-    // Retrieve all post comments
     public List<PostComment> getAll() {
-        if (cache == null || cacheDirty) {
-            cache = fetchAllFromDatabase();
-            cacheDirty = false;
+        if (cache == null || cacheInvalide) {
+            cache = getAllFromDB();
+            cacheInvalide = false;
         }
         return cache;
     }
 
-    // Fetch all comments from the database (used to refresh the cache).
-    private List<PostComment> fetchAllFromDatabase() {
+    private List<PostComment> getAllFromDB() {
         String sql = "SELECT * FROM post_comment ORDER BY created_at ASC";
         List<PostComment> comments = new ArrayList<>();
 
@@ -47,19 +44,16 @@ public class PostCommentService {
         return comments;
     }
 
-    // Mark the in-memory cache as dirty.
-    private static void markCacheDirty() {
-        cacheDirty = true;
+    private static void setCacheInvalide() {
+        cacheInvalide = true;
     }
 
-    // Get all comments for a specific post
     public List<PostComment> getByPost(int postId) {
         return getAll().stream()
                 .filter(c -> c.getPostId() == postId)
                 .toList();
     }
 
-    // Insert a new comment into database
     public void add(PostComment c) {
         String sql = "INSERT INTO post_comment (depth, body, is_bot, bot_name, created_at, post_id, author_id, parent_comment_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         Timestamp createdAt = c.getCreatedAt() != null ? c.getCreatedAt() : new Timestamp(System.currentTimeMillis());
@@ -82,10 +76,9 @@ public class PostCommentService {
             throw new RuntimeException("Failed to add post comment", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Delete a comment by identifier
     public void delete(int id) {
         String sql = "DELETE FROM post_comment WHERE id = ?";
 
@@ -96,38 +89,33 @@ public class PostCommentService {
             throw new RuntimeException("Failed to delete post comment", e);
         }
 
-        markCacheDirty();
+        setCacheInvalide();
     }
 
-    // Filter comments created by bots.
     public List<PostComment> filterByBot() {
         return getAll().stream()
                 .filter(c -> c.getIsBot() != null && c.getIsBot())
                 .toList();
     }
 
-    // Filter comments by depth.
     public List<PostComment> filterByDepth(int depth) {
         return getAll().stream()
                 .filter(c -> c.getDepth() == depth)
                 .toList();
     }
 
-    // Count total comments by author
     public long countCommentsByAuthor(int authorId) {
         return getAll().stream()
                 .filter(c -> c.getAuthorId() == authorId)
                 .count();
     }
 
-    // Get replies for a parent comment.
     public List<PostComment> getByParentCommentId(int parentCommentId) {
         return getAll().stream()
                 .filter(c -> parentCommentId == (c.getParentCommentId() != null ? c.getParentCommentId() : -1))
                 .toList();
     }
 
-    // Map a SQL result row to PostComment model
     private PostComment mapRowToComment(ResultSet rs) throws SQLException {
         return new PostComment(
                 rs.getInt("id"),
