@@ -18,6 +18,7 @@ public class TacheController {
     @FXML private TableColumn<Tache, Integer> colDuree;
     @FXML private TableColumn<Tache, String> colPriorite;
     @FXML private TableColumn<Tache, String> colStatut;
+    @FXML private TableColumn<Tache, Integer> colObjectif;
 
     @FXML private TextField txtTitre;
     @FXML private TextField txtDuree;
@@ -40,13 +41,12 @@ public class TacheController {
         cbStatut.setItems(FXCollections.observableArrayList("A faire", "En cours", "Terminée"));
         cbStatut.getSelectionModel().selectFirst();
 
-        // Charger tous les Objectifs et les formatter pour la ComboBox
         objectifsList = FXCollections.observableArrayList(objectifService.findAll());
         cbObjectif.setItems(objectifsList);
         cbObjectif.setConverter(new StringConverter<Objectif>() {
             @Override
             public String toString(Objectif o) {
-                return o == null ? "" : o.getTitre(); // Affiche le titre de l'Objectif
+                return o == null ? "" : o.getTitre();
             }
             @Override
             public Objectif fromString(String string) {
@@ -59,6 +59,25 @@ public class TacheController {
         colDuree.setCellValueFactory(new PropertyValueFactory<>("duree"));
         colPriorite.setCellValueFactory(new PropertyValueFactory<>("priorite"));
         colStatut.setCellValueFactory(new PropertyValueFactory<>("statut"));
+        
+        // This is where we map the raw ID field into a beautifully displayed Title!
+        colObjectif.setCellValueFactory(new PropertyValueFactory<>("objectifId"));
+        colObjectif.setCellFactory(column -> new TableCell<Tache, Integer>() {
+            @Override
+            protected void updateItem(Integer objectifId, boolean empty) {
+                super.updateItem(objectifId, empty);
+                if (empty || objectifId == null) {
+                    setText(null);
+                } else {
+                    String title = objectifsList.stream()
+                            .filter(o -> o.getId().equals(objectifId))
+                            .findFirst()
+                            .map(Objectif::getTitre)
+                            .orElse("ID: " + objectifId);
+                    setText(title);
+                }
+            }
+        });
 
         loadData();
 
@@ -69,7 +88,6 @@ public class TacheController {
                 cbPriorite.setValue(newSelection.getPriorite());
                 cbStatut.setValue(newSelection.getStatut());
                 
-                // Retrouver l'objectif correspondant et l'afficher dans la ComboBox
                 Objectif assigned = objectifsList.stream()
                         .filter(o -> o.getId().equals(newSelection.getObjectifId()))
                         .findFirst()
@@ -93,7 +111,7 @@ public class TacheController {
             Integer.parseInt(txtDuree.getText()),
             cbPriorite.getValue(),
             cbStatut.getValue(),
-            cbObjectif.getValue().getId() // On recupère l'ID en fonction du choix
+            cbObjectif.getValue().getId()
         );
         tacheService.create(t);
         loadData();

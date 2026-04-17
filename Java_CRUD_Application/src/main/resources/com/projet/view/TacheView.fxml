@@ -5,12 +5,13 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projet.controller.TacheController">
     <center>
-        <TableView fx:id="tableTaches" prefWidth="550">
+        <TableView fx:id="tableTaches" prefWidth="700">
             <columns>
                 <TableColumn fx:id="colId" text="ID" prefWidth="50" />
                 <TableColumn fx:id="colTitre" text="Titre" prefWidth="150" />
                 <TableColumn fx:id="colDuree" text="Durée" prefWidth="100" />
                 <TableColumn fx:id="colPriorite" text="Priorité" prefWidth="100" />
+                <TableColumn fx:id="colObjectif" text="Objectif Sélect." prefWidth="150" />
                 <TableColumn fx:id="colStatut" text="Statut" prefWidth="100" />
             </columns>
         </TableView>
