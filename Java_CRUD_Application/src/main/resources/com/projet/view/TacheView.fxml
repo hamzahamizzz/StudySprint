@@ -7,7 +7,6 @@
     <center>
         <TableView fx:id="tableTaches" prefWidth="700">
             <columns>
-                <TableColumn fx:id="colId" text="ID" prefWidth="50" />
                 <TableColumn fx:id="colTitre" text="Titre" prefWidth="150" />
                 <TableColumn fx:id="colDuree" text="Durée" prefWidth="100" />
                 <TableColumn fx:id="colPriorite" text="Priorité" prefWidth="100" />

@@ -13,7 +13,6 @@ import javafx.util.StringConverter;
 
 public class TacheController {
     @FXML private TableView<Tache> tableTaches;
-    @FXML private TableColumn<Tache, Integer> colId;
     @FXML private TableColumn<Tache, String> colTitre;
     @FXML private TableColumn<Tache, Integer> colDuree;
     @FXML private TableColumn<Tache, String> colPriorite;
@@ -54,7 +53,6 @@ public class TacheController {
             }
         });
 
-        colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colTitre.setCellValueFactory(new PropertyValueFactory<>("titre"));
         colDuree.setCellValueFactory(new PropertyValueFactory<>("duree"));
         colPriorite.setCellValueFactory(new PropertyValueFactory<>("priorite"));
