@@ -5,15 +5,9 @@
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projet.controller.TacheController">
     <center>
-        <TableView fx:id="tableTaches" prefWidth="700">
-            <columns>
-                <TableColumn fx:id="colTitre" text="Titre" prefWidth="150" />
-                <TableColumn fx:id="colDuree" text="Durée" prefWidth="100" />
-                <TableColumn fx:id="colPriorite" text="Priorité" prefWidth="100" />
-                <TableColumn fx:id="colObjectif" text="Objectif Sélect." prefWidth="150" />
-                <TableColumn fx:id="colStatut" text="Statut" prefWidth="100" />
-            </columns>
-        </TableView>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <FlowPane fx:id="cardsContainer" hgap="15" vgap="15" style="-fx-padding: 20;" />
+        </ScrollPane>
     </center>
     <right>
         <VBox spacing="10" style="-fx-padding: 10;" prefWidth="250">
@@ -27,7 +21,7 @@
                 <Button text="Ajouter" onAction="#handleAjouter" />
                 <Button text="Modifier" onAction="#handleModifier" />
             </HBox>
-            <Button text="Supprimer sélection" onAction="#handleSupprimer" style="-fx-text-fill: red;" />
+            <Button text="Annuler Sélection" onAction="#clearForm" />
         </VBox>
     </right>
 </BorderPane>

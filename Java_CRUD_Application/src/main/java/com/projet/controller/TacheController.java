@@ -8,16 +8,14 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.geometry.Pos;
 import javafx.util.StringConverter;
+import java.util.List;
 
 public class TacheController {
-    @FXML private TableView<Tache> tableTaches;
-    @FXML private TableColumn<Tache, String> colTitre;
-    @FXML private TableColumn<Tache, Integer> colDuree;
-    @FXML private TableColumn<Tache, String> colPriorite;
-    @FXML private TableColumn<Tache, String> colStatut;
-    @FXML private TableColumn<Tache, Integer> colObjectif;
+    @FXML private FlowPane cardsContainer;
 
     @FXML private TextField txtTitre;
     @FXML private TextField txtDuree;
@@ -27,8 +25,10 @@ public class TacheController {
 
     private TacheService tacheService;
     private ObjectifService objectifService;
-    private ObservableList<Tache> tachesList;
     private ObservableList<Objectif> objectifsList;
+    
+    // Tracks which Tache is currently selected for editing
+    private Tache selectedTache = null;
 
     @FXML
     public void initialize() {
@@ -53,51 +53,77 @@ public class TacheController {
             }
         });
 
-        colTitre.setCellValueFactory(new PropertyValueFactory<>("titre"));
-        colDuree.setCellValueFactory(new PropertyValueFactory<>("duree"));
-        colPriorite.setCellValueFactory(new PropertyValueFactory<>("priorite"));
-        colStatut.setCellValueFactory(new PropertyValueFactory<>("statut"));
-        
-        // This is where we map the raw ID field into a beautifully displayed Title!
-        colObjectif.setCellValueFactory(new PropertyValueFactory<>("objectifId"));
-        colObjectif.setCellFactory(column -> new TableCell<Tache, Integer>() {
-            @Override
-            protected void updateItem(Integer objectifId, boolean empty) {
-                super.updateItem(objectifId, empty);
-                if (empty || objectifId == null) {
-                    setText(null);
-                } else {
-                    String title = objectifsList.stream()
-                            .filter(o -> o.getId().equals(objectifId))
-                            .findFirst()
-                            .map(Objectif::getTitre)
-                            .orElse("ID: " + objectifId);
-                    setText(title);
-                }
-            }
-        });
-
         loadData();
-
-        tableTaches.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
-            if (newSelection != null) {
-                txtTitre.setText(newSelection.getTitre());
-                txtDuree.setText(String.valueOf(newSelection.getDuree()));
-                cbPriorite.setValue(newSelection.getPriorite());
-                cbStatut.setValue(newSelection.getStatut());
-                
-                Objectif assigned = objectifsList.stream()
-                        .filter(o -> o.getId().equals(newSelection.getObjectifId()))
-                        .findFirst()
-                        .orElse(null);
-                cbObjectif.setValue(assigned);
-            }
-        });
     }
 
     private void loadData() {
-        tachesList = FXCollections.observableArrayList(tacheService.findAll());
-        tableTaches.setItems(tachesList);
+        cardsContainer.getChildren().clear();
+        List<Tache> taches = tacheService.findAll();
+        
+        for (Tache t : taches) {
+            VBox card = new VBox(8);
+            card.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 10, 0, 0, 5);");
+            card.setPrefWidth(220);
+
+            Label lblTitre = new Label(t.getTitre());
+            lblTitre.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+
+            Label lblDuree = new Label("Durée : " + t.getDuree() + "h");
+            
+            Label lblPriorite = new Label("Priorité : " + t.getPriorite());
+            if ("Haute".equals(t.getPriorite())) lblPriorite.setTextFill(Color.RED);
+            else if ("Moyenne".equals(t.getPriorite())) lblPriorite.setTextFill(Color.ORANGE);
+            else lblPriorite.setTextFill(Color.GREEN);
+
+            Label lblStatut = new Label("Statut : " + t.getStatut());
+
+            String objName = objectifsList.stream()
+                .filter(o -> o.getId().equals(t.getObjectifId()))
+                .findFirst()
+                .map(Objectif::getTitre)
+                .orElse("Objectif inconnu");
+            Label lblObj = new Label("Objectif : " + objName);
+            lblObj.setStyle("-fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+
+            HBox actions = new HBox(10);
+            actions.setAlignment(Pos.CENTER_LEFT);
+            actions.setStyle("-fx-padding: 10 0 0 0;");
+            
+            Button btnEdit = new Button("Modifier");
+            btnEdit.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand;");
+            btnEdit.setOnAction(e -> fillForm(t));
+
+            Button btnDelete = new Button("Supprimer");
+            btnDelete.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;");
+            btnDelete.setOnAction(e -> deleteTache(t));
+
+            actions.getChildren().addAll(btnEdit, btnDelete);
+
+            card.getChildren().addAll(lblTitre, lblDuree, lblPriorite, lblStatut, lblObj, actions);
+            cardsContainer.getChildren().add(card);
+        }
+    }
+
+    private void fillForm(Tache t) {
+        selectedTache = t;
+        txtTitre.setText(t.getTitre());
+        txtDuree.setText(String.valueOf(t.getDuree()));
+        cbPriorite.setValue(t.getPriorite());
+        cbStatut.setValue(t.getStatut());
+        
+        Objectif assigned = objectifsList.stream()
+                .filter(o -> o.getId().equals(t.getObjectifId()))
+                .findFirst()
+                .orElse(null);
+        cbObjectif.setValue(assigned);
+    }
+
+    private void deleteTache(Tache t) {
+        tacheService.delete(t.getId());
+        if (selectedTache != null && selectedTache.getId().equals(t.getId())) {
+            clearForm();
+        }
+        loadData();
     }
 
     @FXML
@@ -118,34 +144,31 @@ public class TacheController {
 
     @FXML
     public void handleModifier() {
-        Tache selected = tableTaches.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert("Veuillez sélectionner une tâche à modifier.");
+        if (selectedTache == null) {
+            showAlert("Veuillez d'abord cliquer sur 'Modifier' sur une des cartes.");
             return;
         }
         if (!validateInput()) return;
 
-        selected.setTitre(txtTitre.getText());
-        selected.setDuree(Integer.parseInt(txtDuree.getText()));
-        selected.setPriorite(cbPriorite.getValue());
-        selected.setStatut(cbStatut.getValue());
-        selected.setObjectifId(cbObjectif.getValue().getId());
+        selectedTache.setTitre(txtTitre.getText());
+        selectedTache.setDuree(Integer.parseInt(txtDuree.getText()));
+        selectedTache.setPriorite(cbPriorite.getValue());
+        selectedTache.setStatut(cbStatut.getValue());
+        selectedTache.setObjectifId(cbObjectif.getValue().getId());
 
-        tacheService.update(selected);
+        tacheService.update(selectedTache);
         loadData();
         clearForm();
     }
 
     @FXML
-    public void handleSupprimer() {
-        Tache selected = tableTaches.getSelectionModel().getSelectedItem();
-        if (selected != null) {
-            tacheService.delete(selected.getId());
-            loadData();
-            clearForm();
-        } else {
-            showAlert("Veuillez sélectionner une tâche à supprimer.");
-        }
+    public void clearForm() {
+        selectedTache = null;
+        txtTitre.clear();
+        txtDuree.clear();
+        cbObjectif.getSelectionModel().clearSelection();
+        cbPriorite.getSelectionModel().selectFirst();
+        cbStatut.getSelectionModel().selectFirst();
     }
 
     private boolean validateInput() {
@@ -173,18 +196,9 @@ public class TacheController {
 
     private void showAlert(String message) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erreur de validation");
+        alert.setTitle("Erreur");
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
-    }
-
-    private void clearForm() {
-        txtTitre.clear();
-        txtDuree.clear();
-        cbObjectif.getSelectionModel().clearSelection();
-        cbPriorite.getSelectionModel().selectFirst();
-        cbStatut.getSelectionModel().selectFirst();
-        tableTaches.getSelectionModel().clearSelection();
     }
 }
