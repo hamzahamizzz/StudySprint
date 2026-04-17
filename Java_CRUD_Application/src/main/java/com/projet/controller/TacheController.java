@@ -1,12 +1,15 @@
 package com.projet.controller;
 
+import com.projet.entity.Objectif;
 import com.projet.entity.Tache;
+import com.projet.service.ObjectifService;
 import com.projet.service.TacheService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.util.StringConverter;
 
 public class TacheController {
     @FXML private TableView<Tache> tableTaches;
@@ -20,18 +23,36 @@ public class TacheController {
     @FXML private TextField txtDuree;
     @FXML private ComboBox<String> cbPriorite;
     @FXML private ComboBox<String> cbStatut;
-    @FXML private TextField txtObjectifId;
+    @FXML private ComboBox<Objectif> cbObjectif;
 
     private TacheService tacheService;
+    private ObjectifService objectifService;
     private ObservableList<Tache> tachesList;
+    private ObservableList<Objectif> objectifsList;
 
     @FXML
     public void initialize() {
         tacheService = new TacheService();
+        objectifService = new ObjectifService();
+        
         cbPriorite.setItems(FXCollections.observableArrayList("Basse", "Moyenne", "Haute"));
         cbPriorite.getSelectionModel().selectFirst();
         cbStatut.setItems(FXCollections.observableArrayList("A faire", "En cours", "Terminée"));
         cbStatut.getSelectionModel().selectFirst();
+
+        // Charger tous les Objectifs et les formatter pour la ComboBox
+        objectifsList = FXCollections.observableArrayList(objectifService.findAll());
+        cbObjectif.setItems(objectifsList);
+        cbObjectif.setConverter(new StringConverter<Objectif>() {
+            @Override
+            public String toString(Objectif o) {
+                return o == null ? "" : o.getTitre(); // Affiche le titre de l'Objectif
+            }
+            @Override
+            public Objectif fromString(String string) {
+                return null;
+            }
+        });
 
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
         colTitre.setCellValueFactory(new PropertyValueFactory<>("titre"));
@@ -47,7 +68,13 @@ public class TacheController {
                 txtDuree.setText(String.valueOf(newSelection.getDuree()));
                 cbPriorite.setValue(newSelection.getPriorite());
                 cbStatut.setValue(newSelection.getStatut());
-                txtObjectifId.setText(String.valueOf(newSelection.getObjectifId()));
+                
+                // Retrouver l'objectif correspondant et l'afficher dans la ComboBox
+                Objectif assigned = objectifsList.stream()
+                        .filter(o -> o.getId().equals(newSelection.getObjectifId()))
+                        .findFirst()
+                        .orElse(null);
+                cbObjectif.setValue(assigned);
             }
         });
     }
@@ -66,7 +93,7 @@ public class TacheController {
             Integer.parseInt(txtDuree.getText()),
             cbPriorite.getValue(),
             cbStatut.getValue(),
-            Integer.parseInt(txtObjectifId.getText())
+            cbObjectif.getValue().getId() // On recupère l'ID en fonction du choix
         );
         tacheService.create(t);
         loadData();
@@ -86,7 +113,7 @@ public class TacheController {
         selected.setDuree(Integer.parseInt(txtDuree.getText()));
         selected.setPriorite(cbPriorite.getValue());
         selected.setStatut(cbStatut.getValue());
-        selected.setObjectifId(Integer.parseInt(txtObjectifId.getText()));
+        selected.setObjectifId(cbObjectif.getValue().getId());
 
         tacheService.update(selected);
         loadData();
@@ -121,10 +148,8 @@ public class TacheController {
             showAlert("La durée doit être un nombre valide.");
             return false;
         }
-        try {
-            Integer.parseInt(txtObjectifId.getText());
-        } catch (NumberFormatException e) {
-            showAlert("Le ID Objectif doit être un nombre valide.");
+        if (cbObjectif.getValue() == null) {
+            showAlert("Veuillez sélectionner un Objectif !");
             return false;
         }
         return true;
@@ -141,7 +166,7 @@ public class TacheController {
     private void clearForm() {
         txtTitre.clear();
         txtDuree.clear();
-        txtObjectifId.clear();
+        cbObjectif.getSelectionModel().clearSelection();
         cbPriorite.getSelectionModel().selectFirst();
         cbStatut.getSelectionModel().selectFirst();
         tableTaches.getSelectionModel().clearSelection();

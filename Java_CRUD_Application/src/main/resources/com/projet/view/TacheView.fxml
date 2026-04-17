@@ -2,7 +2,6 @@
 <?import javafx.collections.FXCollections?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.geometry.Insets?>
 
 <BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projet.controller.TacheController">
     <center>
@@ -23,7 +22,7 @@
             <TextField fx:id="txtDuree" promptText="Durée (en heures)" />
             <ComboBox fx:id="cbPriorite" promptText="Priorité" prefWidth="150" />
             <ComboBox fx:id="cbStatut" promptText="Statut" prefWidth="150" />
-            <TextField fx:id="txtObjectifId" promptText="ID de l'Objectif" />
+            <ComboBox fx:id="cbObjectif" promptText="Sélectionner l'Objectif" prefWidth="200" />
             <HBox spacing="10" alignment="CENTER">
                 <Button text="Ajouter" onAction="#handleAjouter" />
                 <Button text="Modifier" onAction="#handleModifier" />
