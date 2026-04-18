@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox prefHeight="600.0" prefWidth="950.0" spacing="20.0" style="-fx-padding: 30; -fx-background-color: #f5f6fa;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.ReactivationRequestsController">
+   <children>
+      <VBox spacing="5.0">
+         <children>
+            <Label text="Demandes de réactivation" textFill="#2d3436">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <Label text="Consultez et gérez les demandes des utilisateurs dont le compte a été désactivé." textFill="#636e72" />
+         </children>
+      </VBox>
+      <TableView fx:id="requestsTable" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS" styleClass="modern-table">
+        <columns>
+          <TableColumn fx:id="userCol" prefWidth="200.0" text="Utilisateur" />
+          <TableColumn fx:id="emailCol" prefWidth="200.0" text="Email" />
+          <TableColumn fx:id="reasonCol" prefWidth="300.0" text="Justification" />
+          <TableColumn fx:id="dateCol" prefWidth="150.0" text="Date" />
+          <TableColumn fx:id="actionsCol" prefWidth="100.0" text="Actions" />
+        </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+   </children>
+</VBox>

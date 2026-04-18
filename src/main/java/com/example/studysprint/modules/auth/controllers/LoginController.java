@@ -33,6 +33,10 @@ public class LoginController {
                     SessionManager.getInstance().setCurrentUser(user);
                     System.out.println("Login successful for: " + user.getEmail());
                     loadMainApp(user);
+                } else if ("desactif".equalsIgnoreCase(status) || "inactif".equalsIgnoreCase(status)) {
+                    // Redirect to account deactivated page
+                    SessionManager.getInstance().setCurrentUser(user);
+                    switchScene("/fxml/auth/account-deactivated.fxml", "Compte Désactivé - StudySprint");
                 } else {
                     passwordError.setText("Compte " + status + ". Contactez un administrateur.");
                     passwordError.setVisible(true);
@@ -47,6 +51,16 @@ public class LoginController {
     @FXML
     private void handleGoToRegister() {
         switchScene("/fxml/auth/register.fxml", "Inscription - StudySprint");
+    }
+
+    @FXML
+    private void handleForgotPassword() {
+        switchScene("/fxml/auth/forgot-password.fxml", "Mot de passe oublié - StudySprint");
+    }
+
+    @FXML
+    private void handleFaceLogin() {
+        switchScene("/fxml/auth/face-login.fxml", "Connexion par Reconnaissance Faciale - StudySprint");
     }
 
     private boolean validate() {
@@ -71,7 +85,7 @@ public class LoginController {
 
     private void loadMainApp(Utilisateur user) {
         if ("ROLE_ADMIN".equals(user.getRole())) {
-            switchScene("/fxml/utilisateurs/users-list.fxml", "Gestion Utilisateurs - StudySprint");
+            switchScene("/fxml/utilisateurs/main-admin-layout.fxml", "Tableau de Bord - StudySprint");
         } else {
             switchScene("/fxml/auth/profile.fxml", "Mon Profil - StudySprint");
         }

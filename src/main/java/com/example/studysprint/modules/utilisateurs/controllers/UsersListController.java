@@ -2,7 +2,6 @@ package com.example.studysprint.modules.utilisateurs.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
-import com.example.studysprint.utils.JpaUtils;
 import com.example.studysprint.utils.SessionManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -34,7 +33,9 @@ public class UsersListController implements Initializable {
     @FXML private TableColumn<Utilisateur, String> roleCol;
     @FXML private TableColumn<Utilisateur, String> statutCol;
     @FXML private TableColumn<Utilisateur, Void> actionsCol;
-    @FXML private TextField searchField;
+    @FXML private TextField searchField, expMinField;
+    @FXML private ComboBox<String> roleFilter, statusFilter, sortFilter, orderFilter, specialtyFilter;
+    @FXML private HBox profFilterBar;
 
     private final UtilisateurService userService = new UtilisateurService();
     private ObservableList<Utilisateur> masterData = FXCollections.observableArrayList();
@@ -42,8 +43,8 @@ public class UsersListController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         setupTable();
+        setupFilters();
         loadData();
-        setupSearch();
     }
 
     private void setupTable() {
@@ -128,6 +129,18 @@ public class UsersListController implements Initializable {
         if (alert.showAndWait().get() == ButtonType.OK) {
             u.setStatut(nextStatus);
             userService.update(u);
+            
+            // Send email if deactivated
+            if (nextStatus.equals("inactif")) {
+                new Thread(() -> {
+                    try {
+                        com.example.studysprint.utils.MailerService.sendAccountDeactivationNotice(u.getEmail(), u.getFullName());
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }).start();
+            }
+            
             loadData(); // Refresh table
         }
     }
@@ -135,33 +148,139 @@ public class UsersListController implements Initializable {
     private void loadData() {
         List<Utilisateur> list = userService.getAll();
         masterData.setAll(list);
-        usersTable.setItems(masterData);
+        applyFilters(); // Apply current filters to loaded data
     }
 
-    private void setupSearch() {
-        searchField.textProperty().addListener((observable, oldValue, newValue) -> {
-            String query = newValue == null ? "" : newValue.toLowerCase();
-            if (query.isEmpty()) {
-                usersTable.setItems(masterData);
-                usersTable.refresh(); // Force redraw of all cells
-                return;
-            }
-            // Null-safe search using Stream API
-            List<Utilisateur> filtered = masterData.stream()
-                    .filter(u -> safe(u.getNom()).contains(query)
-                              || safe(u.getPrenom()).contains(query)
-                              || safe(u.getEmail()).contains(query))
-                    .toList();
-            usersTable.setItems(FXCollections.observableArrayList(filtered));
-            usersTable.refresh(); // Force redraw of all cells
+    private void setupFilters() {
+        // 1. Roles
+        roleFilter.getItems().setAll("Tous les rôles", "Administrateur", "Professeur", "Étudiant");
+        roleFilter.setValue("Tous les rôles");
+
+        // 2. Status
+        statusFilter.getItems().setAll("Tous les statuts", "Actif", "Inactif");
+        statusFilter.setValue("Tous les statuts");
+
+        // 3. Sort & Order
+        sortFilter.getItems().setAll("Nom", "Date Inscription", "Années Expérience");
+        sortFilter.setValue("Nom");
+        
+        orderFilter.getItems().setAll("Croissant ↑", "Décroissant ↓");
+        orderFilter.setValue("Croissant ↑");
+
+        // 4. Specialty (API)
+        specialtyFilter.getItems().add("Toutes les spécialités");
+        specialtyFilter.setValue("Toutes les spécialités");
+        com.example.studysprint.utils.ExternalApiService.fetchSpecialites().thenAccept(specs -> 
+            Platform.runLater(() -> specialtyFilter.getItems().addAll(specs)));
+
+        // 5. Connect Listeners (Live Search)
+        searchField.textProperty().addListener((obs, old, val) -> applyFilters());
+        expMinField.textProperty().addListener((obs, old, val) -> applyFilters());
+        roleFilter.valueProperty().addListener((obs, old, val) -> {
+            applyFilters();
+            // Show/Hide prof bar based on role
+            profFilterBar.setDisable(!"Professeur".equals(val) && !"Tous les rôles".equals(val));
         });
+        statusFilter.valueProperty().addListener((obs, old, val) -> applyFilters());
+        sortFilter.valueProperty().addListener((obs, old, val) -> applyFilters());
+        orderFilter.valueProperty().addListener((obs, old, val) -> applyFilters());
+        specialtyFilter.valueProperty().addListener((obs, old, val) -> applyFilters());
+    }
+
+    @FXML
+    private void applyFilters() {
+        String query = safe(searchField.getText());
+        String roleStr = roleFilter.getValue();
+        String statusStr = statusFilter.getValue();
+        String sortStr = sortFilter.getValue();
+        String orderStr = orderFilter.getValue();
+        String specStr = specialtyFilter.getValue();
+        String expStr = expMinField.getText();
+
+        java.util.stream.Stream<Utilisateur> stream = masterData.stream();
+
+        // --- FILTERING ---
+        // Text Search
+        if (!query.isEmpty()) {
+            stream = stream.filter(u -> safe(u.getNom()).contains(query)
+                                     || safe(u.getPrenom()).contains(query)
+                                     || safe(u.getEmail()).contains(query));
+        }
+
+        // Role
+        if (roleStr != null && !"Tous les rôles".equals(roleStr)) {
+            String roleCode = roleStr.equals("Administrateur") ? "ROLE_ADMIN" : 
+                             roleStr.equals("Professeur") ? "ROLE_PROFESSOR" : "ROLE_STUDENT";
+            stream = stream.filter(u -> roleCode.equals(u.getRole()));
+        }
+
+        // Status
+        if (statusStr != null && !"Tous les statuts".equals(statusStr)) {
+            stream = stream.filter(u -> {
+                boolean isActive = u.getStatut() == null || u.getStatut().isEmpty() || "actif".equalsIgnoreCase(u.getStatut());
+                return statusStr.equals("Actif") ? isActive : !isActive;
+            });
+        }
+
+        // Professor Specifics (Specialty)
+        if (specStr != null && !"Toutes les spécialités".equals(specStr)) {
+            stream = stream.filter(u -> specStr.equals(u.getSpecialite()));
+        }
+
+        // Experience Exact Match
+        if (expStr != null && !expStr.trim().isEmpty()) {
+            try {
+                int exact = Integer.parseInt(expStr.trim());
+                stream = stream.filter(u -> u.getAnneesExperience() != null && u.getAnneesExperience() == exact);
+            } catch (NumberFormatException ignored) {}
+        }
+
+        // --- SORTING ---
+        if (sortStr != null) {
+            java.util.Comparator<Utilisateur> comparator;
+            boolean isAsc = "Croissant ↑".equals(orderStr);
+
+            switch (sortStr) {
+                case "Date Inscription":
+                    comparator = (u1, u2) -> {
+                        if (u1.getDateInscription() == null) return 1;
+                        if (u2.getDateInscription() == null) return -1;
+                        return isAsc ? u1.getDateInscription().compareTo(u2.getDateInscription())
+                                     : u2.getDateInscription().compareTo(u1.getDateInscription());
+                    };
+                    break;
+                case "Années Expérience":
+                    comparator = (u1, u2) -> {
+                        int e1 = u1.getAnneesExperience() == null ? 0 : u1.getAnneesExperience();
+                        int e2 = u2.getAnneesExperience() == null ? 0 : u2.getAnneesExperience();
+                        return isAsc ? Integer.compare(e1, e2) : Integer.compare(e2, e1);
+                    };
+                    break;
+                default: // Nom
+                    comparator = (u1, u2) -> {
+                        int res = safe(u1.getNom()).compareTo(safe(u2.getNom()));
+                        return isAsc ? res : -res;
+                    };
+                    break;
+            }
+            stream = stream.sorted(comparator);
+        }
+
+        List<Utilisateur> filtered = stream.toList();
+        usersTable.setItems(FXCollections.observableArrayList(filtered));
+        usersTable.refresh();
     }
 
     @FXML
     private void handleResetSearch() {
         searchField.clear();
-        usersTable.setItems(masterData);
-        usersTable.refresh();
+        expMinField.clear();
+        roleFilter.setValue("Tous les rôles");
+        statusFilter.setValue("Tous les statuts");
+        sortFilter.setValue("Nom");
+        orderFilter.setValue("Croissant ↑");
+        specialtyFilter.setValue("Toutes les spécialités");
+        applyFilters();
     }
 
     @FXML

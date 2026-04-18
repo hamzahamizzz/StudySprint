@@ -142,6 +142,32 @@ public class ProfileController implements Initializable {
         switchScene("/fxml/auth/login.fxml", "Connexion - StudySprint");
     }
 
+    @FXML
+    private void handleChangePassword() {
+        String email = currentUser.getEmail();
+        
+        // Generate 6-digit code
+        String code = String.format("%06d", new java.util.Random().nextInt(1000000));
+        currentUser.setResetToken(code);
+        currentUser.setResetTokenExpiresAt(java.time.LocalDateTime.now().plusMinutes(15));
+        
+        userService.updateResetToken(currentUser);
+        ForgotPasswordController.targetEmail = email;
+
+        // Send Email asynchronously
+        new Thread(() -> {
+            try {
+                com.example.studysprint.utils.MailerService.sendVerificationCode(email, code);
+                Platform.runLater(() -> switchScene("/fxml/auth/verify-code.fxml", "Vérification - StudySprint"));
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    showError("Erreur d'envoi", "L'envoi de l'email a échoué. Vérifiez votre connexion.");
+                    e.printStackTrace();
+                });
+            }
+        }).start();
+    }
+
     private void switchScene(String fxmlPath, String title) {
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));

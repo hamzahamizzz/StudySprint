@@ -155,9 +155,17 @@
                             <Label fx:id="messageLabel"
                                    style="-fx-text-fill: #00b894; -fx-font-weight: bold;"
                                    visible="false" />
+                            <Button mnemonicParsing="false" onAction="#handleFaceEnroll"
+                                    prefHeight="44.0" prefWidth="200.0"
+                                    text="👤  Sécurité Biométrique"
+                                    style="-fx-background-color: transparent; -fx-text-fill: #8b5cf6; -fx-border-color: #8b5cf6; -fx-border-radius: 5; -fx-cursor: hand;" />
+                            <Button mnemonicParsing="false" onAction="#handleChangePassword"
+                                    prefHeight="44.0" prefWidth="220.0"
+                                    text="🔑  Changer le mot de passe"
+                                    style="-fx-background-color: transparent; -fx-text-fill: #6c5ce7; -fx-border-color: #6c5ce7; -fx-border-radius: 5; -fx-cursor: hand;" />
                             <Button mnemonicParsing="false" onAction="#handleSave"
                                     prefHeight="44.0" prefWidth="200.0"
-                                    text="💾  Enregistrer les modifications"
+                                    text="💾  Enregistrer"
                                     style="-fx-font-size: 14px;" />
                         </children>
                     </HBox>

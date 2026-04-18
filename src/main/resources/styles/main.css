@@ -97,3 +97,77 @@
     -fx-text-fill: #e74c3c;
     -fx-font-size: 11px;
 }
+
+/* ═══ Sidebar & Dashboard Styles ═══ */
+
+/* Sidebar Buttons */
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #b2bec3;
+    -fx-font-size: 14px;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.05);
+    -fx-text-fill: white;
+}
+
+/* KPI Cards */
+.kpi-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-padding: 20;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 4);
+}
+
+/* Charts Customization */
+.chart-pie-label {
+    -fx-fill: #2d3436;
+    -fx-font-size: 11px;
+}
+
+.chart-bar {
+    -fx-bar-gap: 5;
+}
+
+/* Chart Colors */
+.default-color0.chart-bar { -fx-bar-fill: #6c5ce7; }
+.default-color1.chart-bar { -fx-bar-fill: #00cec9; }
+.default-color2.chart-bar { -fx-bar-fill: #fab1a0; }
+.default-color3.chart-bar { -fx-bar-fill: #ff7675; }
+
+.default-color0.chart-pie { -fx-pie-color: #6c5ce7; }
+.default-color1.chart-pie { -fx-pie-color: #00cec9; }
+.default-color2.chart-pie { -fx-pie-color: #fab1a0; }
+.default-color3.chart-pie { -fx-pie-color: #fdcb6e; }
+
+/* Line Chart Curve */
+.chart-series-line {
+    -fx-stroke: #6c5ce7;
+    -fx-stroke-width: 3px;
+}
+
+.chart-line-symbol {
+    -fx-background-color: #6c5ce7, white;
+    -fx-background-insets: 0, 2;
+    -fx-background-radius: 5px;
+    -fx-padding: 5px;
+}
+
+/* Chart Legend Styling */
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 15px 0 0 0;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #2d3436;
+    -fx-font-size: 12px;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-radius: 3px;
+}

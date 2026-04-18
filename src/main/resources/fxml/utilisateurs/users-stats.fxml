@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.chart.StackedBarChart?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.example.studysprint.modules.utilisateurs.controllers.UsersStatsController"
+      style="-fx-background-color: #f5f6fa;">
+    
+    <padding><Insets bottom="30.0" left="30.0" right="30.0" top="30.0" /></padding>
+
+    <!-- ═══ Title Section ═══ -->
+    <HBox alignment="CENTER_LEFT" spacing="10.0">
+        <children>
+            <Label text="Analyses &amp; Statistiques" textFill="#2d3436">
+                <font><Font name="System Bold" size="24.0" /></font>
+            </Label>
+        </children>
+    </HBox>
+
+    <!-- ═══ KPI Cards (Top Bar) ═══ -->
+    <HBox spacing="20.0">
+        <children>
+            <!-- Total Users -->
+            <VBox prefWidth="200.0" styleClass="form-card" style="-fx-border-left-color: #6c5ce7; -fx-border-left-width: 5;">
+                <children>
+                    <Label text="Total Utilisateurs" textFill="#636e72" style="-fx-font-size: 13px;" />
+                    <Label fx:id="totalUsersLabel" text="0" textFill="#2d3436">
+                        <font><Font name="System Bold" size="28.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+            <!-- Students -->
+            <VBox prefWidth="180.0" styleClass="form-card" style="-fx-border-left-color: #00cec9; -fx-border-left-width: 5;">
+                <children>
+                    <Label text="Étudiants" textFill="#636e72" style="-fx-font-size: 13px;" />
+                    <Label fx:id="studentsLabel" text="0" textFill="#2d3436">
+                        <font><Font name="System Bold" size="24.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+            <!-- Professors -->
+            <VBox prefWidth="180.0" styleClass="form-card" style="-fx-border-left-color: #fab1a0; -fx-border-left-width: 5;">
+                <children>
+                    <Label text="Professeurs" textFill="#636e72" style="-fx-font-size: 13px;" />
+                    <Label fx:id="professorsLabel" text="0" textFill="#2d3436">
+                        <font><Font name="System Bold" size="24.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+            <!-- Active/Inactive -->
+            <VBox prefWidth="180.0" styleClass="form-card" style="-fx-border-left-color: #2ecc71; -fx-border-left-width: 5;">
+                <children>
+                    <Label text="Actifs / Inactifs" textFill="#636e72" style="-fx-font-size: 13px;" />
+                    <HBox spacing="10.0" alignment="BOTTOM_LEFT">
+                        <Label fx:id="activeLabel" text="0" textFill="#27ae60">
+                            <font><Font name="System Bold" size="24.0" /></font>
+                        </Label>
+                        <Label text="/" textFill="#b2bec3" style="-fx-font-size: 20px;" />
+                        <Label fx:id="inactiveLabel" text="0" textFill="#e74c3c">
+                            <font><Font name="System Bold" size="24.0" /></font>
+                        </Label>
+                    </HBox>
+                </children>
+            </VBox>
+        </children>
+    </HBox>
+
+    <!-- ═══ Graphs (Scrollable) ═══ -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS" style="-fx-background-color: transparent;">
+        <content>
+            <FlowPane hgap="25.0" vgap="25.0" prefWrapLength="1100.0" style="-fx-padding: 10 0 0 0;">
+                <children>
+                    
+                    <!-- 1. Pays (PieChart) -->
+                    <VBox prefHeight="350.0" prefWidth="500.0" styleClass="form-card">
+                        <Label text="Distribution Géo (Pays)" styleClass="section-title" />
+                        <PieChart fx:id="countryChart" legendVisible="true" labelLineLength="10" VBox.vgrow="ALWAYS" />
+                    </VBox>
+                    
+
+                    
+                    <!-- 3. Expertise Profs (BarChart Vertical) -->
+                    <VBox prefHeight="350.0" prefWidth="500.0" styleClass="form-card">
+                        <Label text="Expertise des Professeurs (Nb d'années)" styleClass="section-title" />
+                        <BarChart fx:id="experienceChart" legendVisible="false" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
+                            <yAxis><NumberAxis side="LEFT" /></yAxis>
+                        </BarChart>
+                    </VBox>
+                    
+                    <!-- 4. Âge Étudiants (StackedBarChart Horizontal) -->
+                    <VBox prefHeight="350.0" prefWidth="500.0" styleClass="form-card">
+                        <Label text="Démographie Étudiante (Âge / Sexe)" styleClass="section-title" />
+                        <StackedBarChart fx:id="ageChart" VBox.vgrow="ALWAYS">
+                            <xAxis><NumberAxis side="BOTTOM" label="Étudiants" /></xAxis>
+                            <yAxis><CategoryAxis side="LEFT" label="Âge" /></yAxis>
+                        </StackedBarChart>
+                    </VBox>
+
+                    <!-- 6. Distribution Profs (Pays / Établissement) -->
+                    <VBox prefHeight="600.0" prefWidth="1025.0" styleClass="form-card">
+                        <Label text="Répartition Profs (Pays / Étab.)" styleClass="section-title" />
+                        <StackedBarChart fx:id="profDestChart" legendVisible="true" legendSide="BOTTOM" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis side="BOTTOM" label="Pays" /></xAxis>
+                            <yAxis><NumberAxis side="LEFT" label="Professeurs" /></yAxis>
+                        </StackedBarChart>
+                    </VBox>
+
+                    <!-- 7. Distribution Étudiants (Pays / Établissement) -->
+                    <VBox prefHeight="600.0" prefWidth="1025.0" styleClass="form-card">
+                        <Label text="Répartition Étudiants (Pays / Étab.)" styleClass="section-title" />
+                        <StackedBarChart fx:id="studentDestChart" legendVisible="true" legendSide="BOTTOM" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis side="BOTTOM" label="Pays" /></xAxis>
+                            <yAxis><NumberAxis side="LEFT" label="Étudiants" /></yAxis>
+                        </StackedBarChart>
+                    </VBox>
+
+                    <!-- 5. Inscriptions (LineChart - Courbe) -->
+                    <VBox prefHeight="400.0" prefWidth="1025.0" styleClass="form-card">
+                        <Label text="Évolution des Inscriptions" styleClass="section-title" />
+                        <LineChart fx:id="signupsChart" createSymbols="true" VBox.vgrow="ALWAYS">
+                            <xAxis><CategoryAxis side="BOTTOM" /></xAxis>
+                            <yAxis><NumberAxis side="LEFT" /></yAxis>
+                        </LineChart>
+                    </VBox>
+
+                </children>
+            </FlowPane>
+        </content>
+    </ScrollPane>
+
+</VBox>

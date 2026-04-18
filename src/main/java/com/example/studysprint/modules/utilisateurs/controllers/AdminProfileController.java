@@ -176,7 +176,37 @@ public class AdminProfileController implements Initializable {
 
     @FXML
     private void handleBack() {
-        switchScene("/fxml/utilisateurs/users-list.fxml", "Gestion Utilisateurs - StudySprint");
+        switchScene("/fxml/utilisateurs/main-admin-layout.fxml", "Tableau de Bord - StudySprint");
+    }
+
+    @FXML
+    private void handleChangePassword() {
+        String email = currentAdmin.getEmail();
+        
+        // Generate 6-digit code
+        String code = String.format("%06d", new java.util.Random().nextInt(1000000));
+        currentAdmin.setResetToken(code);
+        currentAdmin.setResetTokenExpiresAt(java.time.LocalDateTime.now().plusHours(24));
+        
+        userService.updateResetToken(currentAdmin);
+        com.example.studysprint.modules.auth.controllers.ForgotPasswordController.targetEmail = email;
+
+        new Thread(() -> {
+            try {
+                com.example.studysprint.utils.MailerService.sendVerificationCode(email, code);
+                Platform.runLater(() -> switchScene("/fxml/auth/verify-code.fxml", "Vérification - StudySprint"));
+            } catch (Exception e) {
+                Platform.runLater(() -> {
+                    showMessage("❌ Erreur d'envoi. Vérifiez votre connexion.", false);
+                    e.printStackTrace();
+                });
+            }
+        }).start();
+    }
+
+    @FXML
+    private void handleFaceEnroll() {
+        switchScene("/fxml/utilisateurs/face-enroll.fxml", "Sécurité Biométrique - StudySprint");
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────

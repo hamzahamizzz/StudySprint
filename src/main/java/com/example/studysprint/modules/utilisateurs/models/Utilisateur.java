@@ -1,37 +1,17 @@
 package com.example.studysprint.modules.utilisateurs.models;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "user")
 public class Utilisateur {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @Column(nullable = false)
     private String nom;
-
-    @Column(nullable = false)
     private String prenom;
-
-    @Column(nullable = false, unique = true)
     private String email;
-
-    @Column(name = "mot_de_passe", nullable = false, length = 255)
     private String motDePasse;
-
-    @Column(nullable = false)
     private String role;
-
-    @Column(nullable = false, length = 50)
     private String statut = "actif";
-
-    @Column(name = "date_inscription", nullable = false)
     private LocalDateTime dateInscription;
-
-    @Column(nullable = false)
     private String discr = "user";
 
     private String pays;
@@ -40,17 +20,14 @@ public class Utilisateur {
     private String etablissement;
     private String niveau;
     private String specialite;
-
-    @Column(name = "niveau_enseignement")
     private String niveauEnseignement;
-
-    @Column(name = "annees_experience")
     private Integer anneesExperience;
 
     private String telephone;
-
-    @Column(name = "face_descriptor", columnDefinition = "LONGTEXT")
     private String faceDescriptor;
+
+    private String resetToken;
+    private LocalDateTime resetTokenExpiresAt;
 
     // ═══════════════════════════════════════════════════════════════════════
     // RELATIONS JPA — Cardinalités (activées lors de l'intégration)
@@ -148,6 +125,12 @@ public class Utilisateur {
 
     public String getPays() { return pays; }
     public void setPays(String pays) { this.pays = pays; }
+
+    public String getResetToken() { return resetToken; }
+    public void setResetToken(String resetToken) { this.resetToken = resetToken; }
+
+    public LocalDateTime getResetTokenExpiresAt() { return resetTokenExpiresAt; }
+    public void setResetTokenExpiresAt(LocalDateTime resetTokenExpiresAt) { this.resetTokenExpiresAt = resetTokenExpiresAt; }
 
     public String getFullName() {
         return prenom + " " + nom;

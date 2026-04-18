@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" 
+            fx:controller="com.example.studysprint.modules.utilisateurs.controllers.MainAdminController"
+            stylesheets="@../../styles/main.css">
+    
+    <!-- ═══ Sidebar (Left) ═══ -->
+    <left>
+        <VBox prefWidth="250.0" spacing="10.0" style="-fx-background-color: #2d3436; -fx-padding: 20;">
+            <children>
+                <!-- Logo / Title -->
+                <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 0 0 20 0;">
+                    <children>
+                        <Label text="Study" textFill="#6c5ce7">
+                            <font><Font name="System Bold" size="24.0" /></font>
+                        </Label>
+                        <Label text="Sprint" textFill="WHITE">
+                            <font><Font name="System Bold" size="24.0" /></font>
+                        </Label>
+                    </children>
+                </HBox>
+                
+                <Separator opacity="0.1" style="-fx-background-color: white;" />
+                
+                <Label text="NAVIGATION" textFill="#636e72" style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;" />
+                
+                <Button fx:id="usersBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
+                        onAction="#showUsersList" prefHeight="45.0" text="👤  Utilisateurs" 
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: LEFT;" />
+                
+                <Button fx:id="statsBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
+                        onAction="#showStats" prefHeight="45.0" text="📊  Statistiques" 
+                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: LEFT;" />
+
+                <HBox alignment="CENTER_LEFT" spacing="0">
+                    <children>
+                        <Button fx:id="requestsBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
+                                onAction="#showReactivationRequests" prefHeight="45.0" text="🔔  Réactivations" HBox.hgrow="ALWAYS"
+                                style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: LEFT;" />
+                        <StackPane fx:id="badgeContainer" visible="false">
+                            <children>
+                                <Label fx:id="requestBadge" style="-fx-background-color: #ff7675; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 2 6 2 6; -fx-font-size: 10px; -fx-font-weight: bold;" text="0" />
+                            </children>
+                        </StackPane>
+                    </children>
+                </HBox>
+                
+                <VBox VBox.vgrow="ALWAYS" /> <!-- Spacer -->
+                
+                <Separator opacity="0.1" style="-fx-background-color: white;" />
+                
+                <!-- Bottom Buttons -->
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
+                        onAction="#showMyProfile" prefHeight="45.0" text="⚙ Mon Profil" 
+                        style="-fx-background-color: transparent; -fx-text-fill: #dfe6e9; -fx-font-size: 13px; -fx-cursor: hand;" />
+                
+                <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
+                        onAction="#handleLogout" prefHeight="45.0" text="🚪  Déconnexion" 
+                        style="-fx-background-color: transparent; -fx-text-fill: #ff7675; -fx-font-size: 13px; -fx-cursor: hand;" />
+            </children>
+        </VBox>
+    </left>
+    
+    <!-- ═══ Main Content Area (Center) ═══ -->
+    <center>
+        <StackPane fx:id="contentArea" style="-fx-background-color: #f5f6fa;" />
+    </center>
+    
+</BorderPane>
