@@ -1,7 +1,7 @@
 package com.example.studysprint.modules.groupes.services;
 
 import com.example.studysprint.modules.groupes.models.GroupMember;
-import com.example.studysprint.utils.MyDatabase;
+import com.example.studysprint.utils.MyDataBase;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,9 +19,8 @@ public class GroupMemberService {
     private static boolean cacheInvalide = true;
 
     public GroupMemberService() {
-        this.connection = MyDatabase.getConnection();
+        this.connection = MyDataBase.getInstance().getCnx();
     }
-
     public List<GroupMember> getAll() {
         if (cache == null || cacheInvalide) {
             cache = getAllFromDB();

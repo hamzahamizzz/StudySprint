@@ -2,6 +2,7 @@ package com.example.studysprint.modules.utilisateurs.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.SessionManager;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -18,7 +19,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Callback;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -69,8 +69,9 @@ public class UsersListController implements Initializable {
                     private final HBox container = new HBox(10, editBtn, statusBtn, deleteBtn);
 
                     {
-                        editBtn.setStyle("-fx-background-color: #f1c40f;");
-                        deleteBtn.setStyle("-fx-background-color: #e74c3c;");
+                        editBtn.getStyleClass().add("users-action-edit-btn");
+                        deleteBtn.getStyleClass().add("users-action-delete-btn");
+                        statusBtn.getStyleClass().add("users-action-status-btn");
                         
                         editBtn.setOnAction(event -> {
                             Utilisateur u = getTableView().getItems().get(getIndex());
@@ -104,10 +105,16 @@ public class UsersListController implements Initializable {
 
                         if (isActive) {
                             statusBtn.setText("Désactiver");
-                            statusBtn.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white;");
+                            statusBtn.getStyleClass().remove("users-action-status-btn-inactive");
+                            if (!statusBtn.getStyleClass().contains("users-action-status-btn-active")) {
+                                statusBtn.getStyleClass().add("users-action-status-btn-active");
+                            }
                         } else {
                             statusBtn.setText("Activer");
-                            statusBtn.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white;");
+                            statusBtn.getStyleClass().remove("users-action-status-btn-active");
+                            if (!statusBtn.getStyleClass().contains("users-action-status-btn-inactive")) {
+                                statusBtn.getStyleClass().add("users-action-status-btn-inactive");
+                            }
                         }
                         setGraphic(container);
                     }
@@ -346,15 +353,8 @@ public class UsersListController implements Initializable {
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) usersTable.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) usersTable.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
     }
 
     /** Returns empty string if value is null, otherwise lowercased value. */

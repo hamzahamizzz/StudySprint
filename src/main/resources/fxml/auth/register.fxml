@@ -14,7 +14,7 @@
 
 <HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.auth.controllers.RegisterController" stylesheets="@../../styles/main.css">
    <children>
-      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="350.0" style="-fx-background-color: #6c5ce7;">
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="350.0" styleClass="auth-left-pane-primary">
          <children>
             <Label text="Rejoignez-nous" textFill="WHITE">
                <font>
@@ -29,7 +29,7 @@
             <VBox alignment="CENTER" prefHeight="100.0" spacing="10.0">
                 <children>
                     <Label text="Déjà inscrit ?" textFill="WHITE" />
-                    <Button onAction="#handleGoToLogin" style="-fx-background-color: transparent; -fx-border-color: white; -fx-border-radius: 20; -fx-text-fill: white;" text="Se connecter" />
+                    <Button onAction="#handleGoToLogin" styleClass="auth-outline-light-btn" text="Se connecter" />
                 </children>
                 <VBox.margin>
                     <Insets top="50.0" />
@@ -37,7 +37,7 @@
             </VBox>
          </children>
       </VBox>
-      <ScrollPane fitToWidth="true" prefHeight="600.0" prefWidth="550.0" style="-fx-background-color: white; -fx-background: white;">
+      <ScrollPane fitToWidth="true" prefHeight="600.0" prefWidth="550.0" styleClass="auth-right-scroll">
          <content>
             <VBox spacing="25.0">
                <padding>

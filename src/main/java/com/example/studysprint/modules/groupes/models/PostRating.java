@@ -1,5 +1,7 @@
 package com.example.studysprint.modules.groupes.models;
 
+import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
+
 import java.sql.Timestamp;
 
 public class PostRating {
@@ -9,7 +11,7 @@ public class PostRating {
     private Integer postId;
     private Integer userId;
     private GroupPost post;
-    private User user;
+    private Utilisateur user;
 
     public PostRating() {
     }
@@ -70,11 +72,11 @@ public class PostRating {
         this.post = post;
     }
 
-    public User getUser() {
+    public Utilisateur getUser() {
         return user;
     }
 
-    public void setUser(User user) {
+    public void setUser(Utilisateur user) {
         this.user = user;
     }
 

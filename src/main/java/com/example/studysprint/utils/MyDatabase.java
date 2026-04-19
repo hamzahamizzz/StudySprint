@@ -4,24 +4,31 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class MyDatabase {
-    private static final String URL = "jdbc:mysql://localhost:3306/studysprint?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String USER = "root";
-    private static final String PASSWORD = "";
+public class MyDataBase {
 
-    private static Connection connection;
+    private static MyDataBase instance;
+    private final String URL = "jdbc:mysql://localhost:3306/studysprint";
+    private final String USERNAME = "root";
+    private final String PASSWORD = "";
+    private Connection cnx;
 
-    private MyDatabase() {
+    private MyDataBase() {
+        try {
+            this.cnx = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            System.out.println("Connected to Database StudySprint (JDBC) .....");
+        } catch (SQLException e) {
+            System.err.println("JDBC Connection Error: " + e.getMessage());
+        }
     }
 
-    public static Connection getConnection() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                connection = DriverManager.getConnection(URL, USER, PASSWORD);
-            }
-            return connection;
-        } catch (SQLException e) {
-            throw new RuntimeException("Unable to connect to MySQL database", e);
+    public static MyDataBase getInstance() {
+        if (instance == null) {
+            instance = new MyDataBase();
         }
+        return instance;
+    }
+
+    public Connection getCnx() {
+        return cnx;
     }
 }

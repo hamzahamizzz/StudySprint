@@ -2,17 +2,14 @@ package com.example.studysprint.modules.auth.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.MailerService;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Random;
 
@@ -75,14 +72,7 @@ public class ForgotPasswordController {
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) emailField.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) emailField.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
     }
 }

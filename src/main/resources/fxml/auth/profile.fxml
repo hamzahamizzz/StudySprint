@@ -11,19 +11,15 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.auth.controllers.ProfileController" stylesheets="@../../styles/main.css">
+<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="650.0" prefWidth="950.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.auth.controllers.ProfileController" stylesheets="@../../styles/main.css" styleClass="profile-shell">
    <children>
-      <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="300.0" spacing="30.0" style="-fx-background-color: #6c5ce7;">
+      <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="300.0" spacing="30.0" styleClass="profile-sidebar">
          <children>
             <VBox alignment="CENTER" spacing="10.0">
                <children>
-                  <VBox alignment="CENTER" prefHeight="100.0" prefWidth="100.0" style="-fx-background-color: rgba(255,255,255,0.2); -fx-background-radius: 50;">
+                  <VBox alignment="CENTER" prefHeight="100.0" prefWidth="100.0" styleClass="profile-avatar-shell">
                      <children>
-                        <Label text="👤" textFill="WHITE">
-                           <font>
-                              <Font size="48.0" />
-                           </font>
-                        </Label>
+                        <Label styleClass="profile-avatar-icon" text="👤" textFill="WHITE" />
                      </children>
                      <maxWidth>100.0</maxWidth>
                   </VBox>
@@ -44,21 +40,23 @@
             </VBox>
             <VBox spacing="10.0" VBox.vgrow="ALWAYS">
                <children>
-                  <Button maxWidth="Infinity" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-padding: 10 20;" text="Mon Profil" />
-                  <Button maxWidth="Infinity" onAction="#handleChangePassword" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-padding: 10 20; -fx-cursor: hand;" text="🔑  Changer le mot de passe" />
+                  <Button maxWidth="Infinity" onAction="#handleBackHome" styleClass="profile-menu-btn" text="🏠  Accueil" />
+                  <Button maxWidth="Infinity" onAction="#openGroups" styleClass="profile-menu-btn" text="👥  Groupes" />
+                  <Button maxWidth="Infinity" styleClass="profile-menu-btn profile-menu-btn-active" text="👤  Mon Profil" />
+                  <Button maxWidth="Infinity" onAction="#handleChangePassword" styleClass="profile-menu-btn" text="🔑  Changer le mot de passe" />
                </children>
                <padding>
                   <Insets left="20.0" right="20.0" />
                </padding>
             </VBox>
-            <Button mnemonicParsing="false" onAction="#handleLogout" prefHeight="40.0" prefWidth="240.0" style="-fx-background-color: transparent; -fx-border-color: white; -fx-border-radius: 20; -fx-text-fill: white;" text="Déconnexion">
+            <Button mnemonicParsing="false" onAction="#handleLogout" prefHeight="40.0" prefWidth="240.0" styleClass="profile-logout-btn" text="Déconnexion">
                <VBox.margin>
                   <Insets bottom="40.0" />
                </VBox.margin>
             </Button>
          </children>
       </VBox>
-      <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" style="-fx-background-color: #f9f9f9; -fx-background: #f9f9f9;">
+      <ScrollPane fitToWidth="true" HBox.hgrow="ALWAYS" styleClass="profile-content-scroll">
          <content>
             <VBox spacing="30.0">
                <padding>
@@ -81,7 +79,7 @@
                      </children>
                   </HBox>
                   
-                  <VBox spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+                  <VBox spacing="20.0" styleClass="profile-section-card">
                      <padding>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </padding>
@@ -122,7 +120,7 @@
                      </children>
                   </VBox>
 
-                  <VBox spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+                  <VBox spacing="20.0" styleClass="profile-section-card">
                      <padding>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </padding>
@@ -151,7 +149,7 @@
                      </children>
                   </VBox>
 
-                  <VBox fx:id="studentFields" spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+                  <VBox fx:id="studentFields" spacing="20.0" styleClass="profile-section-card">
                      <padding>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </padding>
@@ -186,7 +184,7 @@
                      </children>
                   </VBox>
 
-                  <VBox fx:id="professorFields" spacing="20.0" style="-fx-background-color: white; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.05), 10, 0, 0, 5);">
+                  <VBox fx:id="professorFields" spacing="20.0" styleClass="profile-section-card">
                      <padding>
                         <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
                      </padding>

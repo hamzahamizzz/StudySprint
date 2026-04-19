@@ -2,29 +2,75 @@ package com.example.studysprint.modules.auth.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
+import com.example.studysprint.utils.SessionManager;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 
 public class VerifyCodeController {
 
     @FXML private TextField codeField;
     @FXML private Label codeError, instructionLabel;
+    @FXML private Label sidebarFullNameLabel, sidebarRoleLabel;
 
     private final UtilisateurService userService = new UtilisateurService();
 
     @FXML
     public void initialize() {
+        populateSidebarUser();
         if (ForgotPasswordController.targetEmail != null) {
             instructionLabel.setText("Entrez le code à 6 chiffres envoyé à " + ForgotPasswordController.targetEmail);
         }
+    }
+
+    private void populateSidebarUser() {
+        Utilisateur currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            sidebarFullNameLabel.setText("Utilisateur");
+            sidebarRoleLabel.setText("Invite");
+            return;
+        }
+        sidebarFullNameLabel.setText(currentUser.getFullName());
+        sidebarRoleLabel.setText(formatRole(currentUser));
+    }
+
+    @FXML
+    private void onGoHome() {
+        Stage stage = (Stage) codeField.getScene().getWindow();
+        if (!AppNavigator.openDefaultForCurrentSession(stage, getClass())) {
+            AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
+        }
+    }
+
+    @FXML
+    private void onGoGroups() {
+        Stage stage = (Stage) codeField.getScene().getWindow();
+        if (SessionManager.getInstance().getCurrentUser() == null) {
+            AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
+            return;
+        }
+        AppNavigator.switchTo(stage, "/fxml/groupes/GroupListView.fxml", "Groupes - StudySprint", getClass());
+    }
+
+    @FXML
+    private void onOpenProfile() {
+        Stage stage = (Stage) codeField.getScene().getWindow();
+        if (SessionManager.getInstance().getCurrentUser() == null) {
+            AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
+            return;
+        }
+        AppNavigator.switchTo(stage, "/fxml/auth/profile.fxml", "Mon Profil - StudySprint", getClass());
+    }
+
+    @FXML
+    private void onLogout() {
+        SessionManager.getInstance().logout();
+        Stage stage = (Stage) codeField.getScene().getWindow();
+        AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
     }
 
     @FXML
@@ -68,14 +114,19 @@ public class VerifyCodeController {
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) codeField.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
+        Stage stage = (Stage) codeField.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
+    }
+
+    private String formatRole(Utilisateur user) {
+        if (user == null || user.getRole() == null) {
+            return "Utilisateur";
         }
+        return switch (user.getRole().toUpperCase()) {
+            case "ROLE_STUDENT" -> "Etudiant";
+            case "ROLE_PROFESSOR" -> "Professeur";
+            case "ROLE_ADMIN" -> "Administrateur";
+            default -> "Utilisateur";
+        };
     }
 }

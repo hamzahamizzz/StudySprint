@@ -2,17 +2,13 @@ package com.example.studysprint.modules.auth.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.SessionManager;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
-
-import java.io.IOException;
 
 public class LoginController {
 
@@ -84,22 +80,11 @@ public class LoginController {
     }
 
     private void loadMainApp(Utilisateur user) {
-        if ("ROLE_ADMIN".equals(user.getRole())) {
-            switchScene("/fxml/utilisateurs/main-admin-layout.fxml", "Tableau de Bord - StudySprint");
-        } else {
-            switchScene("/fxml/auth/profile.fxml", "Mon Profil - StudySprint");
-        }
+        switchScene(AppNavigator.defaultFxmlFor(user), AppNavigator.defaultTitleFor(user));
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) emailField.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) emailField.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
     }
 }

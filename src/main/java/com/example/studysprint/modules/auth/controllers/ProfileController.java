@@ -2,19 +2,16 @@ package com.example.studysprint.modules.auth.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.ExternalApiService;
 import com.example.studysprint.utils.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -143,6 +140,16 @@ public class ProfileController implements Initializable {
     }
 
     @FXML
+    private void handleBackHome() {
+        switchScene("/fxml/home/home.fxml", "Accueil - StudySprint");
+    }
+
+    @FXML
+    private void openGroups() {
+        switchScene("/fxml/groupes/GroupListView.fxml", "Groupes - StudySprint");
+    }
+
+    @FXML
     private void handleChangePassword() {
         String email = currentUser.getEmail();
         
@@ -169,15 +176,8 @@ public class ProfileController implements Initializable {
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) nomField.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) nomField.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
     }
 
     private void showSuccess(String title, String message) {

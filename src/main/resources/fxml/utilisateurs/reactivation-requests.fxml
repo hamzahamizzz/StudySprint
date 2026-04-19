@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<VBox prefHeight="600.0" prefWidth="950.0" spacing="20.0" style="-fx-padding: 30; -fx-background-color: #f5f6fa;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.ReactivationRequestsController">
+<VBox prefHeight="600.0" prefWidth="950.0" spacing="20.0" styleClass="reactivation-page" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.ReactivationRequestsController">
    <children>
       <VBox spacing="5.0">
          <children>

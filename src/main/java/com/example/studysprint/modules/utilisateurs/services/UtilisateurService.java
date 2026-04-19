@@ -12,6 +12,9 @@ import java.util.stream.Collectors;
 
 public class UtilisateurService implements IService<Utilisateur> {
 
+    public record UserDisplay(String fullName, String email, String initials) {
+    }
+
     private final Connection cnx;
 
     public UtilisateurService() {
@@ -241,6 +244,31 @@ public class UtilisateurService implements IService<Utilisateur> {
         return null;
     }
 
+    public UserDisplay getDisplay(Integer userId) {
+        if (userId == null) {
+            return unknown(null);
+        }
+
+        String req = "SELECT prenom, nom, email FROM `user` WHERE id = ?";
+        try (PreparedStatement pst = cnx.prepareStatement(req)) {
+            pst.setInt(1, userId);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (!rs.next()) {
+                    return unknown(userId);
+                }
+
+                String prenom = rs.getString("prenom");
+                String nom = rs.getString("nom");
+                String email = rs.getString("email");
+                String fullName = buildFullName(prenom, nom);
+                String displayName = fullName.isBlank() ? ("Utilisateur #" + userId) : fullName;
+                return new UserDisplay(displayName, email == null ? "" : email, initial(displayName));
+            }
+        } catch (SQLException e) {
+            return unknown(userId);
+        }
+    }
+
     // Filters using Java Stream (getAll() + Stream)
     public List<Utilisateur> search(String query) {
         String lowerQuery = query == null ? "" : query.toLowerCase();
@@ -273,5 +301,23 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     private String safe(String val) {
         return val == null ? "" : val.toLowerCase();
+    }
+
+    private static String buildFullName(String firstName, String lastName) {
+        String f = firstName == null ? "" : firstName.trim();
+        String l = lastName == null ? "" : lastName.trim();
+        return (f + " " + l).trim();
+    }
+
+    private static String initial(String value) {
+        if (value == null || value.isBlank()) {
+            return "U";
+        }
+        return value.substring(0, 1).toUpperCase();
+    }
+
+    private static UserDisplay unknown(Integer userId) {
+        String label = userId == null ? "Utilisateur" : ("Utilisateur #" + userId);
+        return new UserDisplay(label, "", initial(label));
     }
 }

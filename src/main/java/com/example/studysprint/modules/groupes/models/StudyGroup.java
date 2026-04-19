@@ -1,5 +1,7 @@
 package com.example.studysprint.modules.groupes.models;
 
+import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
+
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ public class StudyGroup {
     private Timestamp updatedAt;
     private Timestamp lastActivity;
     private Integer createdById;
-    private User createdBy;
+    private Utilisateur createdBy;
     private List<GroupMember> members;
     private List<GroupPost> posts;
     private List<GroupInvitation> invitations;
@@ -113,11 +115,11 @@ public class StudyGroup {
         this.createdById = createdById;
     }
 
-    public User getCreatedBy() {
+    public Utilisateur getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(Utilisateur createdBy) {
         this.createdBy = createdBy;
     }
 

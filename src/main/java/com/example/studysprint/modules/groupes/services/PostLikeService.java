@@ -1,7 +1,7 @@
 package com.example.studysprint.modules.groupes.services;
 
 import com.example.studysprint.modules.groupes.models.PostLike;
-import com.example.studysprint.utils.MyDatabase;
+import com.example.studysprint.utils.MyDataBase;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -17,9 +17,8 @@ public class PostLikeService {
     private static boolean cacheInvalide = true;
 
     public PostLikeService() {
-        this.connection = MyDatabase.getConnection();
+        this.connection = MyDataBase.getInstance().getCnx();
     }
-
     public List<PostLike> getAll() {
         if (cache == null || cacheInvalide) {
             cache = getAllFromDB();

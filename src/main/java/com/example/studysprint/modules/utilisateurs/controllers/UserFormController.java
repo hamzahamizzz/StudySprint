@@ -214,7 +214,6 @@ public class UserFormController implements Initializable {
             String passRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
             if (!Pattern.matches(passRegex, password)) {
                 passwordError.setText("⚠ Le mot de passe doit contenir au minimum 8 caractères,\nune lettre majuscule (A-Z), une lettre minuscule (a-z) et un chiffre (0-9).");
-                passwordError.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 11px;");
                 passwordError.setVisible(true);
                 isValid = false;
             }

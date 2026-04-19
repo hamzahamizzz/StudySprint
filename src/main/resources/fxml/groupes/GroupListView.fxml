@@ -4,39 +4,76 @@
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
-<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
-<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.studysprint.modules.groupes.controllers.GroupListController"
-            stylesheets="@../../styles/groupes-light-blue.css"
-            styleClass="group-page">
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.studysprint.modules.groupes.controllers.GroupListController"
+      stylesheets="@../../styles/main.css"
+      styleClass="profile-shell group-page" prefWidth="1280.0" prefHeight="820.0">
 
-    <top>
-        <VBox spacing="0" styleClass="header-shell">
-            <HBox spacing="12" alignment="CENTER_LEFT" styleClass="header-bar">
-                <padding>
-                    <Insets top="10" right="24" bottom="10" left="24" />
-                </padding>
-                <Label text="StudySprint" styleClass="header-title" />
+    <children>
+        <VBox alignment="TOP_CENTER" prefHeight="200.0" prefWidth="300.0" spacing="30.0" styleClass="profile-sidebar">
+            <children>
+                <VBox alignment="CENTER" spacing="10.0">
+                    <children>
+                        <VBox alignment="CENTER" prefHeight="100.0" prefWidth="100.0" styleClass="profile-avatar-shell">
+                            <children>
+                                <Label styleClass="profile-avatar-icon" text="👤" textFill="WHITE" />
+                            </children>
+                        </VBox>
+                        <Label fx:id="sidebarFullNameLabel" text="Jean Dupont" textFill="WHITE">
+                            <font>
+                                <Font name="System Bold" size="20.0" />
+                            </font>
+                        </Label>
+                        <Label fx:id="sidebarRoleLabel" text="Étudiant" textFill="#dfe6e9">
+                            <font>
+                                <Font size="16.0" />
+                            </font>
+                        </Label>
+                    </children>
+                    <VBox.margin>
+                        <Insets top="50.0" />
+                    </VBox.margin>
+                </VBox>
+
+                <VBox spacing="10.0" VBox.vgrow="ALWAYS">
+                    <children>
+                        <Button maxWidth="Infinity" onAction="#onBackHome" styleClass="profile-menu-btn" text="🏠  Accueil" />
+                        <Button maxWidth="Infinity" styleClass="profile-menu-btn profile-menu-btn-active" text="👥  Groupes" />
+                        <Button maxWidth="Infinity" onAction="#onOpenProfile" styleClass="profile-menu-btn" text="👤  Mon Profil" />
+                        <Button maxWidth="Infinity" onAction="#onOpenChangePassword" styleClass="profile-menu-btn" text="🔑  Changer le mot de passe" />
+                    </children>
+                    <padding>
+                        <Insets left="20.0" right="20.0" />
+                    </padding>
+                </VBox>
+
+                <Button mnemonicParsing="false" onAction="#onLogout" prefHeight="40.0" prefWidth="240.0" styleClass="profile-logout-btn" text="Déconnexion">
+                    <VBox.margin>
+                        <Insets bottom="40.0" />
+                    </VBox.margin>
+                </Button>
+            </children>
+        </VBox>
+
+        <VBox spacing="16" styleClass="content-area" HBox.hgrow="ALWAYS">
+            <padding>
+                <Insets top="24" right="24" bottom="20" left="24" />
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="14">
+                <Label text="Groupes" styleClass="group-title-xl" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Button fx:id="createGroupButton" text="Créer un groupe" onAction="#onCreateGroup" styleClass="create-btn" />
             </HBox>
-        </VBox>
-    </top>
-
-    <center>
-        <VBox spacing="16" styleClass="content-area">
-            <padding>
-                <Insets top="16" right="24" bottom="20" left="24" />
-            </padding>
 
             <HBox spacing="24" alignment="CENTER_LEFT" styleClass="tabs-bar">
                 <HBox spacing="8" alignment="CENTER_LEFT" styleClass="tab-item">
@@ -55,7 +92,7 @@
                 </HBox>
             </HBox>
 
-            <StackPane>
+            <StackPane VBox.vgrow="ALWAYS">
                 <VBox fx:id="groupsContentPane" spacing="16">
                     <HBox spacing="10" alignment="CENTER_LEFT">
                         <TextField fx:id="searchField" promptText="Rechercher par nom ou matière..." styleClass="search-input" HBox.hgrow="ALWAYS" />
@@ -65,7 +102,7 @@
 
                     <Label fx:id="groupsCountLabel" text="0" styleClass="count-pill" visible="false" managed="false" />
 
-                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll">
+                    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll" VBox.vgrow="ALWAYS">
                         <content>
                             <FlowPane fx:id="groupCardsPane" hgap="14" vgap="14" prefWrapLength="1100" styleClass="cards-grid">
                                 <padding>
@@ -87,5 +124,5 @@
                 </VBox>
             </StackPane>
         </VBox>
-    </center>
-</BorderPane>
+    </children>
+</HBox>

@@ -1,5 +1,7 @@
 package com.example.studysprint.modules.groupes.models;
 
+import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
+
 import java.sql.Timestamp;
 
 public class GroupInvitation {
@@ -16,7 +18,7 @@ public class GroupInvitation {
     private Integer groupId;
     private Integer invitedById;
     private StudyGroup group;
-    private User invitedBy;
+    private Utilisateur invitedBy;
 
     public GroupInvitation() {
     }
@@ -142,11 +144,11 @@ public class GroupInvitation {
         this.group = group;
     }
 
-    public User getInvitedBy() {
+    public Utilisateur getInvitedBy() {
         return invitedBy;
     }
 
-    public void setInvitedBy(User invitedBy) {
+    public void setInvitedBy(Utilisateur invitedBy) {
         this.invitedBy = invitedBy;
     }
 

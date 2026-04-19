@@ -7,6 +7,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
+import javafx.scene.Cursor;
 import javafx.scene.chart.*;
 import javafx.geometry.Side;
 import javafx.scene.control.Label;
@@ -83,7 +84,7 @@ public class UsersStatsController implements Initializable {
         chart.getData().forEach(series -> {
             series.getData().forEach(data -> {
                 Label label = new Label(data.getYValue().toString());
-                label.setStyle("-fx-font-weight: bold; -fx-text-fill: #2d3436; -fx-padding: 0 0 5 0;");
+                label.getStyleClass().add("stats-bar-overlay-label");
                 data.nodeProperty().addListener((ov, oldNode, newNode) -> {
                     if (newNode != null) {
                         // Position label above bar (simplified for vertical bars)
@@ -257,11 +258,11 @@ public class UsersStatsController implements Initializable {
                 // Add explicit number label inside the bar
                 String value = String.valueOf(data.getXValue() instanceof Number ? data.getXValue() : data.getYValue());
                 Label label = new Label(value);
-                label.setStyle("-fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 11px;");
+                label.getStyleClass().add("stats-bar-overlay-label");
                 bar.getChildren().add(label);
                 
                 Platform.runLater(() -> {
-                    bar.setStyle(bar.getStyle() + "; -fx-cursor: hand;");
+                    bar.setCursor(Cursor.HAND);
                 });
             }
         });
@@ -270,18 +271,25 @@ public class UsersStatsController implements Initializable {
     private void applyGenderColors(XYChart.Series<Number, String> male, XYChart.Series<Number, String> female) {
         Platform.runLater(() -> {
             male.getData().forEach(d -> {
-                if (d.getNode() != null) d.getNode().setStyle("-fx-bar-fill: #3498db;"); // Blue
+                if (d.getNode() != null && !d.getNode().getStyleClass().contains("stats-age-male-bar")) {
+                    d.getNode().getStyleClass().add("stats-age-male-bar");
+                }
             });
             female.getData().forEach(d -> {
-                if (d.getNode() != null) d.getNode().setStyle("-fx-bar-fill: #e84393;"); // Pink
+                if (d.getNode() != null && !d.getNode().getStyleClass().contains("stats-age-female-bar")) {
+                    d.getNode().getStyleClass().add("stats-age-female-bar");
+                }
             });
             // Update Legend
             for (javafx.scene.Node node : ageChart.lookupAll(".chart-legend-item")) {
                 if (node instanceof Label label) {
-                    if ("Hommes".equals(label.getText())) {
-                        label.getGraphic().setStyle("-fx-background-color: #3498db;");
-                    } else if ("Femmes".equals(label.getText())) {
-                        label.getGraphic().setStyle("-fx-background-color: #e84393;");
+                    if (label.getGraphic() == null) {
+                        continue;
+                    }
+                    if ("Hommes".equals(label.getText()) && !label.getGraphic().getStyleClass().contains("stats-legend-male")) {
+                        label.getGraphic().getStyleClass().add("stats-legend-male");
+                    } else if ("Femmes".equals(label.getText()) && !label.getGraphic().getStyleClass().contains("stats-legend-female")) {
+                        label.getGraphic().getStyleClass().add("stats-legend-female");
                     }
                 }
             }

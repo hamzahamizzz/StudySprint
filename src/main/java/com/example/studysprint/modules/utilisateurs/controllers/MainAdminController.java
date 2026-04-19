@@ -1,17 +1,17 @@
 package com.example.studysprint.modules.utilisateurs.controllers;
 
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.SessionManager;
+import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.net.URL;
 import java.util.ResourceBundle;
 
@@ -26,9 +26,15 @@ public class MainAdminController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        // Load the users list by default
-        showUsersList();
-        refreshBadge();
+        Platform.runLater(() -> {
+            Stage stage = (Stage) contentArea.getScene().getWindow();
+            if (!AppNavigator.ensureAdminAccess(stage, getClass())) {
+                return;
+            }
+
+            showUsersList();
+            refreshBadge();
+        });
     }
 
     public void refreshBadge() {
@@ -68,15 +74,8 @@ public class MainAdminController implements Initializable {
     @FXML
     private void handleLogout() {
         SessionManager.getInstance().logout();
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/auth/login.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) contentArea.getScene().getWindow();
-            stage.setScene(new Scene(root));
-            stage.setTitle("Connexion - StudySprint");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) contentArea.getScene().getWindow();
+        AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
     }
 
     private void loadView(String fxmlPath) {
@@ -110,13 +109,14 @@ public class MainAdminController implements Initializable {
 
     private void setActiveButton(Button activeBtn) {
         resetButtons();
-        activeBtn.setStyle("-fx-background-color: #6c5ce7; -fx-text-fill: white; -fx-font-size: 14px; -fx-background-radius: 5; -fx-alignment: CENTER_LEFT;");
+        if (!activeBtn.getStyleClass().contains("bo-sidebar-btn-active")) {
+            activeBtn.getStyleClass().add("bo-sidebar-btn-active");
+        }
     }
 
     private void resetButtons() {
-        String baseStyle = "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: CENTER_LEFT;";
-        usersBtn.setStyle(baseStyle);
-        statsBtn.setStyle(baseStyle);
-        requestsBtn.setStyle(baseStyle);
+        usersBtn.getStyleClass().remove("bo-sidebar-btn-active");
+        statsBtn.getStyleClass().remove("bo-sidebar-btn-active");
+        requestsBtn.getStyleClass().remove("bo-sidebar-btn-active");
     }
 }

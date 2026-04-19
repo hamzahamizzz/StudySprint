@@ -16,40 +16,40 @@
     
     <!-- ═══ Sidebar (Left) ═══ -->
     <left>
-        <VBox prefWidth="250.0" spacing="10.0" style="-fx-background-color: #2d3436; -fx-padding: 20;">
+        <VBox prefWidth="250.0" spacing="10.0" styleClass="bo-sidebar">
             <children>
                 <!-- Logo / Title -->
-                <HBox alignment="CENTER_LEFT" spacing="10.0" style="-fx-padding: 0 0 20 0;">
+                <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="bo-logo-row">
                     <children>
-                        <Label text="Study" textFill="#6c5ce7">
+                        <Label text="Study" styleClass="bo-brand-study">
                             <font><Font name="System Bold" size="24.0" /></font>
                         </Label>
-                        <Label text="Sprint" textFill="WHITE">
+                        <Label text="Sprint" styleClass="bo-brand-sprint">
                             <font><Font name="System Bold" size="24.0" /></font>
                         </Label>
                     </children>
                 </HBox>
                 
-                <Separator opacity="0.1" style="-fx-background-color: white;" />
+                <Separator opacity="0.1" styleClass="bo-divider" />
                 
-                <Label text="NAVIGATION" textFill="#636e72" style="-fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 10 0 5 0;" />
+                <Label text="NAVIGATION" styleClass="bo-nav-title" />
                 
                 <Button fx:id="usersBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                         onAction="#showUsersList" prefHeight="45.0" text="👤  Utilisateurs" 
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: LEFT;" />
+                        styleClass="bo-sidebar-btn" />
                 
                 <Button fx:id="statsBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                         onAction="#showStats" prefHeight="45.0" text="📊  Statistiques" 
-                        style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: LEFT;" />
+                        styleClass="bo-sidebar-btn" />
 
                 <HBox alignment="CENTER_LEFT" spacing="0">
                     <children>
                         <Button fx:id="requestsBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                                 onAction="#showReactivationRequests" prefHeight="45.0" text="🔔  Réactivations" HBox.hgrow="ALWAYS"
-                                style="-fx-background-color: transparent; -fx-text-fill: white; -fx-font-size: 14px; -fx-cursor: hand; -fx-alignment: LEFT;" />
+                                styleClass="bo-sidebar-btn" />
                         <StackPane fx:id="badgeContainer" visible="false">
                             <children>
-                                <Label fx:id="requestBadge" style="-fx-background-color: #ff7675; -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 2 6 2 6; -fx-font-size: 10px; -fx-font-weight: bold;" text="0" />
+                                <Label fx:id="requestBadge" styleClass="bo-badge" text="0" />
                             </children>
                         </StackPane>
                     </children>
@@ -57,23 +57,23 @@
                 
                 <VBox VBox.vgrow="ALWAYS" /> <!-- Spacer -->
                 
-                <Separator opacity="0.1" style="-fx-background-color: white;" />
+                <Separator opacity="0.1" styleClass="bo-divider" />
                 
                 <!-- Bottom Buttons -->
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                         onAction="#showMyProfile" prefHeight="45.0" text="⚙ Mon Profil" 
-                        style="-fx-background-color: transparent; -fx-text-fill: #dfe6e9; -fx-font-size: 13px; -fx-cursor: hand;" />
+                        styleClass="bo-bottom-profile-btn" />
                 
                 <Button alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                         onAction="#handleLogout" prefHeight="45.0" text="🚪  Déconnexion" 
-                        style="-fx-background-color: transparent; -fx-text-fill: #ff7675; -fx-font-size: 13px; -fx-cursor: hand;" />
+                        styleClass="bo-bottom-logout-btn" />
             </children>
         </VBox>
     </left>
     
     <!-- ═══ Main Content Area (Center) ═══ -->
     <center>
-        <StackPane fx:id="contentArea" style="-fx-background-color: #f5f6fa;" />
+        <StackPane fx:id="contentArea" styleClass="bo-content-area" />
     </center>
     
 </BorderPane>

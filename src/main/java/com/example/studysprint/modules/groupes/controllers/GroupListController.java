@@ -4,13 +4,15 @@ import com.example.studysprint.modules.groupes.models.StudyGroup;
 import com.example.studysprint.modules.groupes.services.GroupMemberService;
 import com.example.studysprint.modules.groupes.services.GroupService;
 import com.example.studysprint.modules.groupes.utils.GroupUiUtils;
+import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
+import com.example.studysprint.utils.AppNavigator;
+import com.example.studysprint.utils.SessionManager;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -42,8 +44,6 @@ import java.util.Map;
 import java.util.Optional;
 
 public class GroupListController {
-    private static final int CURRENT_USER_ID = 1;
-
     @FXML
     private Button createGroupButton;
     @FXML
@@ -74,6 +74,10 @@ public class GroupListController {
     private VBox invitationsContentPane;
     @FXML
     private VBox feedbacksContentPane;
+    @FXML
+    private Label sidebarFullNameLabel;
+    @FXML
+    private Label sidebarRoleLabel;
 
     private final GroupService groupService = new GroupService();
     private final GroupMemberService memberService = new GroupMemberService();
@@ -84,10 +88,20 @@ public class GroupListController {
     @FXML
     public void initialize() {
         createGroupButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
+        populateSidebarUser();
         selectTab("groups");
         configureFilters();
         loadGroups();
         updateTabCounters();
+    }
+
+    private void populateSidebarUser() {
+        Utilisateur currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            return;
+        }
+        sidebarFullNameLabel.setText(currentUser.getFullName());
+        sidebarRoleLabel.setText(formatRole(currentUser));
     }
 
     private void configureFilters() {
@@ -199,6 +213,47 @@ public class GroupListController {
     @FXML
     private void onFeedbacksTab() {
         selectTab("feedbacks");
+    }
+
+    @FXML
+    private void onBackHome() {
+        Stage stage = (Stage) groupCardsPane.getScene().getWindow();
+        if (!AppNavigator.switchTo(stage, AppNavigator.HOME_FXML, AppNavigator.HOME_TITLE, getClass())) {
+            GroupUiUtils.showError(groupCardsPane.getScene().getWindow(), GroupListController.class,
+                    "Navigation impossible",
+                    "Impossible de retourner vers l'accueil.",
+                    "Chargement de la vue échoué.");
+        }
+    }
+
+    @FXML
+    private void onOpenProfile() {
+        Stage stage = (Stage) groupCardsPane.getScene().getWindow();
+        AppNavigator.switchTo(stage, "/fxml/auth/profile.fxml", "Mon Profil - StudySprint", getClass());
+    }
+
+    @FXML
+    private void onOpenChangePassword() {
+        onOpenProfile();
+    }
+
+    @FXML
+    private void onLogout() {
+        SessionManager.getInstance().logout();
+        Stage stage = (Stage) groupCardsPane.getScene().getWindow();
+        AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
+    }
+
+    private String formatRole(Utilisateur user) {
+        if (user == null || user.getRole() == null) {
+            return "Utilisateur";
+        }
+        return switch (user.getRole().toUpperCase()) {
+            case "ROLE_STUDENT" -> "Etudiant";
+            case "ROLE_PROFESSOR" -> "Professeur";
+            case "ROLE_ADMIN" -> "Administrateur";
+            default -> "Utilisateur";
+        };
     }
 
     // Show or hide the content area linked to the selected tab.
@@ -430,12 +485,14 @@ public class GroupListController {
 
     // Infer the current user's visible role inside a group.
     private String inferRole(StudyGroup group) {
-        if (group.getCreatedById() != null && group.getCreatedById() == CURRENT_USER_ID) {
+        int currentUserId = currentUserId();
+
+        if (group.getCreatedById() != null && group.getCreatedById() == currentUserId) {
             return "Admin";
         }
 
         String roleFromMembership = memberService
-            .getMemberRoleForUser(group.getId(), CURRENT_USER_ID)
+            .getMemberRoleForUser(group.getId(), currentUserId)
             .orElse("")
             .trim()
             .toLowerCase();
@@ -448,6 +505,11 @@ public class GroupListController {
         }
 
         return "Membre";
+    }
+
+    private int currentUserId() {
+        Integer userId = SessionManager.getInstance().getCurrentUserId();
+        return userId == null ? 1 : userId;
     }
 
     private String roleBadgeClass(String role) {

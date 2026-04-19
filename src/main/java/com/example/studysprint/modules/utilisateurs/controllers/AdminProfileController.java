@@ -2,21 +2,17 @@ package com.example.studysprint.modules.utilisateurs.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.ExternalApiService;
 import com.example.studysprint.utils.SessionManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
-import java.io.IOException;
 import java.net.URL;
 import java.time.format.DateTimeFormatter;
 import java.util.ResourceBundle;
@@ -50,9 +46,15 @@ public class AdminProfileController implements Initializable {
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
         currentAdmin = SessionManager.getInstance().getCurrentUser();
-        if (currentAdmin != null) {
-            populateFields();
+        if (currentAdmin == null || !AppNavigator.isAdmin(currentAdmin)) {
+            Platform.runLater(() -> {
+                Stage stage = (Stage) nomField.getScene().getWindow();
+                AppNavigator.ensureAdminAccess(stage, getClass());
+            });
+            return;
         }
+
+        populateFields();
 
         // Init sexe ComboBox
         sexeCombo.getItems().addAll("M", "F");
@@ -213,9 +215,8 @@ public class AdminProfileController implements Initializable {
 
     private void showMessage(String msg, boolean success) {
         messageLabel.setText(msg);
-        messageLabel.setStyle(success
-                ? "-fx-text-fill: #00b894; -fx-font-weight: bold;"
-                : "-fx-text-fill: #e74c3c; -fx-font-weight: bold;");
+        messageLabel.getStyleClass().removeAll("status-success", "status-error");
+        messageLabel.getStyleClass().add(success ? "status-success" : "status-error");
         messageLabel.setVisible(true);
     }
 
@@ -224,14 +225,7 @@ public class AdminProfileController implements Initializable {
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) nomField.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) nomField.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
     }
 }

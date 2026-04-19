@@ -2,14 +2,12 @@ package com.example.studysprint.modules.utilisateurs.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.SessionManager;
 import com.example.studysprint.utils.WebcamManager;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -20,7 +18,6 @@ import netscape.javascript.JSObject;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Base64;
 import java.util.ResourceBundle;
@@ -80,7 +77,8 @@ public class FaceEnrollController implements Initializable {
                 lastCapturedDescriptor = descriptorJson;
                 saveBtn.setDisable(false);
                 statusLabel.setText("Visage détecté ! Prêt pour l'enregistrement.");
-                statusLabel.setStyle("-fx-text-fill: #22c55e;");
+                statusLabel.getStyleClass().removeAll("status-success", "status-error");
+                statusLabel.getStyleClass().add("status-success");
             });
         }
     }
@@ -107,14 +105,8 @@ public class FaceEnrollController implements Initializable {
     @FXML
     private void handleCancel() {
         WebcamManager.stopCapture();
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/utilisateurs/main-admin-layout.fxml"));
-            Stage stage = (Stage) webView.getScene().getWindow();
-            stage.setTitle("Tableau de Bord - StudySprint");
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) webView.getScene().getWindow();
+        AppNavigator.switchTo(stage, AppNavigator.ADMIN_FXML, AppNavigator.ADMIN_TITLE, getClass());
     }
 
     private void setupLogging() {
@@ -127,15 +119,4 @@ public class FaceEnrollController implements Initializable {
         });
     }
 
-    private void switchScene(String fxmlPath, String title) {
-        WebcamManager.stopCapture();
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource("/fxml/utilisateurs/main-admin-layout.fxml"));
-            Stage stage = (Stage) webView.getScene().getWindow();
-            stage.setTitle("Tableau de Bord - StudySprint");
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

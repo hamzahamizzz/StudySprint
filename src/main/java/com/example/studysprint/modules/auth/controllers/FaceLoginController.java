@@ -2,15 +2,13 @@ package com.example.studysprint.modules.auth.controllers;
 
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.SessionManager;
 import com.example.studysprint.utils.WebcamManager;
 import com.google.gson.Gson;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -19,7 +17,6 @@ import netscape.javascript.JSObject;
 
 import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Base64;
 import java.util.List;
@@ -83,7 +80,8 @@ public class FaceLoginController implements Initializable {
                 if (matchedUser != null) {
                     WebcamManager.stopCapture();
                     statusLabel.setText("Bienvenue, " + matchedUser.getFullName() + " !");
-                    statusLabel.setStyle("-fx-text-fill: #22c55e;");
+                    statusLabel.getStyleClass().removeAll("status-success", "status-error");
+                    statusLabel.getStyleClass().add("status-success");
                     
                     new Thread(() -> {
                         try { Thread.sleep(1000); } catch (InterruptedException e) {}
@@ -91,7 +89,8 @@ public class FaceLoginController implements Initializable {
                     }).start();
                 } else {
                     statusLabel.setText("Utilisateur non reconnu. Nouvelle tentative...");
-                    statusLabel.setStyle("-fx-text-fill: #ef4444;");
+                    statusLabel.getStyleClass().removeAll("status-success", "status-error");
+                    statusLabel.getStyleClass().add("status-error");
                     webEngine.executeScript("window.successLocked = false;");
                 }
             });
@@ -133,10 +132,8 @@ public class FaceLoginController implements Initializable {
 
     private void handleSuccessfulLogin(Utilisateur user) {
         SessionManager.getInstance().setCurrentUser(user);
-        String fxmlPath = "ROLE_ADMIN".equals(user.getRole()) 
-            ? "/fxml/utilisateurs/main-admin-layout.fxml" 
-            : "/fxml/auth/profile.fxml";
-        switchScene(fxmlPath, "Tableau de Bord - StudySprint");
+        Stage stage = (Stage) webView.getScene().getWindow();
+        AppNavigator.openDefaultForUser(stage, user, getClass());
     }
 
     private void setupLogging() {
@@ -150,14 +147,7 @@ public class FaceLoginController implements Initializable {
     }
 
     private void switchScene(String fxmlPath, String title) {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource(fxmlPath));
-            Parent root = loader.load();
-            Stage stage = (Stage) webView.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        Stage stage = (Stage) webView.getScene().getWindow();
+        AppNavigator.switchTo(stage, fxmlPath, title, getClass());
     }
 }

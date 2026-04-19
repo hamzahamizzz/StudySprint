@@ -46,7 +46,7 @@ public final class GroupUiUtils {
         if (pane == null || resourceAnchor == null) {
             return;
         }
-        var cssUrl = resourceAnchor.getResource("/styles/groupes-light-blue.css");
+        var cssUrl = resourceAnchor.getResource("/styles/main.css");
         if (cssUrl == null) {
             return;
         }

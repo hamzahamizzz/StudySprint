@@ -12,11 +12,12 @@ import com.example.studysprint.modules.groupes.services.GroupService;
 import com.example.studysprint.modules.groupes.services.PostCommentService;
 import com.example.studysprint.modules.groupes.services.PostLikeService;
 import com.example.studysprint.modules.groupes.services.PostRatingService;
-import com.example.studysprint.modules.groupes.services.UserService;
 import com.example.studysprint.modules.groupes.utils.GroupUiUtils;
+import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
+import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.utils.AppNavigator;
+import com.example.studysprint.utils.SessionManager;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
@@ -31,7 +32,7 @@ import javafx.scene.control.Separator;
 import javafx.scene.control.SeparatorMenuItem;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -44,7 +45,6 @@ import org.kordamp.ikonli.javafx.FontIcon;
 
 import java.awt.Desktop;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -57,14 +57,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GroupDetailController {
-    private static final int CURRENT_USER_ID = 1;
-
-    private static final UserService.UserDisplay UNKNOWN_USER = new UserService.UserDisplay("Utilisateur", "", "U");
+    private static final UtilisateurService.UserDisplay UNKNOWN_USER = new UtilisateurService.UserDisplay("Utilisateur", "", "U");
 
     @FXML
-    private BorderPane rootPane;
+    private HBox rootPane;
     @FXML
-    private Label pageTitleLabel;
+    private Label sidebarFullNameLabel;
+    @FXML
+    private Label sidebarRoleLabel;
     @FXML
     private Label groupAvatarLabel;
     @FXML
@@ -138,7 +138,7 @@ public class GroupDetailController {
     private final PostCommentService commentService = new PostCommentService();
     private final PostLikeService likeService = new PostLikeService();
     private final PostRatingService ratingService = new PostRatingService();
-    private final UserService userService = new UserService();
+    private final UtilisateurService userService = new UtilisateurService();
 
     private StudyGroup currentGroup;
     private String composeMode = "text";
@@ -148,8 +148,8 @@ public class GroupDetailController {
     // Initialize static UI state.
     @FXML
     public void initialize() {
-        pageTitleLabel.setText("StudySprint");
-        String initials = resolveUserDisplay(CURRENT_USER_ID).initials();
+        populateSidebarUser();
+        String initials = resolveUserDisplay(currentUserId()).initials();
         composeAvatarLabel.setText(initials);
         composeEditorAvatarLabel.setText(initials);
         if (backToGroupsButton != null) {
@@ -163,6 +163,15 @@ public class GroupDetailController {
         }
         setComposeMode("text");
         setComposeEditorVisible(false);
+    }
+
+    private void populateSidebarUser() {
+        Utilisateur currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            return;
+        }
+        sidebarFullNameLabel.setText(currentUser.getFullName());
+        sidebarRoleLabel.setText(formatRole(currentUser));
     }
 
     // Set selected group and refresh UI.
@@ -181,6 +190,47 @@ public class GroupDetailController {
     @FXML
     private void onLeaveGroup() {
         navigateToList();
+    }
+
+    @FXML
+    private void onGoHome() {
+        Stage stage = (Stage) rootPane.getScene().getWindow();
+        AppNavigator.switchTo(stage, AppNavigator.HOME_FXML, AppNavigator.HOME_TITLE, getClass());
+    }
+
+    @FXML
+    private void onGoGroups() {
+        navigateToList();
+    }
+
+    @FXML
+    private void onOpenProfile() {
+        Stage stage = (Stage) rootPane.getScene().getWindow();
+        AppNavigator.switchTo(stage, "/fxml/auth/profile.fxml", "Mon Profil - StudySprint", getClass());
+    }
+
+    @FXML
+    private void onOpenChangePassword() {
+        onOpenProfile();
+    }
+
+    @FXML
+    private void onLogout() {
+        SessionManager.getInstance().logout();
+        Stage stage = (Stage) rootPane.getScene().getWindow();
+        AppNavigator.switchTo(stage, AppNavigator.LOGIN_FXML, AppNavigator.LOGIN_TITLE, getClass());
+    }
+
+    private String formatRole(Utilisateur user) {
+        if (user == null || user.getRole() == null) {
+            return "Utilisateur";
+        }
+        return switch (user.getRole().toUpperCase()) {
+            case "ROLE_STUDENT" -> "Etudiant";
+            case "ROLE_PROFESSOR" -> "Professeur";
+            case "ROLE_ADMIN" -> "Administrateur";
+            default -> "Utilisateur";
+        };
     }
 
     // Expand composer panel.
@@ -239,7 +289,7 @@ public class GroupDetailController {
 
         GroupPost post = new GroupPost();
         post.setGroupId(currentGroup.getId());
-        post.setAuthorId(CURRENT_USER_ID);
+        post.setAuthorId(currentUserId());
         post.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         post.setParentPostId(null);
 
@@ -465,11 +515,12 @@ public class GroupDetailController {
     // Apply role-based theme to composer avatars.
     private void applyComposeAvatarRoleTheme() {
         String role = "member";
+        int userId = currentUserId();
         if (currentGroup != null) {
-            if (currentGroup.getCreatedById() != null && currentGroup.getCreatedById() == CURRENT_USER_ID) {
+            if (currentGroup.getCreatedById() != null && currentGroup.getCreatedById() == userId) {
                 role = "admin";
             } else if (currentGroup.getId() != null) {
-                role = memberService.getMemberRoleForUser(currentGroup.getId(), CURRENT_USER_ID).orElse("member");
+                role = memberService.getMemberRoleForUser(currentGroup.getId(), userId).orElse("member");
             }
         }
 
@@ -542,7 +593,7 @@ public class GroupDetailController {
             HBox row = new HBox(10);
             row.getStyleClass().add("detail-member-row");
 
-            UserService.UserDisplay user = resolveUserDisplay(member.getUserId());
+            UtilisateurService.UserDisplay user = resolveUserDisplay(member.getUserId());
 
             Label avatar = new Label(user.initials());
             avatar.getStyleClass().add("detail-small-avatar");
@@ -673,7 +724,7 @@ public class GroupDetailController {
     }
 
     // Resolve user display identity from database.
-    private UserService.UserDisplay resolveUserDisplay(Integer userId) {
+    private UtilisateurService.UserDisplay resolveUserDisplay(Integer userId) {
         try {
             return userService.getDisplay(userId);
         } catch (Exception ignored) {
@@ -684,6 +735,7 @@ public class GroupDetailController {
     // Render posts feed.
     private void renderPosts(List<GroupPost> posts) {
         postsListBox.getChildren().clear();
+        int currentUserId = currentUserId();
 
         if (posts.isEmpty()) {
             Label empty = new Label("Aucun post dans ce groupe pour l'instant.");
@@ -704,7 +756,7 @@ public class GroupDetailController {
             Map<Integer, Long> likesCountByPostId = visibleLikes.stream()
                 .collect(Collectors.groupingBy(PostLike::getPostId, Collectors.counting()));
             Set<Integer> likedPostIdsByCurrentUser = visibleLikes.stream()
-                .filter(like -> like.getUserId() == CURRENT_USER_ID)
+                .filter(like -> like.getUserId() == currentUserId)
                 .map(PostLike::getPostId)
                 .collect(Collectors.toSet());
 
@@ -721,7 +773,7 @@ public class GroupDetailController {
                 .collect(Collectors.groupingBy(PostRating::getPostId,
                     Collectors.averagingInt(r -> r.getRating() == null ? 0 : r.getRating())));
             Map<Integer, Integer> userRatingByPostId = visibleRatings.stream()
-                .filter(r -> r.getUserId() == CURRENT_USER_ID)
+                .filter(r -> r.getUserId() == currentUserId)
                 .collect(Collectors.toMap(
                     PostRating::getPostId,
                     r -> r.getRating() == null ? 0 : (int) r.getRating(),
@@ -732,7 +784,7 @@ public class GroupDetailController {
             VBox card = new VBox(10);
             card.getStyleClass().add("detail-post-card");
 
-            UserService.UserDisplay authorData = resolveUserDisplay(post.getAuthorId());
+            UtilisateurService.UserDisplay authorData = resolveUserDisplay(post.getAuthorId());
             String role = currentGroup == null || currentGroup.getId() == null
                     ? "member"
                     : memberService.getMemberRoleForUser(currentGroup.getId(), post.getAuthorId()).orElse("member");
@@ -939,7 +991,7 @@ public class GroupDetailController {
                         commentRow.getStyleClass().add("detail-comment-reply");
                     }
 
-                    UserService.UserDisplay commentAuthorData = resolveUserDisplay(comment.getAuthorId());
+                    UtilisateurService.UserDisplay commentAuthorData = resolveUserDisplay(comment.getAuthorId());
                         String commentRole = currentGroup == null || currentGroup.getId() == null
                             ? "member"
                             : memberService.getMemberRoleForUser(currentGroup.getId(), comment.getAuthorId()).orElse("member");
@@ -968,7 +1020,7 @@ public class GroupDetailController {
 
                     if (comment.getParentCommentId() != null && commentsById.containsKey(comment.getParentCommentId())) {
                         PostComment parent = commentsById.get(comment.getParentCommentId());
-                        UserService.UserDisplay parentAuthor = resolveUserDisplay(parent.getAuthorId());
+                        UtilisateurService.UserDisplay parentAuthor = resolveUserDisplay(parent.getAuthorId());
                         Label replyTo = new Label("↩ En reponse a " + parentAuthor.fullName());
                         replyTo.getStyleClass().add("detail-comment-reply-to");
                         commentContent.getChildren().add(replyTo);
@@ -982,7 +1034,7 @@ public class GroupDetailController {
                     Button deleteBtn = new Button("Supprimer");
                     deleteBtn.setGraphic(GroupUiUtils.icon("fas-trash-alt", "detail-comment-action-danger-icon"));
                     deleteBtn.getStyleClass().addAll("detail-comment-action-btn", "detail-comment-action-danger");
-                    if (comment.getAuthorId() == CURRENT_USER_ID) {
+                    if (comment.getAuthorId() == currentUserId) {
                         deleteBtn.setOnAction(event -> {
                             try {
                                 commentService.delete(comment.getId());
@@ -1059,7 +1111,7 @@ public class GroupDetailController {
             comment.setBotName(null);
             comment.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             comment.setPostId(post.getId());
-            comment.setAuthorId(CURRENT_USER_ID);
+            comment.setAuthorId(currentUserId());
             comment.setParentCommentId(null);
             commentService.add(comment);
             if (post.getId() != null) {
@@ -1077,7 +1129,7 @@ public class GroupDetailController {
     // Save rating and refresh feed.
     private void applyInlineRating(GroupPost post, int rating) {
         try {
-            ratingService.rate(post.getId(), CURRENT_USER_ID, rating);
+            ratingService.rate(post.getId(), currentUserId(), rating);
             renderGroupDetails();
         } catch (Exception ex) {
             GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
@@ -1115,7 +1167,7 @@ public class GroupDetailController {
             reply.setBotName(null);
             reply.setCreatedAt(new Timestamp(System.currentTimeMillis()));
             reply.setPostId(post.getId());
-            reply.setAuthorId(CURRENT_USER_ID);
+            reply.setAuthorId(currentUserId());
             reply.setParentCommentId(parentComment.getId());
             commentService.add(reply);
             if (post.getId() != null) {
@@ -1133,7 +1185,7 @@ public class GroupDetailController {
     // Toggle current user like on post.
     private void onTogglePostLike(GroupPost post) {
         try {
-            likeService.toggleLike(post.getId(), CURRENT_USER_ID);
+            likeService.toggleLike(post.getId(), currentUserId());
             renderGroupDetails();
         } catch (Exception ex) {
             GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
@@ -1245,14 +1297,8 @@ public class GroupDetailController {
 
     // Navigate back to list page.
     private void navigateToList() {
-        try {
-            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/groupes/GroupListView.fxml"));
-            Parent root = loader.load();
-            Stage stage = (Stage) rootPane.getScene().getWindow();
-            GroupUiUtils.switchScene(stage, root, "Groupes");
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to return to group list", e);
-        }
+        Stage stage = (Stage) rootPane.getScene().getWindow();
+        AppNavigator.switchTo(stage, "/fxml/groupes/GroupListView.fxml", "Groupes - StudySprint", getClass());
     }
 
     // Convert role code to display label.
@@ -1316,6 +1362,11 @@ public class GroupDetailController {
             return "detail-ai-avatar-moderator";
         }
         return "detail-ai-avatar-member";
+    }
+
+    private int currentUserId() {
+        Integer userId = SessionManager.getInstance().getCurrentUserId();
+        return userId == null ? 1 : userId;
     }
 
 }

@@ -45,8 +45,8 @@ public class ReactivationRequestsController implements Initializable {
             private final HBox container = new HBox(10, approveBtn, rejectBtn);
 
             {
-                approveBtn.setStyle("-fx-background-color: #55efc4; -fx-text-fill: white; -fx-cursor: hand;");
-                rejectBtn.setStyle("-fx-background-color: #ff7675; -fx-text-fill: white; -fx-cursor: hand;");
+                approveBtn.getStyleClass().add("reactivation-approve-btn");
+                rejectBtn.getStyleClass().add("reactivation-reject-btn");
                 
                 approveBtn.setOnAction(event -> {
                     ReactivationRequest req = getTableView().getItems().get(getIndex());

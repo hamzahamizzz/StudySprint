@@ -29,7 +29,7 @@
         </HBox>
 
         <!-- Barre de Filtres Avancés -->
-        <VBox spacing="10" style="-fx-background-color: #f5f6fa; -fx-padding: 15; -fx-background-radius: 10;">
+        <VBox spacing="10" styleClass="users-filter-bar">
             <HBox spacing="15" alignment="CENTER_LEFT">
                 <TextField fx:id="searchField" promptText="🔍 Rechercher (nom, email...)" prefWidth="250.0" />
                 <ComboBox fx:id="roleFilter" prefWidth="150.0" promptText="Rôle" />
@@ -37,10 +37,10 @@
                 <ComboBox fx:id="sortFilter" prefWidth="150.0" promptText="Trier par..." />
                 <ComboBox fx:id="orderFilter" prefWidth="130.0" promptText="Ordre" />
                 <Button mnemonicParsing="false" onAction="#handleResetSearch" text="Réinitialiser ✕"
-                        style="-fx-background-color: #b2bec3; -fx-text-fill: white; -fx-background-radius: 5;" />
+                        styleClass="users-reset-filter-btn" />
             </HBox>
             <HBox fx:id="profFilterBar" spacing="15" alignment="CENTER_LEFT">
-                <Label text="Filtres Professeur :" style="-fx-font-weight: bold; -fx-text-fill: #636e72;" />
+                <Label text="Filtres Professeur :" styleClass="users-filter-label" />
                 <ComboBox fx:id="specialtyFilter" prefWidth="200.0" promptText="Toutes les spécialités" />
                 <TextField fx:id="expMinField" promptText="Expérience (Exact)" prefWidth="140.0" />
             </HBox>

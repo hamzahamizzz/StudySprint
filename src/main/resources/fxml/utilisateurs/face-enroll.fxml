@@ -6,9 +6,9 @@
 <?import javafx.scene.web.WebView?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" spacing="20.0" style="-fx-background-color: #f8fafc;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.FaceEnrollController">
+<VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" spacing="20.0" styleClass="face-enroll-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.FaceEnrollController" stylesheets="@../../styles/main.css">
    <children>
-      <VBox alignment="CENTER" spacing="10.0" style="-fx-background-color: white; -fx-padding: 20;">
+   <VBox alignment="CENTER" spacing="10.0" styleClass="face-enroll-header">
          <children>
             <Label text="Enregistrement Biométrique" textFill="#1e293b">
                <font>
@@ -23,7 +23,7 @@
          </children>
       </VBox>
       
-      <VBox alignment="CENTER" maxWidth="680.0" style="-fx-border-color: #8b5cf6; -fx-border-width: 4; -fx-border-radius: 15; -fx-background-radius: 15; -fx-overflow: hidden; -fx-background-color: black;">
+      <VBox alignment="CENTER" maxWidth="680.0" styleClass="face-enroll-camera-frame">
          <children>
             <WebView fx:id="webView" minHeight="480.0" minWidth="640.0" prefHeight="480.0" prefWidth="640.0" />
          </children>
@@ -35,12 +35,12 @@
          </font>
       </Label>
       
-      <Button fx:id="saveBtn" disable="true" mnemonicParsing="false" onAction="#handleSave" prefHeight="50.0" prefWidth="300.0" style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-background-radius: 25; -fx-cursor: hand;" text="Enregistrer mon visage">
+      <Button fx:id="saveBtn" disable="true" mnemonicParsing="false" onAction="#handleSave" prefHeight="50.0" prefWidth="300.0" styleClass="face-enroll-save-btn" text="Enregistrer mon visage">
          <font>
             <Font name="System Bold" size="14.0" />
          </font>
       </Button>
       
-      <Button mnemonicParsing="false" onAction="#handleCancel" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-cursor: hand;" text="Retour" />
+      <Button mnemonicParsing="false" onAction="#handleCancel" prefHeight="40.0" prefWidth="150.0" styleClass="face-enroll-back-btn" text="Retour" />
    </children>
 </VBox>

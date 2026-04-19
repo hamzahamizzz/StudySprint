@@ -6,7 +6,7 @@
 <?import javafx.scene.web.WebView?>
 <?import javafx.scene.text.Font?>
 
-<VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" spacing="20.0" style="-fx-background-color: #0f172a;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.auth.controllers.FaceLoginController">
+<VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" spacing="20.0" styleClass="face-login-root" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.auth.controllers.FaceLoginController" stylesheets="@../../styles/main.css">
    <children>
       <VBox alignment="CENTER" spacing="10.0">
          <children>
@@ -23,7 +23,7 @@
          </children>
       </VBox>
       
-      <VBox alignment="CENTER" style="-fx-border-color: #8b5cf6; -fx-border-width: 2; -fx-border-radius: 20; -fx-background-radius: 20; -fx-overflow: hidden;">
+      <VBox alignment="CENTER" styleClass="face-login-camera-frame">
          <children>
             <WebView fx:id="webView" minHeight="500.0" minWidth="660.0" prefHeight="500.0" prefWidth="660.0" />
          </children>
@@ -35,6 +35,6 @@
          </font>
       </Label>
       
-      <Button mnemonicParsing="false" onAction="#handleCancel" prefHeight="40.0" prefWidth="200.0" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-border-color: #475569; -fx-border-radius: 20;" text="Annuler" />
+      <Button mnemonicParsing="false" onAction="#handleCancel" prefHeight="40.0" prefWidth="200.0" styleClass="face-login-cancel-btn" text="Annuler" />
    </children>
 </VBox>

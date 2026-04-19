@@ -1,5 +1,7 @@
 package com.example.studysprint.modules.groupes.models;
 
+import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
+
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.ArrayList;
@@ -18,7 +20,7 @@ public class GroupPost {
     private Integer authorId;
     private Integer parentPostId;
     private StudyGroup group;
-    private User author;
+    private Utilisateur author;
     private GroupPost parentPost;
     private List<PostComment> comments;
     private List<PostLike> likes;
@@ -154,11 +156,11 @@ public class GroupPost {
         this.group = group;
     }
 
-    public User getAuthor() {
+    public Utilisateur getAuthor() {
         return author;
     }
 
-    public void setAuthor(User author) {
+    public void setAuthor(Utilisateur author) {
         this.author = author;
     }
 

@@ -19,6 +19,10 @@ public class SessionManager {
         return currentUser;
     }
 
+    public Integer getCurrentUserId() {
+        return currentUser == null ? null : currentUser.getId();
+    }
+
     public void setCurrentUser(Utilisateur currentUser) {
         this.currentUser = currentUser;
     }
