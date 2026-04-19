@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<HBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="600.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.auth.controllers.LoginController" stylesheets="@../../styles/main.css">
+   <children>
+      <VBox alignment="CENTER" prefHeight="200.0" prefWidth="450.0" style="-fx-background-color: #f7f9fc;">
+         <children>
+            <ImageView fx:id="illustrationImage" fitHeight="400.0" fitWidth="400.0" pickOnBounds="true" preserveRatio="true">
+               <image>
+                  <Image url="@../../images/login_illustration.png" />
+               </image>
+            </ImageView>
+            <Label text="StudySprint" textFill="#6c5ce7">
+               <font>
+                  <Font name="System Bold" size="32.0" />
+               </font>
+            </Label>
+            <Label text="Boostez votre apprentissage avec passion." textFill="#a4b0be">
+               <font>
+                  <Font size="14.0" />
+               </font>
+            </Label>
+         </children>
+      </VBox>
+      <StackPane prefHeight="150.0" prefWidth="450.0" style="-fx-background-color: white;">
+         <children>
+            <VBox alignment="CENTER_LEFT" maxWidth="350.0" spacing="20.0">
+               <children>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Bon retour !" textFill="#2d3436">
+                           <font>
+                              <Font name="System Bold" size="28.0" />
+                           </font>
+                        </Label>
+                        <Label text="Veuillez vous connecter à votre compte." textFill="#636e72" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="15.0">
+                     <children>
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label text="Email" textFill="#2d3436">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                              <TextField fx:id="emailField" prefHeight="45.0" promptText="nom@email.com" />
+                              <Label fx:id="emailError" styleClass="error-label" visible="false" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="5.0">
+                           <children>
+                              <Label text="Mot de passe" textFill="#2d3436">
+                                 <font>
+                                    <Font name="System Bold" size="13.0" />
+                                 </font>
+                              </Label>
+                              <PasswordField fx:id="passwordField" prefHeight="45.0" promptText="••••••••" />
+                              <Label fx:id="passwordError" styleClass="error-label" visible="false" />
+                           </children>
+                        </VBox>
+                     </children>
+                  </VBox>
+                  <HBox alignment="CENTER_RIGHT">
+                     <children>
+                        <Label onMouseClicked="#handleForgotPassword" text="Mot de passe oublié ?" textFill="#6c5ce7" style="-fx-cursor: hand;" />
+                     </children>
+                  </HBox>
+                  <Button fx:id="loginButton" mnemonicParsing="false" onAction="#handleLogin" prefHeight="50.0" prefWidth="350.0" text="Se connecter">
+                     <font>
+                        <Font name="System Bold" size="14.0" />
+                     </font>
+                  </Button>
+                  <HBox alignment="CENTER" spacing="10.0">
+                     <children>
+                        <VBox prefHeight="1.0" prefWidth="120.0" style="-fx-background-color: #dfe6e9;" />
+                        <Label text="OU" textFill="#b2bec3" />
+                        <VBox prefHeight="1.0" prefWidth="120.0" style="-fx-background-color: #dfe6e9;" />
+                     </children>
+                  </HBox>
+                  <Button mnemonicParsing="false" onAction="#handleFaceLogin" prefHeight="50.0" prefWidth="350.0" style="-fx-background-color: #1e293b; -fx-text-fill: white;" text="Se connecter avec Face ID" />
+                  <HBox alignment="CENTER" spacing="5.0">
+                     <children>
+                        <Label text="Pas encore de compte ?" textFill="#636e72" />
+                        <Label onMouseClicked="#handleGoToRegister" text="S'inscrire" textFill="#6c5ce7" style="-fx-cursor: hand; -fx-font-weight: bold;" />
+                     </children>
+                  </HBox>
+               </children>
+            </VBox>
+         </children>
+      </StackPane>
+   </children>
+</HBox>

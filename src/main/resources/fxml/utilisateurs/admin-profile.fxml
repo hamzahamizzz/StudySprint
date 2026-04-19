@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.studysprint.modules.utilisateurs.controllers.AdminProfileController"
+      stylesheets="@../../styles/main.css"
+      style="-fx-background-color: #f5f6fa;"
+      prefWidth="900.0" prefHeight="700.0">
+
+    <!-- ═══ Header Bar ═══ -->
+    <HBox alignment="CENTER_LEFT" spacing="15.0"
+          style="-fx-background-color: #6c5ce7; -fx-padding: 15 30 15 30;">
+        <children>
+            <!-- Avatar Circle -->
+            <VBox alignment="CENTER"
+                  minWidth="50.0" minHeight="50.0" maxWidth="50.0" maxHeight="50.0"
+                  style="-fx-background-color: rgba(255,255,255,0.3); -fx-background-radius: 25;">
+                <children>
+                    <Label fx:id="avatarLabel" textFill="WHITE" text="A">
+                        <font><Font name="System Bold" size="20.0" /></font>
+                    </Label>
+                </children>
+            </VBox>
+
+            <VBox spacing="2.0">
+                <children>
+                    <Label fx:id="fullNameLabel" text="Nom Prénom" textFill="WHITE">
+                        <font><Font name="System Bold" size="18.0" /></font>
+                    </Label>
+                    <Label text="Administrateur" textFill="#dfe6e9" />
+                </children>
+            </VBox>
+
+            <HBox HBox.hgrow="ALWAYS" />
+
+            <Button mnemonicParsing="false" onAction="#handleBack" text="← Retour au Dashboard"
+                    style="-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white;
+                           -fx-background-radius: 20; -fx-border-color: rgba(255,255,255,0.5);
+                           -fx-border-radius: 20; -fx-cursor: hand;" />
+        </children>
+    </HBox>
+
+    <!-- ═══ Scrollable Content ═══ -->
+    <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                style="-fx-background-color: transparent; -fx-background: transparent;
+                       -fx-border-color: transparent;">
+        <content>
+            <VBox spacing="25.0" style="-fx-background-color: #f5f6fa;">
+                <padding><Insets bottom="40.0" left="60.0" right="60.0" top="40.0" /></padding>
+                <children>
+
+                    <!-- ─── Section 1: Informations Personnelles ─── -->
+                    <VBox spacing="15.0" styleClass="form-card">
+                        <children>
+                            <Label styleClass="section-title" text="Informations Personnelles" />
+                            <GridPane hgap="25.0" vgap="15.0">
+                                <children>
+                                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Nom" />
+                                        <TextField fx:id="nomField" prefHeight="40.0" promptText="Nom de famille" />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Prénom" />
+                                        <TextField fx:id="prenomField" prefHeight="40.0" promptText="Prénom" />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Adresse Email" />
+                                        <TextField fx:id="emailField" prefHeight="40.0" promptText="email@exemple.com" />
+                                    </VBox>
+                                </children>
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                            </GridPane>
+                        </children>
+                    </VBox>
+
+                    <!-- ─── Section 2: Contact & Coordonnées ─── -->
+                    <VBox spacing="15.0" styleClass="form-card">
+                        <children>
+                            <Label styleClass="section-title" text="Contact &amp; Coordonnées" />
+                            <GridPane hgap="25.0" vgap="15.0">
+                                <children>
+                                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Téléphone" />
+                                        <TextField fx:id="telField" prefHeight="40.0" promptText="+216..." />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Pays" />
+                                        <ComboBox fx:id="paysCombo" prefHeight="40.0" prefWidth="9999.0"
+                                                  promptText="Chargement des pays..." />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Âge" />
+                                        <TextField fx:id="ageField" prefHeight="40.0" promptText="Ex: 30" />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Sexe" />
+                                        <ComboBox fx:id="sexeCombo" prefHeight="40.0" prefWidth="9999.0" />
+                                    </VBox>
+                                </children>
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                            </GridPane>
+                        </children>
+                    </VBox>
+
+                    <!-- ─── Section 3: Informations du Compte (lecture seule) ─── -->
+                    <VBox spacing="15.0" styleClass="form-card">
+                        <children>
+                            <Label styleClass="section-title" text="Informations du Compte" />
+                            <GridPane hgap="25.0" vgap="15.0">
+                                <children>
+                                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Rôle" />
+                                        <TextField fx:id="roleField" prefHeight="40.0" editable="false"
+                                                   style="-fx-background-color: #ecf0f1; -fx-text-fill: #95a5a6;" />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Date d'inscription" />
+                                        <TextField fx:id="dateField" prefHeight="40.0" editable="false"
+                                                   style="-fx-background-color: #ecf0f1; -fx-text-fill: #95a5a6;" />
+                                    </VBox>
+                                    <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                        <Label style="-fx-text-fill: #636e72; -fx-font-size: 12px;" text="Statut" />
+                                        <TextField fx:id="statutField" prefHeight="40.0" editable="false"
+                                                   style="-fx-background-color: #ecf0f1; -fx-text-fill: #95a5a6;" />
+                                    </VBox>
+                                </children>
+                                <columnConstraints>
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                </columnConstraints>
+                            </GridPane>
+                        </children>
+                    </VBox>
+
+                    <!-- ─── Bouton Enregistrer ─── -->
+                    <HBox alignment="CENTER_RIGHT" spacing="15.0">
+                        <children>
+                            <Label fx:id="messageLabel"
+                                   style="-fx-text-fill: #00b894; -fx-font-weight: bold;"
+                                   visible="false" />
+                            <Button mnemonicParsing="false" onAction="#handleFaceEnroll"
+                                    prefHeight="44.0" prefWidth="200.0"
+                                    text="👤  Sécurité Biométrique"
+                                    style="-fx-background-color: transparent; -fx-text-fill: #8b5cf6; -fx-border-color: #8b5cf6; -fx-border-radius: 5; -fx-cursor: hand;" />
+                            <Button mnemonicParsing="false" onAction="#handleChangePassword"
+                                    prefHeight="44.0" prefWidth="220.0"
+                                    text="🔑  Changer le mot de passe"
+                                    style="-fx-background-color: transparent; -fx-text-fill: #6c5ce7; -fx-border-color: #6c5ce7; -fx-border-radius: 5; -fx-cursor: hand;" />
+                            <Button mnemonicParsing="false" onAction="#handleSave"
+                                    prefHeight="44.0" prefWidth="200.0"
+                                    text="💾  Enregistrer"
+                                    style="-fx-font-size: 14px;" />
+                        </children>
+                    </HBox>
+
+                </children>
+            </VBox>
+        </content>
+    </ScrollPane>
+
+</VBox>

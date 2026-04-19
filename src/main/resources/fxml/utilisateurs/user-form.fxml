@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="20.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.UserFormController" stylesheets="@../../styles/main.css" prefWidth="450.0">
+    <children>
+        <VBox alignment="CENTER_LEFT" spacing="5.0" style="-fx-padding: 0 0 10 0;">
+            <children>
+                <Label fx:id="titleLabel" text="Gestion de l'Utilisateur" textFill="#2d3436">
+                    <font>
+                        <Font name="System Bold" size="22.0" />
+                    </font>
+                </Label>
+                <Label text="Veuillez remplir les informations ci-dessous" textFill="#636e72" />
+            </children>
+        </VBox>
+
+        <ScrollPane fitToWidth="true" prefHeight="500.0" styleClass="scroll-pane">
+            <content>
+                <VBox spacing="20.0" style="-fx-background-color: #f5f6fa; -fx-padding: 10;">
+                    <children>
+                        <!-- Section 1: Identité -->
+                        <VBox spacing="15.0" styleClass="form-card">
+                            <children>
+                                <Label styleClass="section-title" text="Identité" />
+                                <GridPane hgap="15.0" vgap="12.0">
+                                    <children>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <Label style="-fx-text-fill: #636e72;" text="Nom" />
+                                            <TextField fx:id="nomField" prefHeight="38.0" promptText="Entrez le nom" />
+                                            <Label fx:id="nomError" styleClass="error-label" visible="false" />
+                                        </VBox>
+                                        
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <Label style="-fx-text-fill: #636e72;" text="Prénom" />
+                                            <TextField fx:id="prenomField" prefHeight="38.0" promptText="Entrez le prénom" />
+                                            <Label fx:id="prenomError" styleClass="error-label" visible="false" />
+                                        </VBox>
+                                        
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                                            <Label style="-fx-text-fill: #636e72;" text="Adresse Email" />
+                                            <TextField fx:id="emailField" prefHeight="38.0" promptText="exemple@domaine.com" />
+                                            <Label fx:id="emailError" styleClass="error-label" visible="false" />
+                                        </VBox>
+                                        
+                                        <VBox fx:id="passwordContainer" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                                            <Label style="-fx-text-fill: #636e72;" text="Nouveau Mot de passe" />
+                                            <PasswordField fx:id="passwordField" prefHeight="38.0" promptText="Minimum 5 caractères" />
+                                            <Label fx:id="passwordError" styleClass="error-label" visible="false" />
+                                        </VBox>
+                                    </children>
+                                    <columnConstraints>
+                                        <javafx.scene.layout.ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                        <javafx.scene.layout.ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    </columnConstraints>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <!-- Section 2: Rôle & Localisation -->
+                        <VBox spacing="15.0" styleClass="form-card">
+                            <children>
+                                <Label styleClass="section-title" text="Rôle &amp; Localisation" />
+                                <GridPane hgap="15.0" vgap="12.0">
+                                    <children>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <Label style="-fx-text-fill: #636e72;" text="Rôle utilisateur" />
+                                            <ComboBox fx:id="roleCombo" prefHeight="38.0" prefWidth="200.0" />
+                                        </VBox>
+                                        
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <Label style="-fx-text-fill: #636e72;" text="Pays de résidence" />
+                                            <ComboBox fx:id="paysCombo" prefHeight="38.0" prefWidth="200.0" />
+                                            <Label fx:id="paysError" styleClass="error-label" visible="false" />
+                                        </VBox>
+
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                                            <Label style="-fx-text-fill: #636e72;" text="Établissement / Université" />
+                                            <ComboBox fx:id="etablissementCombo" prefHeight="38.0" prefWidth="400.0" />
+                                        </VBox>
+                                    </children>
+                                    <columnConstraints>
+                                        <javafx.scene.layout.ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                        <javafx.scene.layout.ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    </columnConstraints>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <!-- Section 3: Détails Additionnels -->
+                        <VBox spacing="15.0" styleClass="form-card">
+                            <children>
+                                <Label styleClass="section-title" text="Détails Additionnels" />
+                                <GridPane hgap="15.0" vgap="12.0">
+                                    <children>
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                            <Label style="-fx-text-fill: #636e72;" text="Âge" />
+                                            <TextField fx:id="ageField" prefHeight="38.0" />
+                                        </VBox>
+
+                                        <VBox GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                            <Label style="-fx-text-fill: #636e72;" text="Sexe" />
+                                            <ComboBox fx:id="sexeCombo" prefHeight="38.0" prefWidth="200.0" />
+                                        </VBox>
+
+                                        <VBox GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
+                                            <Label style="-fx-text-fill: #636e72;" text="Numéro de Téléphone" />
+                                            <TextField fx:id="telField" prefHeight="38.0" promptText="+216..." />
+                                        </VBox>
+                                    </children>
+                                    <columnConstraints>
+                                        <javafx.scene.layout.ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                        <javafx.scene.layout.ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+                                    </columnConstraints>
+                                </GridPane>
+                            </children>
+                        </VBox>
+
+                        <!-- Section 4: Spécifique au Rôle -->
+                        <VBox fx:id="studentFields" spacing="15.0" styleClass="form-card">
+                            <children>
+                                <Label styleClass="section-title" text="Parcours Académique" />
+                                <VBox spacing="8.0">
+                                    <Label style="-fx-text-fill: #636e72;" text="Niveau d'étude" />
+                                    <ComboBox fx:id="niveauField" prefHeight="38.0" prefWidth="400.0" promptText="Choisir un niveau" />
+                                </VBox>
+                            </children>
+                        </VBox>
+
+                        <VBox fx:id="professorFields" managed="false" spacing="15.0" styleClass="form-card" visible="false">
+                            <children>
+                                <Label styleClass="section-title" text="Parcours Professionnel" />
+                                <VBox spacing="12.0">
+                                    <VBox spacing="8.0">
+                                        <Label style="-fx-text-fill: #636e72;" text="Spécialité" />
+                                        <ComboBox fx:id="specialiteField" prefHeight="38.0" prefWidth="400.0" promptText="Choisir une spécialité" />
+                                    </VBox>
+                                    <VBox spacing="8.0">
+                                        <Label style="-fx-text-fill: #636e72;" text="Niveau d'enseignement" />
+                                        <ComboBox fx:id="niveauEnseignementField" prefHeight="38.0" prefWidth="400.0" promptText="Choisir un niveau" />
+                                    </VBox>
+                                    <VBox spacing="8.0">
+                                        <Label style="-fx-text-fill: #636e72;" text="Années d'expérience" />
+                                        <TextField fx:id="experienceField" prefHeight="38.0" />
+                                    </VBox>
+                                </VBox>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+        
+        <HBox alignment="CENTER_RIGHT" spacing="15.0" style="-fx-padding: 10 0 0 0;">
+            <children>
+                <Button mnemonicParsing="false" onAction="#handleCancel" prefHeight="40.0" prefWidth="120.0" text="Annuler" style="-fx-background-color: #dfe6e9; -fx-text-fill: #2d3436; -fx-background-radius: 20;" />
+                <Button fx:id="saveButton" mnemonicParsing="false" onAction="#handleSave" prefHeight="40.0" prefWidth="150.0" text="Enregistrer" />
+            </children>
+        </HBox>
+    </children>
+    <padding>
+        <Insets bottom="30.0" left="30.0" right="30.0" top="30.0" />
+    </padding>
+</VBox>
