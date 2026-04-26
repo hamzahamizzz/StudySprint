@@ -375,7 +375,7 @@ public class GroupManagementController implements Initializable {
             }
 
             loadGroups();
-            showInfo("Groupe ajouté", "Le groupe a été créé avec succès.");
+            GroupUiUtils.showNotifSuccess("Groupe ajouté", "Le groupe a été créé avec succès.");
         } catch (Exception ex) {
             showError("Ajout impossible", "Impossible d'ajouter le groupe.", ex.getMessage());
         }
@@ -395,9 +395,9 @@ public class GroupManagementController implements Initializable {
         try {
             groupService.update(updated);
             loadGroups();
-            showInfo("Groupe modifié", "Les informations du groupe ont été mises à jour.");
+            GroupUiUtils.showNotifInfo("Groupe modifié", "Les informations du groupe ont été mises à jour.");
         } catch (Exception ex) {
-            showError("Mise à jour impossible", "Impossible de modifier le groupe.", ex.getMessage());
+            GroupUiUtils.showNotifError("Mise à jour impossible", "Impossible de modifier le groupe : " + ex.getMessage());
         }
     }
 
@@ -415,9 +415,9 @@ public class GroupManagementController implements Initializable {
             groupService.delete(selectedGroup.getId());
             selectedGroup = null;
             loadGroups();
-            showInfo("Groupe supprimé", "Le groupe a été supprimé.");
+            GroupUiUtils.showNotifInfo("Groupe supprimé", "Le groupe a été supprimé.");
         } catch (Exception ex) {
-            showError("Suppression impossible", "Impossible de supprimer le groupe.", ex.getMessage());
+            GroupUiUtils.showNotifError("Suppression impossible", "Impossible de supprimer le groupe : " + ex.getMessage());
         }
     }
 
@@ -438,7 +438,7 @@ public class GroupManagementController implements Initializable {
                 .toList();
 
         if (candidates.isEmpty()) {
-            showWarning("Aucun utilisateur disponible", "Tous les utilisateurs sont déjà membres de ce groupe.");
+            GroupUiUtils.showNotifWarning("Aucun utilisateur disponible", "Tous les utilisateurs sont déjà membres de ce groupe.");
             return;
         }
 
@@ -479,7 +479,7 @@ public class GroupManagementController implements Initializable {
 
         Utilisateur selectedUser = userCombo.getValue();
         if (selectedUser == null) {
-            showWarning("Utilisateur requis", "Veuillez choisir un utilisateur.");
+            GroupUiUtils.showNotifWarning("Utilisateur requis", "Veuillez choisir un utilisateur.");
             return;
         }
 
@@ -491,9 +491,9 @@ public class GroupManagementController implements Initializable {
         try {
             memberService.add(member);
             loadGroups();
-            showInfo("Membre ajouté", "Le membre a été ajouté au groupe.");
+            GroupUiUtils.showNotifInfo("Membre ajouté", "Le membre a été ajouté au groupe.");
         } catch (Exception ex) {
-            showError("Ajout impossible", "Impossible d'ajouter ce membre.", ex.getMessage());
+            GroupUiUtils.showNotifError("Ajout impossible", "Impossible d'ajouter ce membre : " + ex.getMessage());
         }
     }
 
@@ -505,7 +505,7 @@ public class GroupManagementController implements Initializable {
 
         GroupMember selectedMember = membersTable.getSelectionModel().getSelectedItem();
         if (selectedMember == null) {
-            showWarning("Membre requis", "Sélectionnez un membre dans la table.");
+            GroupUiUtils.showNotifWarning("Membre requis", "Sélectionnez un membre dans la table.");
             return;
         }
 
@@ -526,9 +526,9 @@ public class GroupManagementController implements Initializable {
         try {
             memberService.updateRole(selectedMember.getId(), result.get());
             loadGroups();
-            showInfo("Rôle mis à jour", "Le rôle du membre a été modifié.");
+            GroupUiUtils.showNotifInfo("Rôle mis à jour", "Le rôle du membre a été modifié.");
         } catch (Exception ex) {
-            showError("Mise à jour impossible", "Impossible de modifier le rôle.", ex.getMessage());
+            GroupUiUtils.showNotifError("Mise à jour impossible", "Impossible de modifier le rôle : " + ex.getMessage());
         }
     }
 
@@ -540,7 +540,7 @@ public class GroupManagementController implements Initializable {
 
         GroupMember selectedMember = membersTable.getSelectionModel().getSelectedItem();
         if (selectedMember == null) {
-            showWarning("Membre requis", "Sélectionnez un membre dans la table.");
+            GroupUiUtils.showNotifWarning("Membre requis", "Sélectionnez un membre dans la table.");
             return;
         }
 
@@ -551,9 +551,9 @@ public class GroupManagementController implements Initializable {
         try {
             memberService.delete(selectedMember.getId());
             loadGroups();
-            showInfo("Membre retiré", "Le membre a été retiré du groupe.");
+            GroupUiUtils.showNotifInfo("Membre retiré", "Le membre a été retiré du groupe.");
         } catch (Exception ex) {
-            showError("Suppression impossible", "Impossible de retirer ce membre.", ex.getMessage());
+            GroupUiUtils.showNotifError("Suppression impossible", "Impossible de retirer ce membre : " + ex.getMessage());
         }
     }
 
@@ -573,9 +573,9 @@ public class GroupManagementController implements Initializable {
         try {
             postService.add(post);
             loadGroups();
-            showInfo("Post ajouté", "Le post a été créé avec succès.");
+            GroupUiUtils.showNotifInfo("Post ajouté", "Le post a été créé avec succès.");
         } catch (Exception ex) {
-            showError("Ajout impossible", "Impossible d'ajouter ce post.", ex.getMessage());
+            GroupUiUtils.showNotifError("Ajout impossible", "Impossible d'ajouter ce post : " + ex.getMessage());
         }
     }
 
@@ -587,7 +587,7 @@ public class GroupManagementController implements Initializable {
 
         GroupPost selectedPost = postsTable.getSelectionModel().getSelectedItem();
         if (selectedPost == null) {
-            showWarning("Post requis", "Sélectionnez un post dans la table.");
+            GroupUiUtils.showNotifWarning("Post requis", "Sélectionnez un post dans la table.");
             return;
         }
 
@@ -601,9 +601,9 @@ public class GroupManagementController implements Initializable {
         try {
             postService.update(edited);
             loadGroups();
-            showInfo("Post modifié", "Le post a été mis à jour.");
+            GroupUiUtils.showNotifInfo("Post modifié", "Le post a été mis à jour.");
         } catch (Exception ex) {
-            showError("Mise à jour impossible", "Impossible de modifier ce post.", ex.getMessage());
+            GroupUiUtils.showNotifError("Mise à jour impossible", "Impossible de modifier ce post : " + ex.getMessage());
         }
     }
 
@@ -615,7 +615,7 @@ public class GroupManagementController implements Initializable {
 
         GroupPost selectedPost = postsTable.getSelectionModel().getSelectedItem();
         if (selectedPost == null) {
-            showWarning("Post requis", "Sélectionnez un post dans la table.");
+            GroupUiUtils.showNotifWarning("Post requis", "Sélectionnez un post dans la table.");
             return;
         }
 
@@ -626,9 +626,9 @@ public class GroupManagementController implements Initializable {
         try {
             postService.delete(selectedPost.getId());
             loadGroups();
-            showInfo("Post supprimé", "Le post a été supprimé.");
+            GroupUiUtils.showNotifInfo("Post supprimé", "Le post a été supprimé.");
         } catch (Exception ex) {
-            showError("Suppression impossible", "Impossible de supprimer ce post.", ex.getMessage());
+            GroupUiUtils.showNotifError("Suppression impossible", "Impossible de supprimer ce post : " + ex.getMessage());
         }
     }
 
@@ -695,14 +695,14 @@ public class GroupManagementController implements Initializable {
         }
 
         if (authorCombo.getValue() == null) {
-            showWarning("Auteur requis", "Veuillez choisir un auteur pour ce post.");
+            GroupUiUtils.showNotifWarning("Auteur requis", "Veuillez choisir un auteur pour ce post.");
             return null;
         }
 
         String body = nullSafe(bodyArea.getText()).trim();
         String title = nullSafe(titleField.getText()).trim();
         if (title.isBlank() && body.isBlank()) {
-            showWarning("Contenu requis", "Veuillez renseigner un titre ou un contenu pour le post.");
+            GroupUiUtils.showNotifWarning("Contenu requis", "Veuillez renseigner un titre ou un contenu pour le post.");
             return null;
         }
 
@@ -817,7 +817,7 @@ public class GroupManagementController implements Initializable {
 
     private boolean ensureGroupSelected() {
         if (selectedGroup == null || selectedGroup.getId() == null) {
-            showWarning("Groupe requis", "Sélectionnez un groupe dans la table.");
+            GroupUiUtils.showNotifWarning("Groupe requis", "Sélectionnez un groupe dans la table.");
             return false;
         }
         return true;
@@ -927,28 +927,8 @@ public class GroupManagementController implements Initializable {
         return result.isPresent() && result.get() == ButtonType.OK;
     }
 
-    private void showInfo(String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        if (ownerWindow() != null) {
-            alert.initOwner(ownerWindow());
-        }
-        styleDialog(alert.getDialogPane());
-        alert.showAndWait();
-    }
-
     private void showWarning(String header, String content) {
-        Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Attention");
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        if (ownerWindow() != null) {
-            alert.initOwner(ownerWindow());
-        }
-        styleDialog(alert.getDialogPane());
-        alert.showAndWait();
+        GroupUiUtils.showNotifWarning(header, content);
     }
 
     private void showError(String header, String content, String details) {

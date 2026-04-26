@@ -69,6 +69,7 @@ public class GroupFormController {
 
             Button cancelButton = (Button) pane.lookupButton(cancelType);
             if (cancelButton != null) {
+                cancelButton.getStyleClass().add("compose-cancel-btn");
                 cancelButton.setGraphic(GroupUiUtils.icon("fas-times", "detail-dialog-icon"));
             }
 
@@ -79,10 +80,7 @@ public class GroupFormController {
 
             return controller.buildGroupFromForm(existing);
         } catch (IOException e) {
-            GroupUiUtils.showError(owner, GroupFormController.class,
-                    "Formulaire indisponible",
-                    "Impossible d'ouvrir le formulaire pour le moment.",
-                    e.getMessage());
+            GroupUiUtils.showNotifError("Formulaire indisponible", "Impossible d'ouvrir le formulaire pour le moment.");
             return null;
         }
     }
@@ -105,10 +103,7 @@ public class GroupFormController {
         String subject = subjectField.getText() == null ? "" : subjectField.getText().trim();
 
         if (name.isBlank() || subject.isBlank()) {
-            GroupUiUtils.showWarning(nameField.getScene() == null ? null : nameField.getScene().getWindow(),
-                    GroupFormController.class,
-                    "Validation",
-                    "Le nom et la matiere sont obligatoires.");
+            GroupUiUtils.showNotifWarning("Validation", "Le nom et la matiere sont obligatoires.");
             return false;
         }
 

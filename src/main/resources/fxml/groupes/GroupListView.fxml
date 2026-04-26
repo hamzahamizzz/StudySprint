@@ -113,15 +113,37 @@
                     </ScrollPane>
                 </VBox>
 
-                <VBox fx:id="invitationsContentPane" spacing="10" styleClass="empty-panel" visible="false" managed="false">
-                    <Label text="Invitations" styleClass="empty-title" />
-                    <Label text="La section invitations sera disponible bientôt." styleClass="empty-subtitle" />
-                </VBox>
+                <ScrollPane fx:id="invitationsContentPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll" visible="false" managed="false">
+                    <content>
+                        <VBox spacing="30">
+                            <padding>
+                                <Insets top="10" right="10" bottom="20" left="10" />
+                            </padding>
+                            <VBox fx:id="sentInvitationsContainer" spacing="10">
+                                <Label fx:id="sentInvitationsTitle" text="Invitations envoyées (0)" styleClass="group-title-xl" style="-fx-font-size: 16px; -fx-text-fill: #2d3436;" />
+                                <VBox fx:id="sentInvitationsBox" spacing="10" />
+                            </VBox>
+                            <VBox fx:id="receivedInvitationsContainer" spacing="10">
+                                <Label fx:id="receivedInvitationsTitle" text="Invitations reçues (0)" styleClass="group-title-xl" style="-fx-font-size: 16px; -fx-text-fill: #2d3436;" />
+                                <VBox fx:id="receivedInvitationsBox" spacing="10" />
+                            </VBox>
+                            <VBox fx:id="noInvitationsBox" alignment="CENTER" spacing="10" visible="false" managed="false" style="-fx-padding: 60 0;">
+                                <Label text="Aucune invitation" style="-fx-font-size: 18px; -fx-font-weight: 800; -fx-text-fill: #1e293b;" />
+                                <Label text="Vous n'avez aucune invitation envoyée ou reçue pour le moment." style="-fx-text-fill: #64748b;" />
+                            </VBox>
+                        </VBox>
+                    </content>
+                </ScrollPane>
 
-                <VBox fx:id="feedbacksContentPane" spacing="10" styleClass="empty-panel" visible="false" managed="false">
-                    <Label text="Feedbacks" styleClass="empty-title" />
-                    <Label text="La section feedbacks sera disponible bientôt." styleClass="empty-subtitle" />
-                </VBox>
+                <ScrollPane fx:id="feedbacksScrollPane" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="cards-scroll" visible="false" managed="false">
+                    <content>
+                        <VBox fx:id="feedbacksContentPane" spacing="14">
+                            <padding>
+                                <Insets top="10" right="10" bottom="20" left="10" />
+                            </padding>
+                        </VBox>
+                    </content>
+                </ScrollPane>
             </StackPane>
         </VBox>
     </children>

@@ -216,10 +216,8 @@ public class GroupDetailController {
         }
 
         String role = resolveCurrentUserGroupRole();
-        if (!"member".equals(role)) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Seul un membre peut quitter le groupe depuis cette action.");
+        if ("admin".equalsIgnoreCase(role)) {
+            GroupUiUtils.showNotifWarning("Action impossible", "En tant qu'Admin, vous ne pouvez pas quitter le groupe. Vous devez d'abord nommer un autre Admin ou supprimer le groupe.");
             return;
         }
 
@@ -229,9 +227,7 @@ public class GroupDetailController {
                 .findFirst();
 
         if (membership.isEmpty()) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Adhesion introuvable",
-                    "Impossible de quitter ce groupe car vous n'etes pas membre.");
+            GroupUiUtils.showNotifWarning("Adhésion introuvable", "Impossible de quitter ce groupe car vous n'êtes pas membre.");
             return;
         }
 
@@ -243,6 +239,18 @@ public class GroupDetailController {
         ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         confirm.getButtonTypes().setAll(leaveType, cancelType);
         GroupUiUtils.applyDialogStyle(confirm.getDialogPane(), GroupDetailController.class);
+
+        Button leaveButton = (Button) confirm.getDialogPane().lookupButton(leaveType);
+        if (leaveButton != null) {
+            leaveButton.getStyleClass().add("danger-btn");
+            leaveButton.setGraphic(GroupUiUtils.icon("fas-sign-out-alt", "detail-dialog-danger-icon"));
+        }
+
+        Button cancelButton = (Button) confirm.getDialogPane().lookupButton(cancelType);
+        if (cancelButton != null) {
+            cancelButton.getStyleClass().add("compose-cancel-btn");
+            cancelButton.setGraphic(GroupUiUtils.icon("fas-times", "detail-dialog-icon"));
+        }
 
         confirm.showAndWait().ifPresent(result -> {
             if (result != leaveType) {
@@ -287,15 +295,10 @@ public class GroupDetailController {
                 }
 
                 memberService.delete(membership.get().getId());
-                GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
-                        "Groupe quitte",
-                        "Vous avez quitte le groupe. Vos posts, likes et commentaires dans ce groupe ont ete supprimes.");
+                GroupUiUtils.showNotifSuccess("Groupe quitté", "Vous avez quitté le groupe.");
                 navigateToList();
             } catch (Exception ex) {
-                GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                        "Erreur",
-                        "Impossible de quitter le groupe.",
-                        ex.getMessage());
+                GroupUiUtils.showNotifError("Erreur", "Impossible de quitter le groupe : " + ex.getMessage());
             }
         });
     }
@@ -308,28 +311,24 @@ public class GroupDetailController {
 
         // L'invitation n'est autorisee que pour les groupes prives.
         if (!"private".equalsIgnoreCase(currentGroup.getPrivacy())) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non disponible",
-                    "L'invitation par lien n'est disponible que pour les groupes prives. Les groupes publics sont accessibles a tous.");
+            GroupUiUtils.showNotifWarning("Action non disponible", "L'invitation par lien n'est disponible que pour les groupes privés.");
             return;
         }
 
         String role = resolveCurrentUserGroupRole();
         if (!canManageGroup(role)) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Seuls les Admins et Moderateurs peuvent inviter des membres.");
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Seuls les Admins et Modérateurs peuvent inviter des membres.");
             return;
         }
 
         Dialog<ButtonType> dialog = new Dialog<>();
-        dialog.setTitle("Inviter des membres");
-        dialog.setHeaderText("Saisissez un email par ligne.");
+        dialog.setTitle("Inviter des membres - " + GroupUiUtils.nullSafe(currentGroup.getName()));
+        dialog.setHeaderText(null);
         dialog.initOwner(rootPane.getScene().getWindow());
 
         TextArea emailsArea = new TextArea();
-        emailsArea.setPromptText("exemple1@email.com\nexemple2@email.com");
-        emailsArea.setPrefRowCount(8);
+        emailsArea.setPromptText("azizkh@gmail.com");
+        emailsArea.setPrefRowCount(6);
         emailsArea.getStyleClass().add("compose-area");
 
         List<String> inviteRoleOptions = "admin".equals(role)
@@ -339,35 +338,62 @@ public class GroupDetailController {
         ComboBox<String> inviteRoleCombo = new ComboBox<>(FXCollections.observableArrayList(inviteRoleOptions));
         inviteRoleCombo.getSelectionModel().select("member");
         inviteRoleCombo.setMaxWidth(Double.MAX_VALUE);
+        inviteRoleCombo.getStyleClass().add("field-input");
 
         GridPane form = new GridPane();
         form.setHgap(10);
         form.setVgap(10);
-        form.add(new Label("Role invite"), 0, 0);
-        form.add(inviteRoleCombo, 1, 0);
-        form.add(new Label("Emails (un par ligne)"), 0, 1);
-        form.add(emailsArea, 1, 1);
+
+        Label emailLabel = new Label("Adresses emails *");
+        emailLabel.setStyle("-fx-font-weight: bold;");
+        form.add(emailLabel, 0, 0, 2, 1);
+        form.add(emailsArea, 0, 1, 2, 1);
+
+        Label emailsHint = new Label("Entrez les adresses separees par des retours a la ligne.");
+        emailsHint.setStyle("-fx-text-fill: #636e72; -fx-font-size: 11px;");
+        form.add(emailsHint, 0, 2, 2, 1);
+
+        form.add(new Label("Role"), 0, 3, 2, 1);
+        form.add(inviteRoleCombo, 0, 4, 2, 1);
+
+        Label roleHint = new Label("Les moderateurs peuvent gerer les autres membres.");
+        roleHint.setStyle("-fx-text-fill: #636e72; -fx-font-size: 11px;");
+        inviteRoleCombo.valueProperty().addListener((obs, oldV, newV) -> {
+            if ("admin".equals(newV)) roleHint.setText("Les admins ont un controle total sur le groupe.");
+            else if ("moderator".equals(newV)) roleHint.setText("Les moderateurs peuvent gerer les autres membres.");
+            else roleHint.setText("Les membres peuvent participer au groupe.");
+        });
+        form.add(roleHint, 0, 5, 2, 1);
+
         GridPane.setHgrow(inviteRoleCombo, Priority.ALWAYS);
         GridPane.setHgrow(emailsArea, Priority.ALWAYS);
 
-        DialogPane pane = dialog.getDialogPane();
-        pane.setContent(form);
-        GroupUiUtils.applyDialogStyle(pane, GroupDetailController.class);
-
-        ButtonType inviteType = new ButtonType("Inviter", ButtonBar.ButtonData.OK_DONE);
-        ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
-        pane.getButtonTypes().addAll(inviteType, cancelType);
-
+        dialog.getDialogPane().setContent(form);
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        
+        GroupUiUtils.applyDialogStyle(dialog.getDialogPane(), GroupDetailController.class);
+        
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        if (okButton != null) {
+            okButton.getStyleClass().add("detail-publish-btn");
+            okButton.setGraphic(GroupUiUtils.icon("fas-paper-plane", "detail-dialog-icon"));
+            okButton.setText("Inviter");
+        }
+        
+        Button cancelButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.CANCEL);
+        if (cancelButton != null) {
+            cancelButton.getStyleClass().add("compose-cancel-btn");
+            cancelButton.setGraphic(GroupUiUtils.icon("fas-times", "detail-dialog-icon"));
+        }
+        
         Optional<ButtonType> result = dialog.showAndWait();
-        if (result.isEmpty() || result.get() != inviteType) {
+        if (result.isEmpty() || result.get() != ButtonType.OK) {
             return;
         }
 
         String invitedRole = inviteRoleCombo.getValue();
         if (invitedRole == null || invitedRole.isBlank()) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Role requis",
-                    "Veuillez selectionner le role a attribuer a l'utilisateur invite.");
+            GroupUiUtils.showNotifWarning("Rôle requis", "Veuillez sélectionner le rôle à attribuer.");
             return;
         }
 
@@ -378,9 +404,7 @@ public class GroupDetailController {
                 .toList();
 
         if (emails.isEmpty()) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Aucun email",
-                    "Veuillez saisir au moins un email.");
+            GroupUiUtils.showNotifWarning("Aucun email", "Veuillez saisir au moins un email.");
             return;
         }
 
@@ -388,9 +412,7 @@ public class GroupDetailController {
                 .filter(email -> !isValidEmail(email))
                 .toList();
         if (!invalidEmails.isEmpty()) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Emails invalides",
-                    "Ces emails sont invalides: " + String.join(", ", invalidEmails));
+            GroupUiUtils.showNotifWarning("Emails invalides", "Ces emails sont invalides: " + String.join(", ", invalidEmails));
             return;
         }
 
@@ -399,8 +421,8 @@ public class GroupDetailController {
             GroupInvitation invitation = new GroupInvitation();
             invitation.setEmail(email);
             invitation.setInvitedAt(new Timestamp(System.currentTimeMillis()));
-            invitation.setCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
-            invitation.setStatus("PENDING");
+            invitation.setCode("INV-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            invitation.setStatus("pending");
             invitation.setRole(invitedRole);
             invitation.setRespondedAt(null);
             invitation.setToken(UUID.randomUUID().toString());
@@ -412,18 +434,14 @@ public class GroupDetailController {
             try {
                 invitationService.add(invitation);
                 invited++;
-            } catch (Exception ex) {
-                GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                        "Erreur invitation",
-                        "Impossible d'inviter l'email: " + email,
-                        ex.getMessage());
-                return;
+            } catch (Exception e) {
+                GroupUiUtils.showNotifError("Erreur d'invitation", "Impossible d'envoyer l'invitation à " + email);
             }
         }
 
-        GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
-                "Invitations envoyees",
-                invited + " invitation(s) ont ete creees.");
+        if (invited > 0) {
+            GroupUiUtils.showNotifSuccess("Invitations envoyees", invited + " invitation(s) ont ete creees.");
+        }
     }
 
     @FXML
@@ -540,19 +558,11 @@ public class GroupDetailController {
             resetComposeForm();
             setComposeEditorVisible(false);
             renderGroupDetails();
-            GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Publication creee",
-                    "Votre publication a bien ete publiee.");
+            GroupUiUtils.showNotifSuccess("Publication creee", "Votre publication a bien ete publiee.");
         } catch (IllegalArgumentException ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Validation",
-                    ex.getMessage(),
-                    null);
+            GroupUiUtils.showNotifError("Validation", ex.getMessage());
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible de publier pour le moment.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible de publier votre message.");
         }
     }
 
@@ -661,9 +671,7 @@ public class GroupDetailController {
 
         String role = resolveCurrentUserGroupRole();
         if (!canManageGroup(role)) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Seuls les Admins et Moderateurs peuvent modifier le groupe.");
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Seuls les Admins et Modérateurs peuvent modifier le groupe.");
             return;
         }
 
@@ -676,14 +684,9 @@ public class GroupDetailController {
             groupService.update(updated);
             currentGroup = updated;
             renderGroupDetails();
-            GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Groupe modifie",
-                    "Parfait, vos modifications ont bien ete enregistrees.");
+            GroupUiUtils.showNotifSuccess("Groupe modifié", "Vos modifications ont bien été enregistrées.");
         } catch (Exception e) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible de modifier le groupe.",
-                    e.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible de modifier le groupe : " + e.getMessage());
         }
     }
 
@@ -696,9 +699,7 @@ public class GroupDetailController {
 
         String role = resolveCurrentUserGroupRole();
         if (!"admin".equals(role)) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Seul l'Admin du groupe peut supprimer ce groupe.");
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Seul l'Admin du groupe peut supprimer ce groupe.");
             return;
         }
 
@@ -720,15 +721,14 @@ public class GroupDetailController {
 
         Button cancelButton = (Button) confirm.getDialogPane().lookupButton(cancelType);
         if (cancelButton != null) {
+            cancelButton.getStyleClass().add("compose-cancel-btn");
             cancelButton.setGraphic(GroupUiUtils.icon("fas-times", "detail-dialog-icon"));
         }
 
         confirm.showAndWait().ifPresent(result -> {
             if (result == deleteType) {
                 groupService.delete(currentGroup.getId());
-                GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
-                        "Groupe supprime",
-                        "C'est fait. Le groupe a bien ete supprime.");
+                GroupUiUtils.showNotifSuccess("Groupe supprimé", "Le groupe a bien été supprimé.");
                 navigateToList();
             }
         });
@@ -793,7 +793,7 @@ public class GroupDetailController {
         setNodeVisibleManaged(groupDeleteButton, isAdmin);
         setNodeVisibleManaged(groupSettingsButton, isAdmin || isModerator);
         setNodeVisibleManaged(groupInviteButton, (isAdmin || isModerator) && isPrivateGroup);
-        setNodeVisibleManaged(groupLeaveButton, isMember);
+        setNodeVisibleManaged(groupLeaveButton, isMember || isModerator);
     }
 
     private String resolveCurrentUserGroupRole() {
@@ -1005,37 +1005,34 @@ public class GroupDetailController {
         String actorRole = resolveCurrentUserGroupRole();
 
         if (!canManageGroup(actorRole)) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Seuls les Admins et Moderateurs peuvent modifier les roles.");
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Seuls les Admins et Modérateurs peuvent modifier les rôles.");
+            return;
+        }
+
+        if (member.getUserId() == currentUserId()) {
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Vous ne pouvez pas modifier votre propre rôle.");
             return;
         }
 
         if ("moderator".equals(actorRole) && "admin".equals(normalizeRole(role))) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Un Moderateur ne peut pas promouvoir un membre en Admin.");
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Un Moderateur ne peut pas promouvoir un membre en Admin.");
             return;
         }
 
         try {
             memberService.updateRole(member.getId(), role);
             renderGroupDetails();
-            GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class, header, content);
+            GroupUiUtils.showNotifSuccess(header, content);
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible de modifier le role du membre.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible de modifier le rôle du membre : " + ex.getMessage());
         }
     }
 
     // Remove member after confirmation.
     private void removeMember(GroupMember member) {
-        if (!canManageGroup(resolveCurrentUserGroupRole())) {
-            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Action non autorisee",
-                    "Seuls les Admins et Moderateurs peuvent retirer des membres.");
+        String actorRole = resolveCurrentUserGroupRole();
+        if (!"admin".equals(actorRole)) {
+            GroupUiUtils.showNotifWarning("Action non autorisée", "Seul l'Admin peut exclure des membres.");
             return;
         }
 
@@ -1063,10 +1060,7 @@ public class GroupDetailController {
                             "Membre retire",
                             "Le membre a ete retire du groupe.");
                 } catch (Exception ex) {
-                    GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                            "Erreur",
-                            "Impossible de retirer ce membre.",
-                            ex.getMessage());
+                    GroupUiUtils.showNotifError("Erreur", "Impossible de retirer ce membre : " + ex.getMessage());
                 }
             }
         });
@@ -1390,11 +1384,9 @@ public class GroupDetailController {
                             try {
                                 commentService.delete(comment.getId());
                                 renderGroupDetails();
+                                GroupUiUtils.showNotifSuccess("Commentaire supprimé", "Votre commentaire a été retiré.");
                             } catch (Exception ex) {
-                                GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                                        "Erreur",
-                                        "Impossible de supprimer le commentaire.",
-                                        ex.getMessage());
+                                GroupUiUtils.showNotifError("Erreur", "Impossible de supprimer le commentaire.");
                             }
                         });
                     } else {
@@ -1469,11 +1461,9 @@ public class GroupDetailController {
                 expandedCommentPostIds.add(post.getId());
             }
             renderGroupDetails();
+            GroupUiUtils.showNotifSuccess("Commentaire ajouté", "Votre message a été publié.");
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible d'ajouter le commentaire.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible d'ajouter le commentaire.");
         }
     }
 
@@ -1482,11 +1472,9 @@ public class GroupDetailController {
         try {
             ratingService.rate(post.getId(), currentUserId(), rating);
             renderGroupDetails();
+            GroupUiUtils.showNotifSuccess("Note enregistrée", "Votre évaluation a été prise en compte.");
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible d'enregistrer la note.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible d'enregistrer la note.");
         }
     }
 
@@ -1525,11 +1513,9 @@ public class GroupDetailController {
                 expandedCommentPostIds.add(post.getId());
             }
             renderGroupDetails();
+            GroupUiUtils.showNotifSuccess("Réponse ajoutée", "Votre réponse a été publiée.");
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible d'ajouter la reponse.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible d'ajouter la réponse.");
         }
     }
 
@@ -1539,10 +1525,7 @@ public class GroupDetailController {
             likeService.toggleLike(post.getId(), currentUserId());
             renderGroupDetails();
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Erreur",
-                    "Impossible de mettre a jour le like.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Erreur", "Impossible de mettre à jour le like.");
         }
     }
 
@@ -1574,14 +1557,9 @@ public class GroupDetailController {
                 try {
                     postService.delete(post.getId());
                     renderGroupDetails();
-                    GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
-                            "Publication supprimee",
-                            "La publication a ete supprimee.");
+                    GroupUiUtils.showNotifSuccess("Publication supprimée", "La publication a été supprimée.");
                 } catch (Exception ex) {
-                    GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                            "Erreur",
-                            "Impossible de supprimer la publication.",
-                            ex.getMessage());
+                    GroupUiUtils.showNotifError("Erreur", "Impossible de supprimer la publication.");
                 }
             }
         });
@@ -1613,10 +1591,7 @@ public class GroupDetailController {
         }
 
         if (!Desktop.isDesktopSupported()) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Ouverture impossible",
-                    "Votre systeme ne permet pas d'ouvrir la piece jointe.",
-                    null);
+            GroupUiUtils.showNotifWarning("Ouverture impossible", "Votre système ne permet pas d'ouvrir la pièce jointe.");
             return;
         }
 
@@ -1633,15 +1608,9 @@ public class GroupDetailController {
                 return;
             }
 
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Fichier introuvable",
-                    "La piece jointe n'existe plus sur ce chemin.",
-                    attachment);
+            GroupUiUtils.showNotifError("Fichier introuvable", "La pièce jointe n'existe plus.");
         } catch (Exception ex) {
-            GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
-                    "Ouverture impossible",
-                    "Impossible d'ouvrir la piece jointe.",
-                    ex.getMessage());
+            GroupUiUtils.showNotifError("Ouverture impossible", "Impossible d'ouvrir la pièce jointe.");
         }
     }
 

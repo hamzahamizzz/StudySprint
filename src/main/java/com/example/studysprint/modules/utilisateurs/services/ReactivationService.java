@@ -58,7 +58,7 @@ public class ReactivationService {
     public List<ReactivationRequest> getPendingRequests() {
         List<ReactivationRequest> list = new ArrayList<>();
         String req = "SELECT r.*, u.email, u.nom, u.prenom FROM reactivation_requests r " +
-                     "JOIN user u ON r.user_id = u.id " +
+                     "JOIN users u ON r.user_id = u.id " +
                      "WHERE r.status = 'PENDING' ORDER BY r.created_at DESC";
         try (Statement st = cnx.createStatement();
              ResultSet rs = st.executeQuery(req)) {
@@ -96,7 +96,7 @@ public class ReactivationService {
 
             // 2. If approved, update user status
             if (approve) {
-                String req2 = "UPDATE user u JOIN reactivation_requests r ON u.id = r.user_id " +
+                String req2 = "UPDATE users u JOIN reactivation_requests r ON u.id = r.user_id " +
                              "SET u.statut = ? WHERE r.id = ?";
                 try (PreparedStatement pst2 = cnx.prepareStatement(req2)) {
                     pst2.setString(1, userStatus);

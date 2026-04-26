@@ -23,7 +23,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     @Override
     public void add(Utilisateur u) {
-        String req = "INSERT INTO `user` (`nom`, `prenom`, `email`, `mot_de_passe`, `role`, `statut`, `date_inscription`, `discr`, `pays`, `age`, `sexe`, `etablissement`, `niveau`, `specialite`, `niveau_enseignement`, `annees_experience`, `telephone`, `face_descriptor`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String req = "INSERT INTO `users` (`nom`, `prenom`, `email`, `mot_de_passe`, `role`, `statut`, `date_inscription`, `discr`, `pays`, `age`, `sexe`, `etablissement`, `niveau`, `specialite`, `niveau_enseignement`, `annees_experience`, `telephone`, `face_descriptor`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pst = cnx.prepareStatement(req, Statement.RETURN_GENERATED_KEYS)) {
             pst.setString(1, u.getNom());
             pst.setString(2, u.getPrenom());
@@ -60,31 +60,11 @@ public class UtilisateurService implements IService<Utilisateur> {
     @Override
     public List<Utilisateur> getAll() {
         List<Utilisateur> list = new ArrayList<>();
-        String req = "SELECT * FROM `user`";
+        String req = "SELECT * FROM `users`";
         try (Statement st = cnx.createStatement();
              ResultSet rs = st.executeQuery(req)) {
             while (rs.next()) {
-                Utilisateur u = new Utilisateur();
-                u.setId(rs.getInt("id"));
-                u.setNom(rs.getString("nom"));
-                u.setPrenom(rs.getString("prenom"));
-                u.setEmail(rs.getString("email"));
-                u.setMotDePasse(rs.getString("mot_de_passe"));
-                u.setRole(rs.getString("role"));
-                u.setStatut(rs.getString("statut"));
-                u.setDateInscription(rs.getTimestamp("date_inscription").toLocalDateTime());
-                u.setDiscr(rs.getString("discr"));
-                u.setPays(rs.getString("pays"));
-                u.setAge((Integer) rs.getObject("age"));
-                u.setSexe(rs.getString("sexe"));
-                u.setEtablissement(rs.getString("etablissement"));
-                u.setNiveau(rs.getString("niveau"));
-                u.setSpecialite(rs.getString("specialite"));
-                u.setNiveauEnseignement(rs.getString("niveau_enseignement"));
-                u.setAnneesExperience((Integer) rs.getObject("annees_experience"));
-                u.setTelephone(rs.getString("telephone"));
-                u.setFaceDescriptor(rs.getString("face_descriptor"));
-                list.add(u);
+                list.add(mapResultSetToUtilisateur(rs));
             }
         } catch (SQLException e) {
             System.err.println("Error getting all users: " + e.getMessage());
@@ -92,9 +72,24 @@ public class UtilisateurService implements IService<Utilisateur> {
         return list;
     }
 
+    public Utilisateur getById(int id) {
+        String req = "SELECT * FROM `users` WHERE `id` = ?";
+        try (PreparedStatement pst = cnx.prepareStatement(req)) {
+            pst.setInt(1, id);
+            try (ResultSet rs = pst.executeQuery()) {
+                if (rs.next()) {
+                    return mapResultSetToUtilisateur(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error getting user by ID: " + e.getMessage());
+        }
+        return null;
+    }
+
     @Override
     public void update(Utilisateur u) {
-        String req = "UPDATE `user` SET `nom` = ?, `prenom` = ?, `email` = ?, `mot_de_passe` = ?, `role` = ?, `statut` = ?, `pays` = ?, `age` = ?, `sexe` = ?, `etablissement` = ?, `niveau` = ?, `specialite` = ?, `niveau_enseignement` = ?, `annees_experience` = ?, `telephone` = ?, `face_descriptor` = ? WHERE `id` = ?";
+        String req = "UPDATE `users` SET `nom` = ?, `prenom` = ?, `email` = ?, `mot_de_passe` = ?, `role` = ?, `statut` = ?, `pays` = ?, `age` = ?, `sexe` = ?, `etablissement` = ?, `niveau` = ?, `specialite` = ?, `niveau_enseignement` = ?, `annees_experience` = ?, `telephone` = ?, `face_descriptor` = ? WHERE `id` = ?";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, u.getNom());
             pst.setString(2, u.getPrenom());
@@ -123,7 +118,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     @Override
     public void delete(int id) {
-        String req = "DELETE FROM `user` WHERE `id` = ?";
+        String req = "DELETE FROM `users` WHERE `id` = ?";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setInt(1, id);
             pst.executeUpdate();
@@ -136,7 +131,7 @@ public class UtilisateurService implements IService<Utilisateur> {
     // --- Reset Password Logic ---
 
     public Utilisateur findByEmail(String email) {
-        String req = "SELECT * FROM `user` WHERE LOWER(`email`) = LOWER(?)";
+        String req = "SELECT * FROM `users` WHERE LOWER(`email`) = LOWER(?)";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, email);
             try (ResultSet rs = pst.executeQuery()) {
@@ -151,7 +146,7 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 
     public void updateResetToken(Utilisateur u) {
-        String req = "UPDATE `user` SET `reset_token` = ?, `reset_token_expires_at` = ? WHERE `id` = ?";
+        String req = "UPDATE `users` SET `reset_token` = ?, `reset_token_expires_at` = ? WHERE `id` = ?";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, u.getResetToken());
             pst.setTimestamp(2, u.getResetTokenExpiresAt() != null ? Timestamp.valueOf(u.getResetTokenExpiresAt()) : null);
@@ -164,7 +159,7 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 
     public Utilisateur findByResetToken(String token) {
-        String req = "SELECT * FROM `user` WHERE `reset_token` = ?";
+        String req = "SELECT * FROM `users` WHERE `reset_token` = ?";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, token);
             try (ResultSet rs = pst.executeQuery()) {
@@ -180,7 +175,7 @@ public class UtilisateurService implements IService<Utilisateur> {
 
     public void resetPassword(Utilisateur u, String plainPassword) {
         String hashedPassword = BCrypt.hashpw(plainPassword, BCrypt.gensalt());
-        String req = "UPDATE `user` SET `mot_de_passe` = ?, `reset_token` = NULL, `reset_token_expires_at` = NULL WHERE `id` = ?";
+        String req = "UPDATE `users` SET `mot_de_passe` = ?, `reset_token` = NULL, `reset_token_expires_at` = NULL WHERE `id` = ?";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, hashedPassword);
             pst.setInt(2, u.getId());
@@ -227,7 +222,7 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 
     public Utilisateur authenticate(String email, String password) {
-        String req = "SELECT * FROM `user` WHERE LOWER(`email`) = LOWER(?)";
+        String req = "SELECT * FROM `users` WHERE LOWER(`email`) = LOWER(?)";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, email);
             try (ResultSet rs = pst.executeQuery()) {
@@ -249,7 +244,7 @@ public class UtilisateurService implements IService<Utilisateur> {
             return unknown(null);
         }
 
-        String req = "SELECT prenom, nom, email FROM `user` WHERE id = ?";
+        String req = "SELECT prenom, nom, email FROM `users` WHERE id = ?";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setInt(1, userId);
             try (ResultSet rs = pst.executeQuery()) {

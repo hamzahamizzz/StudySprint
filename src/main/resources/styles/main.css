@@ -408,30 +408,28 @@
     -fx-padding: 10 20;
     -fx-cursor: hand;
     -fx-font-weight: 600;
-    -fx-background-radius: 10;
 }
 
 .profile-menu-btn:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.18);
-    -fx-scale-x: 1;
-    -fx-scale-y: 1;
+    -fx-background-color: rgba(255, 255, 255, 0.1);
 }
 
 .profile-menu-btn-active {
-    -fx-background-color: rgba(255, 255, 255, 0.24);
+    -fx-background-color: rgba(255, 255, 255, 0.2);
 }
 
 .profile-logout-btn {
     -fx-background-color: transparent;
     -fx-border-color: white;
-    -fx-border-radius: 20;
+    -fx-border-radius: 5;
     -fx-text-fill: white;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
 }
 
 .profile-logout-btn:hover {
-    -fx-background-color: rgba(255, 255, 255, 0.14);
-    -fx-scale-x: 1;
-    -fx-scale-y: 1;
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-text-fill: white;
 }
 
 .profile-content-scroll {
@@ -1381,6 +1379,23 @@
 
 .dialog-pane {
     -fx-background-color: #edf6f6;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: #1e293b;
+    -fx-font-size: 14px;
+}
+
+.dialog-pane .header-panel .label {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #1e293b;
+}
+
+.dialog-pane .button-bar .button {
+    -fx-background-radius: 10;
+    -fx-padding: 8 20;
+    -fx-font-weight: 600;
 }
 
 .dialog-pane .header-panel {

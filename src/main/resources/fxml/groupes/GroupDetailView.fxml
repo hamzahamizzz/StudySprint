@@ -88,8 +88,8 @@
                         </VBox>
                         <Region HBox.hgrow="ALWAYS" />
                         <HBox spacing="10" alignment="TOP_RIGHT" styleClass="detail-header-actions">
-                            <Button fx:id="groupSettingsButton" text="Parametres" onAction="#onGroupSettings" styleClass="detail-outline-btn" />
                             <Button fx:id="groupInviteButton" text="Inviter membres" onAction="#onInviteMembers" styleClass="detail-outline-btn" />
+                            <Button fx:id="groupSettingsButton" text="Parametres" onAction="#onGroupSettings" styleClass="detail-outline-btn" />
                             <Button fx:id="groupLeaveButton" text="Quitter" onAction="#onLeaveGroup" styleClass="detail-danger-btn" />
                             <Button fx:id="groupDeleteButton" text="Supprimer" onAction="#onDeleteGroup" styleClass="detail-danger-btn" />
                         </HBox>

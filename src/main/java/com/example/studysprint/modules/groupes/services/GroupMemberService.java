@@ -86,6 +86,20 @@ public class GroupMemberService {
         setCacheInvalide();
     }
 
+    public void removeByGroupAndUser(int groupId, int userId) {
+        String sql = "DELETE FROM group_members WHERE group_id = ? AND user_id = ?";
+
+        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+            ps.setInt(1, groupId);
+            ps.setInt(2, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException("Failed to remove member", e);
+        }
+
+        setCacheInvalide();
+    }
+
     public void updateRole(int id, String role) {
         String sql = "UPDATE group_members SET member_role = ? WHERE id = ?";
         String normalizedRole = normalizeRole(role);
