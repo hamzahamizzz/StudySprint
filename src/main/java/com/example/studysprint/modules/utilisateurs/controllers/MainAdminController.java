@@ -18,7 +18,7 @@ import java.util.ResourceBundle;
 public class MainAdminController implements Initializable {
 
     @FXML private StackPane contentArea;
-    @FXML private Button usersBtn, statsBtn, requestsBtn;
+    @FXML private Button usersBtn, groupsBtn, statsBtn, requestsBtn;
     @FXML private StackPane badgeContainer;
     @FXML private Label requestBadge;
 
@@ -51,6 +51,12 @@ public class MainAdminController implements Initializable {
     private void showUsersList() {
         setActiveButton(usersBtn);
         loadView("/fxml/utilisateurs/users-list.fxml");
+    }
+
+    @FXML
+    private void showGroupsManagement() {
+        setActiveButton(groupsBtn);
+        loadView("/fxml/groupes/GroupManagementView.fxml");
     }
 
     @FXML
@@ -116,6 +122,7 @@ public class MainAdminController implements Initializable {
 
     private void resetButtons() {
         usersBtn.getStyleClass().remove("bo-sidebar-btn-active");
+        groupsBtn.getStyleClass().remove("bo-sidebar-btn-active");
         statsBtn.getStyleClass().remove("bo-sidebar-btn-active");
         requestsBtn.getStyleClass().remove("bo-sidebar-btn-active");
     }

@@ -888,6 +888,95 @@
     -fx-scale-y: 1;
 }
 
+/* BO groups management */
+.bo-groups-root {
+    -fx-background-color: #f8fbff;
+}
+
+.bo-groups-toolbar {
+    -fx-padding: 2 0 4 0;
+}
+
+.bo-groups-title {
+    -fx-text-fill: #1f2937;
+}
+
+.bo-groups-filters {
+    -fx-background-color: #f5f6fa;
+    -fx-padding: 12;
+    -fx-background-radius: 10;
+}
+
+.bo-groups-section-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #334155;
+}
+
+.bo-groups-selection-header {
+    -fx-background-color: #eef6ff;
+    -fx-padding: 10 12;
+    -fx-background-radius: 10;
+}
+
+.bo-groups-selection-title {
+    -fx-font-weight: 700;
+    -fx-text-fill: #334155;
+}
+
+.bo-groups-selection-value {
+    -fx-font-weight: 700;
+    -fx-text-fill: #1d4ed8;
+}
+
+.bo-groups-panel {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 10;
+    -fx-border-color: #e2e8f0;
+    -fx-border-radius: 10;
+}
+
+.bo-groups-primary-btn {
+    -fx-background-color: #3b82f6;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-weight: 700;
+}
+
+.bo-groups-primary-btn:hover {
+    -fx-background-color: #2563eb;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
+
+.bo-groups-outline-btn {
+    -fx-background-color: white;
+    -fx-border-color: #cbd5e1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: #334155;
+    -fx-font-weight: 700;
+}
+
+.bo-groups-outline-btn:hover {
+    -fx-background-color: #f8fafc;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
+
+.bo-groups-danger-btn {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-weight: 700;
+}
+
+.bo-groups-danger-btn:hover {
+    -fx-background-color: #dc2626;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
+
 /* Reactivation page */
 .reactivation-page {
     -fx-padding: 30;
@@ -1012,6 +1101,14 @@
     -fx-cursor: hand;
 }
 
+.tab-btn:hover {
+    -fx-background-color: transparent;
+    -fx-text-fill: #7f92ab;
+    -fx-border-color: transparent;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
+}
+
 .tab-btn:focused {
     -fx-faint-focus-color: transparent;
     -fx-focus-color: transparent;
@@ -1022,6 +1119,14 @@
     -fx-background-color: transparent;
     -fx-text-fill: #5bb5f4;
     -fx-border-color: #5bb5f4;
+}
+
+.tab-btn.tab-btn-active:hover {
+    -fx-background-color: transparent;
+    -fx-text-fill: #5bb5f4;
+    -fx-border-color: #5bb5f4;
+    -fx-scale-x: 1;
+    -fx-scale-y: 1;
 }
 
 .group-title-xl {

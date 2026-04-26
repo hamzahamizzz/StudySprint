@@ -103,7 +103,7 @@ public class GroupService {
                 .count();
     }
 
-    public void add(StudyGroup g) {
+    public int add(StudyGroup g) {
         String sql = "INSERT INTO study_groups (name, description, privacy, subject, created_at, updated_at, last_activity, created_by_id) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
@@ -112,7 +112,7 @@ public class GroupService {
         Timestamp updatedAt = g.getUpdatedAt() != null ? g.getUpdatedAt() : now;
         Timestamp lastActivity = g.getLastActivity() != null ? g.getLastActivity() : now;
 
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
+        try (PreparedStatement ps = connection.prepareStatement(sql, java.sql.Statement.RETURN_GENERATED_KEYS)) {
             ps.setString(1, g.getName());
             ps.setString(2, g.getDescription());
             ps.setString(3, g.getPrivacy());
@@ -126,11 +126,21 @@ public class GroupService {
                 ps.setNull(8, java.sql.Types.INTEGER);
             }
             ps.executeUpdate();
+
+            try (ResultSet keys = ps.getGeneratedKeys()) {
+                if (keys.next()) {
+                    int generatedId = keys.getInt(1);
+                    g.setId(generatedId);
+                    setCacheInvalide();
+                    return generatedId;
+                }
+            }
         } catch (SQLException e) {
             throw new RuntimeException("Failed to add study group", e);
         }
 
         setCacheInvalide();
+        return g.getId() == null ? -1 : g.getId();
     }
 
     public void update(StudyGroup g) {

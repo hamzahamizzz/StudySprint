@@ -75,6 +75,10 @@ public class PostLikeService {
                 .toList();
     }
 
+    public void delete(int id) {
+        deleteLikeById(id);
+    }
+
     private void insertLike(int postId, int userId) {
         String sql = "INSERT INTO post_like (created_at, post_id, user_id) VALUES (?, ?, ?)";
 

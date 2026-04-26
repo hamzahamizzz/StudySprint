@@ -1,6 +1,7 @@
 package com.example.studysprint.modules.groupes.controllers;
 
 import com.example.studysprint.modules.groupes.models.StudyGroup;
+import com.example.studysprint.modules.groupes.models.GroupMember;
 import com.example.studysprint.modules.groupes.services.GroupMemberService;
 import com.example.studysprint.modules.groupes.services.GroupService;
 import com.example.studysprint.modules.groupes.utils.GroupUiUtils;
@@ -42,6 +43,8 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class GroupListController {
     @FXML
@@ -106,15 +109,14 @@ public class GroupListController {
 
     private void configureFilters() {
         sortCombo.setItems(FXCollections.observableArrayList(
-            "Activite recente",
-            "Nom (A-Z)",
-            "Nom (Z-A)",
-            "Plus de membres",
-            "Plus recents"
-        ));
+                "Activite recente",
+                "Nom (A-Z)",
+                "Nom (Z-A)",
+                "Plus de membres",
+                "Plus recents"));
         sortCombo.getSelectionModel().select("Activite recente");
 
-        roleCombo.setItems(FXCollections.observableArrayList("Tous les roles", "Admin", "Moderator", "Membre"));
+        roleCombo.setItems(FXCollections.observableArrayList("Tous les roles", "Admin", "Moderateur", "Membre"));
         roleCombo.getSelectionModel().select("Tous les roles");
 
         searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilters());
@@ -124,7 +126,7 @@ public class GroupListController {
 
     private void loadGroups() {
         try {
-            data.setAll(groupService.getAll());
+            data.setAll(filterAccessibleGroups(groupService.getAll()));
             sortCurrentGroups();
             renderCards();
             updateTabCounters();
@@ -140,9 +142,9 @@ public class GroupListController {
         String keyword = searchField.getText();
         try {
             if (keyword == null || keyword.isBlank()) {
-                data.setAll(groupService.getAll());
+                data.setAll(filterAccessibleGroups(groupService.getAll()));
             } else {
-                data.setAll(groupService.search(keyword));
+                data.setAll(filterAccessibleGroups(groupService.search(keyword)));
             }
             sortCurrentGroups();
             renderCards();
@@ -162,15 +164,18 @@ public class GroupListController {
         if ("Nom (A-Z)".equalsIgnoreCase(sortBy)) {
             comparator = Comparator.comparing(g -> GroupUiUtils.nullSafe(g.getName()), String.CASE_INSENSITIVE_ORDER);
         } else if ("Nom (Z-A)".equalsIgnoreCase(sortBy)) {
-            comparator = Comparator.comparing((StudyGroup g) -> GroupUiUtils.nullSafe(g.getName()), String.CASE_INSENSITIVE_ORDER).reversed();
+            comparator = Comparator
+                    .comparing((StudyGroup g) -> GroupUiUtils.nullSafe(g.getName()), String.CASE_INSENSITIVE_ORDER)
+                    .reversed();
         } else if ("Plus de membres".equalsIgnoreCase(sortBy)) {
-            comparator = Comparator.comparingInt((StudyGroup g) ->
-                    memberCountCache.computeIfAbsent(g.getId(), id -> memberService.countMembersForGroup(id))
-            ).reversed();
+            comparator = Comparator.comparingInt((StudyGroup g) -> memberCountCache.computeIfAbsent(g.getId(),
+                    id -> memberService.countMembersForGroup(id))).reversed();
         } else if ("Plus recents".equalsIgnoreCase(sortBy)) {
-            comparator = Comparator.comparing(StudyGroup::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+            comparator = Comparator.comparing(StudyGroup::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder()))
+                    .reversed();
         } else if ("Activite recente".equalsIgnoreCase(sortBy)) {
-            comparator = Comparator.comparing(StudyGroup::getLastActivity, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
+            comparator = Comparator
+                    .comparing(StudyGroup::getLastActivity, Comparator.nullsLast(Comparator.naturalOrder())).reversed();
         } else {
             comparator = Comparator.comparing(g -> GroupUiUtils.nullSafe(g.getName()), String.CASE_INSENSITIVE_ORDER);
         }
@@ -342,7 +347,16 @@ public class GroupListController {
         MenuButton menu = new MenuButton();
         menu.setGraphic(dotsIcon);
         menu.getStyleClass().add("menu-dots");
-        menu.getItems().addAll(openItem, editItem, deleteDivider, deleteItem);
+        
+        menu.getItems().add(openItem);
+        
+        if ("Admin".equalsIgnoreCase(role) || "Moderateur".equalsIgnoreCase(role)) {
+            menu.getItems().add(editItem);
+        }
+        
+        if ("Admin".equalsIgnoreCase(role)) {
+            menu.getItems().addAll(deleteDivider, deleteItem);
+        }
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -390,7 +404,22 @@ public class GroupListController {
                 return;
             }
 
-            groupService.add(created);
+            var currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser == null) {
+                GroupUiUtils.showWarning(groupCardsPane.getScene().getWindow(), GroupListController.class,
+                        "Utilisateur manquant",
+                        "Impossible de creer un groupe sans session utilisateur valide.");
+                return;
+            }
+
+            created.setCreatedById(currentUser.getId());
+            int groupId = groupService.add(created);
+
+            GroupMember creatorMember = new GroupMember();
+            creatorMember.setGroupId(groupId);
+            creatorMember.setUserId(currentUser.getId());
+            creatorMember.setMemberRole("admin");
+            memberService.add(creatorMember);
             loadGroups();
             GroupUiUtils.showSuccess(groupCardsPane.getScene().getWindow(), GroupListController.class,
                     "Groupe cree",
@@ -429,7 +458,8 @@ public class GroupListController {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Supprimer le groupe");
         confirm.setHeaderText("Confirmer la suppression");
-        confirm.setContentText("Voulez-vous supprimer le groupe \"" + selected.getName() + "\" ?\nCette action est irreversible.");
+        confirm.setContentText(
+                "Voulez-vous supprimer le groupe \"" + selected.getName() + "\" ?\nCette action est irreversible.");
 
         ButtonType deleteType = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
@@ -484,32 +514,47 @@ public class GroupListController {
     }
 
     // Infer the current user's visible role inside a group.
+    // Toujours base sur la table des membres (source de verite), pas sur createdById.
     private String inferRole(StudyGroup group) {
         int currentUserId = currentUserId();
 
-        if (group.getCreatedById() != null && group.getCreatedById() == currentUserId) {
-            return "Admin";
-        }
-
         String roleFromMembership = memberService
-            .getMemberRoleForUser(group.getId(), currentUserId)
-            .orElse("")
-            .trim()
-            .toLowerCase();
+                .getMemberRoleForUser(group.getId(), currentUserId)
+                .orElse("")
+                .trim()
+                .toLowerCase();
 
-        if ("moderator".equals(roleFromMembership)) {
-            return "Moderator";
-        }
         if ("admin".equals(roleFromMembership)) {
             return "Admin";
+        }
+        if ("moderator".equals(roleFromMembership)) {
+            return "Moderateur";
         }
 
         return "Membre";
     }
 
+    private java.util.List<StudyGroup> filterAccessibleGroups(java.util.List<StudyGroup> source) {
+        int currentUserId = currentUserId();
+
+        Set<Integer> memberGroupIds = memberService.getAll().stream()
+                .filter(member -> member.getUserId() != null && member.getUserId() == currentUserId)
+                .map(member -> member.getGroupId())
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+
+        return source.stream()
+                .filter(group -> group.getId() != null)
+                .filter(group -> memberGroupIds.contains(group.getId()))
+                .toList();
+    }
+
     private int currentUserId() {
-        Integer userId = SessionManager.getInstance().getCurrentUserId();
-        return userId == null ? 1 : userId;
+        Utilisateur currentUser = SessionManager.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            return -1;
+        }
+        return currentUser.getId();
     }
 
     private String roleBadgeClass(String role) {

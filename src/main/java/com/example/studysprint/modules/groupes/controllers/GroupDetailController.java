@@ -1,12 +1,14 @@
 package com.example.studysprint.modules.groupes.controllers;
 
 import com.example.studysprint.modules.groupes.models.GroupMember;
+import com.example.studysprint.modules.groupes.models.GroupInvitation;
 import com.example.studysprint.modules.groupes.models.GroupPost;
 import com.example.studysprint.modules.groupes.models.PostComment;
 import com.example.studysprint.modules.groupes.models.PostLike;
 import com.example.studysprint.modules.groupes.models.PostRating;
 import com.example.studysprint.modules.groupes.models.StudyGroup;
 import com.example.studysprint.modules.groupes.services.GroupMemberService;
+import com.example.studysprint.modules.groupes.services.GroupInvitationService;
 import com.example.studysprint.modules.groupes.services.GroupPostService;
 import com.example.studysprint.modules.groupes.services.GroupService;
 import com.example.studysprint.modules.groupes.services.PostCommentService;
@@ -17,11 +19,15 @@ import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
 import com.example.studysprint.utils.AppNavigator;
 import com.example.studysprint.utils.SessionManager;
+import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonBar;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
@@ -34,6 +40,7 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -54,10 +61,12 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class GroupDetailController {
-    private static final UtilisateurService.UserDisplay UNKNOWN_USER = new UtilisateurService.UserDisplay("Utilisateur", "", "U");
+    private static final UtilisateurService.UserDisplay UNKNOWN_USER = new UtilisateurService.UserDisplay("Utilisateur",
+            "", "U");
 
     @FXML
     private HBox rootPane;
@@ -89,6 +98,10 @@ public class GroupDetailController {
     private Button backToGroupsButton;
     @FXML
     private Button groupSettingsButton;
+    @FXML
+    private Button groupInviteButton;
+    @FXML
+    private Button groupLeaveButton;
     @FXML
     private Button groupDeleteButton;
     @FXML
@@ -133,6 +146,7 @@ public class GroupDetailController {
     private TextArea composeLinkCommentArea;
 
     private final GroupMemberService memberService = new GroupMemberService();
+    private final GroupInvitationService invitationService = new GroupInvitationService();
     private final GroupPostService postService = new GroupPostService();
     private final GroupService groupService = new GroupService();
     private final PostCommentService commentService = new PostCommentService();
@@ -141,6 +155,7 @@ public class GroupDetailController {
     private final UtilisateurService userService = new UtilisateurService();
 
     private StudyGroup currentGroup;
+    private String currentUserGroupRole = "guest";
     private String composeMode = "text";
     private String selectedComposeFilePath;
     private final Set<Integer> expandedCommentPostIds = new HashSet<>();
@@ -158,9 +173,16 @@ public class GroupDetailController {
         if (groupSettingsButton != null) {
             groupSettingsButton.setGraphic(GroupUiUtils.icon("fas-cog", "detail-dialog-icon"));
         }
+        if (groupInviteButton != null) {
+            groupInviteButton.setGraphic(GroupUiUtils.icon("fas-user-plus", "detail-dialog-icon"));
+        }
+        if (groupLeaveButton != null) {
+            groupLeaveButton.setGraphic(GroupUiUtils.icon("fas-sign-out-alt", "detail-dialog-danger-icon"));
+        }
         if (groupDeleteButton != null) {
             groupDeleteButton.setGraphic(GroupUiUtils.icon("fas-trash-alt", "detail-dialog-danger-icon"));
         }
+        applyHeaderActionsVisibility("guest");
         setComposeMode("text");
         setComposeEditorVisible(false);
     }
@@ -189,7 +211,219 @@ public class GroupDetailController {
     // Leave current group and return to list.
     @FXML
     private void onLeaveGroup() {
-        navigateToList();
+        if (currentGroup == null || currentGroup.getId() == null) {
+            return;
+        }
+
+        String role = resolveCurrentUserGroupRole();
+        if (!"member".equals(role)) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Seul un membre peut quitter le groupe depuis cette action.");
+            return;
+        }
+
+        Optional<GroupMember> membership = memberService.getAll().stream()
+                .filter(m -> m.getGroupId() != null && m.getGroupId().equals(currentGroup.getId()))
+                .filter(m -> m.getUserId() != null && m.getUserId() == currentUserId())
+                .findFirst();
+
+        if (membership.isEmpty()) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Adhesion introuvable",
+                    "Impossible de quitter ce groupe car vous n'etes pas membre.");
+            return;
+        }
+
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Quitter le groupe");
+        confirm.setHeaderText("Confirmer");
+        confirm.setContentText("Voulez-vous vraiment quitter ce groupe ?");
+        ButtonType leaveType = new ButtonType("Quitter", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        confirm.getButtonTypes().setAll(leaveType, cancelType);
+        GroupUiUtils.applyDialogStyle(confirm.getDialogPane(), GroupDetailController.class);
+
+        confirm.showAndWait().ifPresent(result -> {
+            if (result != leaveType) {
+                return;
+            }
+            try {
+                Set<Integer> groupPostIds = postService.getByGroup(currentGroup.getId()).stream()
+                        .map(GroupPost::getId)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet());
+
+                List<PostComment> commentsToDelete = commentService.getAll().stream()
+                        .filter(comment -> comment.getAuthorId() != null && comment.getAuthorId() == currentUserId())
+                        .filter(comment -> comment.getPostId() != null && groupPostIds.contains(comment.getPostId()))
+                        .toList();
+
+                for (PostComment comment : commentsToDelete) {
+                    if (comment.getId() != null) {
+                        commentService.delete(comment.getId());
+                    }
+                }
+
+                List<PostLike> likesToDelete = likeService.getAll().stream()
+                        .filter(like -> like.getUserId() != null && like.getUserId() == currentUserId())
+                        .filter(like -> like.getPostId() != null && groupPostIds.contains(like.getPostId()))
+                        .toList();
+
+                for (PostLike like : likesToDelete) {
+                    if (like.getId() != null) {
+                        likeService.delete(like.getId());
+                    }
+                }
+
+                List<GroupPost> postsToDelete = postService.getByGroup(currentGroup.getId()).stream()
+                        .filter(post -> post.getAuthorId() != null && post.getAuthorId() == currentUserId())
+                        .toList();
+
+                for (GroupPost post : postsToDelete) {
+                    if (post.getId() != null) {
+                        postService.delete(post.getId());
+                    }
+                }
+
+                memberService.delete(membership.get().getId());
+                GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
+                        "Groupe quitte",
+                        "Vous avez quitte le groupe. Vos posts, likes et commentaires dans ce groupe ont ete supprimes.");
+                navigateToList();
+            } catch (Exception ex) {
+                GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
+                        "Erreur",
+                        "Impossible de quitter le groupe.",
+                        ex.getMessage());
+            }
+        });
+    }
+
+    @FXML
+    private void onInviteMembers() {
+        if (currentGroup == null || currentGroup.getId() == null) {
+            return;
+        }
+
+        // L'invitation n'est autorisee que pour les groupes prives.
+        if (!"private".equalsIgnoreCase(currentGroup.getPrivacy())) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non disponible",
+                    "L'invitation par lien n'est disponible que pour les groupes prives. Les groupes publics sont accessibles a tous.");
+            return;
+        }
+
+        String role = resolveCurrentUserGroupRole();
+        if (!canManageGroup(role)) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Seuls les Admins et Moderateurs peuvent inviter des membres.");
+            return;
+        }
+
+        Dialog<ButtonType> dialog = new Dialog<>();
+        dialog.setTitle("Inviter des membres");
+        dialog.setHeaderText("Saisissez un email par ligne.");
+        dialog.initOwner(rootPane.getScene().getWindow());
+
+        TextArea emailsArea = new TextArea();
+        emailsArea.setPromptText("exemple1@email.com\nexemple2@email.com");
+        emailsArea.setPrefRowCount(8);
+        emailsArea.getStyleClass().add("compose-area");
+
+        List<String> inviteRoleOptions = "admin".equals(role)
+                ? List.of("member", "moderator", "admin")
+                : List.of("member", "moderator");
+
+        ComboBox<String> inviteRoleCombo = new ComboBox<>(FXCollections.observableArrayList(inviteRoleOptions));
+        inviteRoleCombo.getSelectionModel().select("member");
+        inviteRoleCombo.setMaxWidth(Double.MAX_VALUE);
+
+        GridPane form = new GridPane();
+        form.setHgap(10);
+        form.setVgap(10);
+        form.add(new Label("Role invite"), 0, 0);
+        form.add(inviteRoleCombo, 1, 0);
+        form.add(new Label("Emails (un par ligne)"), 0, 1);
+        form.add(emailsArea, 1, 1);
+        GridPane.setHgrow(inviteRoleCombo, Priority.ALWAYS);
+        GridPane.setHgrow(emailsArea, Priority.ALWAYS);
+
+        DialogPane pane = dialog.getDialogPane();
+        pane.setContent(form);
+        GroupUiUtils.applyDialogStyle(pane, GroupDetailController.class);
+
+        ButtonType inviteType = new ButtonType("Inviter", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
+        pane.getButtonTypes().addAll(inviteType, cancelType);
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isEmpty() || result.get() != inviteType) {
+            return;
+        }
+
+        String invitedRole = inviteRoleCombo.getValue();
+        if (invitedRole == null || invitedRole.isBlank()) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Role requis",
+                    "Veuillez selectionner le role a attribuer a l'utilisateur invite.");
+            return;
+        }
+
+        List<String> emails = emailsArea.getText().lines()
+                .map(String::trim)
+                .filter(line -> !line.isBlank())
+                .distinct()
+                .toList();
+
+        if (emails.isEmpty()) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Aucun email",
+                    "Veuillez saisir au moins un email.");
+            return;
+        }
+
+        List<String> invalidEmails = emails.stream()
+                .filter(email -> !isValidEmail(email))
+                .toList();
+        if (!invalidEmails.isEmpty()) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Emails invalides",
+                    "Ces emails sont invalides: " + String.join(", ", invalidEmails));
+            return;
+        }
+
+        int invited = 0;
+        for (String email : emails) {
+            GroupInvitation invitation = new GroupInvitation();
+            invitation.setEmail(email);
+            invitation.setInvitedAt(new Timestamp(System.currentTimeMillis()));
+            invitation.setCode(UUID.randomUUID().toString().substring(0, 8).toUpperCase());
+            invitation.setStatus("PENDING");
+            invitation.setRole(invitedRole);
+            invitation.setRespondedAt(null);
+            invitation.setToken(UUID.randomUUID().toString());
+            invitation.setMessage("Invitation a rejoindre le groupe " + GroupUiUtils.nullSafe(currentGroup.getName()));
+            invitation.setExpiresAt(new Timestamp(System.currentTimeMillis() + (7L * 24 * 60 * 60 * 1000)));
+            invitation.setGroupId(currentGroup.getId());
+            invitation.setInvitedById(currentUserId());
+
+            try {
+                invitationService.add(invitation);
+                invited++;
+            } catch (Exception ex) {
+                GroupUiUtils.showError(rootPane.getScene().getWindow(), GroupDetailController.class,
+                        "Erreur invitation",
+                        "Impossible d'inviter l'email: " + email,
+                        ex.getMessage());
+                return;
+            }
+        }
+
+        GroupUiUtils.showSuccess(rootPane.getScene().getWindow(), GroupDetailController.class,
+                "Invitations envoyees",
+                invited + " invitation(s) ont ete creees.");
     }
 
     @FXML
@@ -425,6 +659,14 @@ public class GroupDetailController {
             return;
         }
 
+        String role = resolveCurrentUserGroupRole();
+        if (!canManageGroup(role)) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Seuls les Admins et Moderateurs peuvent modifier le groupe.");
+            return;
+        }
+
         try {
             StudyGroup updated = GroupFormController.showDialog(currentGroup, rootPane.getScene().getWindow());
             if (updated == null) {
@@ -452,10 +694,19 @@ public class GroupDetailController {
             return;
         }
 
+        String role = resolveCurrentUserGroupRole();
+        if (!"admin".equals(role)) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Seul l'Admin du groupe peut supprimer ce groupe.");
+            return;
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Supprimer le groupe");
         confirm.setHeaderText("Confirmer la suppression");
-        confirm.setContentText("Voulez-vous supprimer le groupe \"" + GroupUiUtils.nullSafe(currentGroup.getName()) + "\" ?\nCette action est irreversible.");
+        confirm.setContentText("Voulez-vous supprimer le groupe \"" + GroupUiUtils.nullSafe(currentGroup.getName())
+                + "\" ?\nCette action est irreversible.");
         ButtonType deleteType = new ButtonType("Supprimer", ButtonBar.ButtonData.OK_DONE);
         ButtonType cancelType = new ButtonType("Annuler", ButtonBar.ButtonData.CANCEL_CLOSE);
         confirm.getButtonTypes().setAll(deleteType, cancelType);
@@ -489,15 +740,19 @@ public class GroupDetailController {
             return;
         }
 
+        currentUserGroupRole = resolveCurrentUserGroupRole();
+        applyHeaderActionsVisibility(currentUserGroupRole);
+
         List<GroupMember> members = memberService.getByGroup(currentGroup.getId());
         List<GroupPost> posts = postService.getByGroup(currentGroup.getId());
 
         groupAvatarLabel.setText(GroupUiUtils.initial(currentGroup.getName()));
         groupNameLabel.setText(GroupUiUtils.nullSafe(currentGroup.getName()));
-        groupNameLabel.setGraphic(GroupUiUtils.icon(GroupUiUtils.privacyIconLiteral(currentGroup.getPrivacy()), "group-privacy-icon"));
+        groupNameLabel.setGraphic(
+                GroupUiUtils.icon(GroupUiUtils.privacyIconLiteral(currentGroup.getPrivacy()), "group-privacy-icon"));
         groupSubjectLabel.setText(GroupUiUtils.nullSafe(currentGroup.getDescription()).isBlank()
-            ? GroupUiUtils.nullSafe(currentGroup.getSubject())
-            : GroupUiUtils.nullSafe(currentGroup.getDescription()));
+                ? GroupUiUtils.nullSafe(currentGroup.getSubject())
+                : GroupUiUtils.nullSafe(currentGroup.getDescription()));
         groupSubjectMetaLabel.setText("Matiere: " + GroupUiUtils.nullSafe(currentGroup.getSubject()));
         groupCreatedLabel.setText("Cree " + GroupUiUtils.formatRelativeTime(currentGroup.getCreatedAt()));
 
@@ -514,29 +769,78 @@ public class GroupDetailController {
 
     // Apply role-based theme to composer avatars.
     private void applyComposeAvatarRoleTheme() {
-        String role = "member";
-        int userId = currentUserId();
-        if (currentGroup != null) {
-            if (currentGroup.getCreatedById() != null && currentGroup.getCreatedById() == userId) {
-                role = "admin";
-            } else if (currentGroup.getId() != null) {
-                role = memberService.getMemberRoleForUser(currentGroup.getId(), userId).orElse("member");
-            }
-        }
+        String role = "guest".equals(currentUserGroupRole) ? "member" : currentUserGroupRole;
 
         String roleClass = detailAiAvatarClass(role);
         composeAvatarLabel.getStyleClass().removeAll(
                 "detail-ai-avatar-admin",
                 "detail-ai-avatar-moderator",
-                "detail-ai-avatar-member"
-        );
+                "detail-ai-avatar-member");
         composeEditorAvatarLabel.getStyleClass().removeAll(
                 "detail-ai-avatar-admin",
                 "detail-ai-avatar-moderator",
-                "detail-ai-avatar-member"
-        );
+                "detail-ai-avatar-member");
         composeAvatarLabel.getStyleClass().add(roleClass);
         composeEditorAvatarLabel.getStyleClass().add(roleClass);
+    }
+
+    private void applyHeaderActionsVisibility(String role) {
+        boolean isAdmin = "admin".equals(role);
+        boolean isModerator = "moderator".equals(role);
+        boolean isMember = "member".equals(role);
+        boolean isPrivateGroup = currentGroup != null && "private".equalsIgnoreCase(currentGroup.getPrivacy());
+
+        setNodeVisibleManaged(groupDeleteButton, isAdmin);
+        setNodeVisibleManaged(groupSettingsButton, isAdmin || isModerator);
+        setNodeVisibleManaged(groupInviteButton, (isAdmin || isModerator) && isPrivateGroup);
+        setNodeVisibleManaged(groupLeaveButton, isMember);
+    }
+
+    private String resolveCurrentUserGroupRole() {
+        if (currentGroup == null || currentGroup.getId() == null) {
+            return "guest";
+        }
+
+        Optional<String> membershipRole = memberService.getMemberRoleForUser(currentGroup.getId(), currentUserId());
+        if (membershipRole.isEmpty()) {
+            return "guest";
+        }
+
+        return normalizeRole(membershipRole.get());
+    }
+
+    private String normalizeRole(String role) {
+        if (role == null || role.isBlank()) {
+            return "member";
+        }
+
+        String lower = role.trim().toLowerCase();
+        if ("moderateur".equals(lower) || "modérateur".equals(lower)) {
+            return "moderator";
+        }
+        if ("membre".equals(lower)) {
+            return "member";
+        }
+        if (!"admin".equals(lower) && !"moderator".equals(lower) && !"member".equals(lower)) {
+            return "member";
+        }
+        return lower;
+    }
+
+    private boolean canManageGroup(String role) {
+        return "admin".equals(role) || "moderator".equals(role);
+    }
+
+    private void setNodeVisibleManaged(Button node, boolean visible) {
+        if (node == null) {
+            return;
+        }
+        node.setVisible(visible);
+        node.setManaged(visible);
+    }
+
+    private boolean isValidEmail(String email) {
+        return email != null && email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
     }
 
     // Render members list in sidebar.
@@ -557,8 +861,12 @@ public class GroupDetailController {
                 .filter(m -> "moderator".equalsIgnoreCase(m.getMemberRole()))
                 .toList();
         List<GroupMember> basicMembers = members.stream()
-                .filter(m -> !"admin".equalsIgnoreCase(m.getMemberRole()) && !"moderator".equalsIgnoreCase(m.getMemberRole()))
+                .filter(m -> !"admin".equalsIgnoreCase(m.getMemberRole())
+                        && !"moderator".equalsIgnoreCase(m.getMemberRole()))
                 .toList();
+
+        boolean canManageRoles = canManageGroup(currentUserGroupRole);
+        boolean isAdmin = "admin".equalsIgnoreCase(normalizeRole(currentUserGroupRole));
 
         boolean hasPreviousSection = false;
 
@@ -568,17 +876,18 @@ public class GroupDetailController {
         }
 
         if (!moderators.isEmpty()) {
-            addMemberSection("MODERATEURS", moderators, true, hasPreviousSection);
+            addMemberSection("MODERATEURS", moderators, isAdmin, hasPreviousSection);
             hasPreviousSection = true;
         }
 
         if (!basicMembers.isEmpty()) {
-            addMemberSection("MEMBRES", basicMembers, true, hasPreviousSection);
+            addMemberSection("MEMBRES", basicMembers, canManageRoles, hasPreviousSection);
         }
     }
 
     // Render one role section.
-    private void addMemberSection(String title, List<GroupMember> sectionMembers, boolean showMenu, boolean withDivider) {
+    private void addMemberSection(String title, List<GroupMember> sectionMembers, boolean showMenu,
+            boolean withDivider) {
         if (withDivider) {
             Separator divider = new Separator();
             divider.getStyleClass().add("detail-member-divider");
@@ -634,18 +943,22 @@ public class GroupDetailController {
     // Build member actions menu.
     private MenuButton buildMemberActionsMenu(GroupMember member) {
         String currentRole = member.getMemberRole() == null ? "member" : member.getMemberRole().trim().toLowerCase();
+        String actorRole = normalizeRole(currentUserGroupRole);
 
         MenuItem promoteAdmin = new MenuItem("Promouvoir Admin");
         promoteAdmin.setGraphic(GroupUiUtils.icon("fas-arrow-up", "detail-menu-icon"));
-        promoteAdmin.setOnAction(e -> updateMemberRole(member, "admin", "Role mis a jour", "Le membre a ete promu Admin."));
+        promoteAdmin
+                .setOnAction(e -> updateMemberRole(member, "admin", "Role mis a jour", "Le membre a ete promu Admin."));
 
         MenuItem promoteModerator = new MenuItem("Promouvoir Moderateur");
         promoteModerator.setGraphic(GroupUiUtils.icon("fas-arrow-up", "detail-menu-icon"));
-        promoteModerator.setOnAction(e -> updateMemberRole(member, "moderator", "Role mis a jour", "Le membre a ete promu Moderateur."));
+        promoteModerator.setOnAction(
+                e -> updateMemberRole(member, "moderator", "Role mis a jour", "Le membre a ete promu Moderateur."));
 
         MenuItem demoteMember = new MenuItem("Retrograder Membre");
         demoteMember.setGraphic(GroupUiUtils.icon("fas-arrow-down", "detail-menu-icon"));
-        demoteMember.setOnAction(e -> updateMemberRole(member, "member", "Role mis a jour", "Le membre est maintenant Membre."));
+        demoteMember.setOnAction(
+                e -> updateMemberRole(member, "member", "Role mis a jour", "Le membre est maintenant Membre."));
 
         MenuItem removeMember = new MenuItem("Retirer du groupe");
         removeMember.setGraphic(GroupUiUtils.icon("fas-trash-alt", "detail-menu-danger-icon"));
@@ -665,10 +978,23 @@ public class GroupDetailController {
         menu.setGraphic(dotsIcon);
         menu.getStyleClass().add("detail-member-menu-btn");
 
-        if ("moderator".equals(currentRole) || "moderateur".equals(currentRole)) {
-            menu.getItems().addAll(promoteAdmin, demoteMember, divider, removeMember);
+        // Le menu est construit selon le role de l'ACTEUR (celui qui agit), pas de la cible.
+        if ("moderator".equals(actorRole)) {
+            // Moderateur : peut promouvoir en moderateur ou retrograder en membre, mais PAS promouvoir en admin.
+            if ("moderator".equals(currentRole)) {
+                menu.getItems().addAll(demoteMember, divider, removeMember);
+            } else {
+                menu.getItems().addAll(promoteModerator, divider, removeMember);
+            }
         } else {
-            menu.getItems().addAll(promoteAdmin, promoteModerator, divider, removeMember);
+            // Admin : toutes les actions disponibles selon le role actuel de la cible.
+            if ("admin".equals(currentRole)) {
+                menu.getItems().addAll(demoteMember, divider, removeMember);
+            } else if ("moderator".equals(currentRole)) {
+                menu.getItems().addAll(promoteAdmin, demoteMember, divider, removeMember);
+            } else {
+                menu.getItems().addAll(promoteAdmin, promoteModerator, divider, removeMember);
+            }
         }
 
         return menu;
@@ -676,6 +1002,22 @@ public class GroupDetailController {
 
     // Update member role and refresh UI.
     private void updateMemberRole(GroupMember member, String role, String header, String content) {
+        String actorRole = resolveCurrentUserGroupRole();
+
+        if (!canManageGroup(actorRole)) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Seuls les Admins et Moderateurs peuvent modifier les roles.");
+            return;
+        }
+
+        if ("moderator".equals(actorRole) && "admin".equals(normalizeRole(role))) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Un Moderateur ne peut pas promouvoir un membre en Admin.");
+            return;
+        }
+
         try {
             memberService.updateRole(member.getId(), role);
             renderGroupDetails();
@@ -690,6 +1032,13 @@ public class GroupDetailController {
 
     // Remove member after confirmation.
     private void removeMember(GroupMember member) {
+        if (!canManageGroup(resolveCurrentUserGroupRole())) {
+            GroupUiUtils.showWarning(rootPane.getScene().getWindow(), GroupDetailController.class,
+                    "Action non autorisee",
+                    "Seuls les Admins et Moderateurs peuvent retirer des membres.");
+            return;
+        }
+
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
         confirm.setTitle("Retirer le membre");
         confirm.setHeaderText("Confirmer le retrait");
@@ -744,43 +1093,42 @@ public class GroupDetailController {
             return;
         }
 
-            List<GroupPost> visiblePosts = posts.stream().limit(6).toList();
-            Set<Integer> visiblePostIds = visiblePosts.stream()
+        List<GroupPost> visiblePosts = posts.stream().limit(6).toList();
+        Set<Integer> visiblePostIds = visiblePosts.stream()
                 .map(GroupPost::getId)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
 
-            List<PostLike> visibleLikes = likeService.getAll().stream()
+        List<PostLike> visibleLikes = likeService.getAll().stream()
                 .filter(like -> visiblePostIds.contains(like.getPostId()))
                 .toList();
-            Map<Integer, Long> likesCountByPostId = visibleLikes.stream()
+        Map<Integer, Long> likesCountByPostId = visibleLikes.stream()
                 .collect(Collectors.groupingBy(PostLike::getPostId, Collectors.counting()));
-            Set<Integer> likedPostIdsByCurrentUser = visibleLikes.stream()
+        Set<Integer> likedPostIdsByCurrentUser = visibleLikes.stream()
                 .filter(like -> like.getUserId() == currentUserId)
                 .map(PostLike::getPostId)
                 .collect(Collectors.toSet());
 
-            List<PostComment> visibleComments = commentService.getAll().stream()
+        List<PostComment> visibleComments = commentService.getAll().stream()
                 .filter(comment -> visiblePostIds.contains(comment.getPostId()))
                 .toList();
-            Map<Integer, List<PostComment>> commentsByPostId = visibleComments.stream()
+        Map<Integer, List<PostComment>> commentsByPostId = visibleComments.stream()
                 .collect(Collectors.groupingBy(PostComment::getPostId));
 
-            List<PostRating> visibleRatings = ratingService.getAll().stream()
+        List<PostRating> visibleRatings = ratingService.getAll().stream()
                 .filter(rating -> visiblePostIds.contains(rating.getPostId()))
                 .toList();
-            Map<Integer, Double> averageRatingByPostId = visibleRatings.stream()
+        Map<Integer, Double> averageRatingByPostId = visibleRatings.stream()
                 .collect(Collectors.groupingBy(PostRating::getPostId,
-                    Collectors.averagingInt(r -> r.getRating() == null ? 0 : r.getRating())));
-            Map<Integer, Integer> userRatingByPostId = visibleRatings.stream()
+                        Collectors.averagingInt(r -> r.getRating() == null ? 0 : r.getRating())));
+        Map<Integer, Integer> userRatingByPostId = visibleRatings.stream()
                 .filter(r -> r.getUserId() == currentUserId)
                 .collect(Collectors.toMap(
-                    PostRating::getPostId,
-                    r -> r.getRating() == null ? 0 : (int) r.getRating(),
-                    (a, b) -> b
-                ));
+                        PostRating::getPostId,
+                        r -> r.getRating() == null ? 0 : (int) r.getRating(),
+                        (a, b) -> b));
 
-            for (GroupPost post : visiblePosts) {
+        for (GroupPost post : visiblePosts) {
             VBox card = new VBox(10);
             card.getStyleClass().add("detail-post-card");
 
@@ -833,8 +1181,8 @@ public class GroupDetailController {
                 attachmentChip.getStyleClass().add("detail-post-attachment-clickable");
 
                 String icon = "link".equalsIgnoreCase(post.getPostType()) || post.getAttachmentUrl().startsWith("http")
-                    ? "fas-link"
-                    : "fas-file-alt";
+                        ? "fas-link"
+                        : "fas-file-alt";
                 FontIcon attachmentIcon = GroupUiUtils.icon(icon, "detail-attachment-icon");
                 attachmentIcon.getStyleClass().add("detail-post-attachment-icon");
 
@@ -850,16 +1198,16 @@ public class GroupDetailController {
             Separator divider = new Separator();
             divider.getStyleClass().add("detail-post-divider");
 
-                int postId = post.getId() == null ? -1 : post.getId();
-                int likes = likesCountByPostId.getOrDefault(postId, 0L).intValue();
-                boolean likedByCurrentUser = likedPostIdsByCurrentUser.contains(postId);
+            int postId = post.getId() == null ? -1 : post.getId();
+            int likes = likesCountByPostId.getOrDefault(postId, 0L).intValue();
+            boolean likedByCurrentUser = likedPostIdsByCurrentUser.contains(postId);
 
-                List<PostComment> allComments = commentsByPostId.getOrDefault(postId, List.of());
-                int comments = allComments.size();
-                List<PostComment> postComments = allComments.stream().limit(6).toList();
+            List<PostComment> allComments = commentsByPostId.getOrDefault(postId, List.of());
+            int comments = allComments.size();
+            List<PostComment> postComments = allComments.stream().limit(6).toList();
 
-                double rating = averageRatingByPostId.getOrDefault(postId, 0.0);
-                int userRating = userRatingByPostId.getOrDefault(postId, 0);
+            double rating = averageRatingByPostId.getOrDefault(postId, 0.0);
+            int userRating = userRatingByPostId.getOrDefault(postId, 0);
             boolean commentsExpanded = post.getId() != null && expandedCommentPostIds.contains(post.getId());
 
             VBox inlineCommentBox = new VBox(8);
@@ -899,7 +1247,8 @@ public class GroupDetailController {
             Button likesButton = new Button();
             likesButton.setGraphic(GroupUiUtils.icon("fas-heart", "detail-like-icon"));
             likesButton.getStyleClass().addAll("detail-post-icon-btn", "detail-post-like-btn");
-            likesButton.getStyleClass().add(likedByCurrentUser ? "detail-post-like-btn-liked" : "detail-post-like-btn-unliked");
+            likesButton.getStyleClass()
+                    .add(likedByCurrentUser ? "detail-post-like-btn-liked" : "detail-post-like-btn-unliked");
             likesButton.setOnAction(event -> onTogglePostLike(post));
             Label likesCount = new Label(String.valueOf(likes));
             likesCount.getStyleClass().add("detail-post-action-count");
@@ -992,12 +1341,13 @@ public class GroupDetailController {
                     }
 
                     UtilisateurService.UserDisplay commentAuthorData = resolveUserDisplay(comment.getAuthorId());
-                        String commentRole = currentGroup == null || currentGroup.getId() == null
+                    String commentRole = currentGroup == null || currentGroup.getId() == null
                             ? "member"
-                            : memberService.getMemberRoleForUser(currentGroup.getId(), comment.getAuthorId()).orElse("member");
+                            : memberService.getMemberRoleForUser(currentGroup.getId(), comment.getAuthorId())
+                                    .orElse("member");
                     Label commentAvatar = new Label(commentAuthorData.initials());
                     commentAvatar.getStyleClass().add("detail-comment-avatar");
-                        commentAvatar.getStyleClass().add(detailAvatarClass(commentRole));
+                    commentAvatar.getStyleClass().add(detailAvatarClass(commentRole));
 
                     VBox commentContent = new VBox(4);
                     commentContent.getStyleClass().add("detail-comment-content");
@@ -1018,7 +1368,8 @@ public class GroupDetailController {
                     commentBody.setWrapText(true);
                     commentBody.getStyleClass().add("detail-comment-body");
 
-                    if (comment.getParentCommentId() != null && commentsById.containsKey(comment.getParentCommentId())) {
+                    if (comment.getParentCommentId() != null
+                            && commentsById.containsKey(comment.getParentCommentId())) {
                         PostComment parent = commentsById.get(comment.getParentCommentId());
                         UtilisateurService.UserDisplay parentAuthor = resolveUserDisplay(parent.getAuthorId());
                         Label replyTo = new Label("↩ En reponse a " + parentAuthor.fullName());
@@ -1195,7 +1546,6 @@ public class GroupDetailController {
         }
     }
 
-
     // Delete post after confirmation.
     private void onDeletePost(GroupPost post) {
         Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
@@ -1366,7 +1716,7 @@ public class GroupDetailController {
 
     private int currentUserId() {
         Integer userId = SessionManager.getInstance().getCurrentUserId();
-        return userId == null ? 1 : userId;
+        return userId == null ? -1 : userId;
     }
 
 }

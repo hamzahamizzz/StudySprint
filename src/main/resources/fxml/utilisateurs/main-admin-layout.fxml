@@ -37,6 +37,10 @@
                 <Button fx:id="usersBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                         onAction="#showUsersList" prefHeight="45.0" text="👤  Utilisateurs" 
                         styleClass="bo-sidebar-btn" />
+
+                <Button fx:id="groupsBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false"
+                    onAction="#showGroupsManagement" prefHeight="45.0" text="👥  Groupes"
+                    styleClass="bo-sidebar-btn" />
                 
                 <Button fx:id="statsBtn" alignment="CENTER_LEFT" maxWidth="1.7976931348623157E308" mnemonicParsing="false" 
                         onAction="#showStats" prefHeight="45.0" text="📊  Statistiques" 

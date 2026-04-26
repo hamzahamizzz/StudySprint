@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<VBox spacing="16.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.example.studysprint.modules.groupes.controllers.GroupManagementController"
+      stylesheets="@../../styles/main.css" styleClass="bo-groups-root">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="bo-groups-toolbar">
+            <children>
+                <Label text="Gestion des Groupes" styleClass="bo-groups-title">
+                    <font>
+                        <Font name="System Bold" size="24.0" />
+                    </font>
+                </Label>
+                <Label fx:id="groupsCountLabel" styleClass="count-pill" text="0 groupes" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button mnemonicParsing="false" onAction="#handleAddGroup" styleClass="bo-groups-primary-btn" text="+ Ajouter" />
+                <Button mnemonicParsing="false" onAction="#handleEditGroup" styleClass="bo-groups-outline-btn" text="Modifier" />
+                <Button mnemonicParsing="false" onAction="#handleDeleteGroup" styleClass="bo-groups-danger-btn" text="Supprimer" />
+            </children>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="bo-groups-filters">
+            <children>
+                <TextField fx:id="searchField" promptText="Rechercher par nom, matière, description..." HBox.hgrow="ALWAYS" />
+                <ComboBox fx:id="privacyFilter" prefWidth="150.0" promptText="Confidentialité" />
+                <ComboBox fx:id="sortFilter" prefWidth="160.0" promptText="Trier par" />
+                <ComboBox fx:id="orderFilter" prefWidth="140.0" promptText="Ordre" />
+                <Button mnemonicParsing="false" onAction="#handleResetFilters" styleClass="users-reset-filter-btn" text="Réinitialiser ✕" />
+            </children>
+        </HBox>
+
+        <SplitPane dividerPositions="0.54" VBox.vgrow="ALWAYS">
+            <items>
+                <VBox spacing="10.0">
+                    <children>
+                        <Label text="Liste des groupes" styleClass="bo-groups-section-title" />
+                        <TableView fx:id="groupsTable" VBox.vgrow="ALWAYS">
+                            <columns>
+                                <TableColumn fx:id="groupsNameCol" prefWidth="180.0" text="Nom" />
+                                <TableColumn fx:id="groupsSubjectCol" prefWidth="130.0" text="Matière" />
+                                <TableColumn fx:id="groupsPrivacyCol" prefWidth="90.0" text="Type" />
+                                <TableColumn fx:id="groupsCreatorCol" prefWidth="150.0" text="Créateur" />
+                                <TableColumn fx:id="groupsMembersCol" prefWidth="80.0" text="Membres" />
+                                <TableColumn fx:id="groupsPostsCol" prefWidth="70.0" text="Posts" />
+                                <TableColumn fx:id="groupsActivityCol" prefWidth="120.0" text="Activité" />
+                            </columns>
+                        </TableView>
+                    </children>
+                </VBox>
+
+                <VBox spacing="10.0">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="8.0" styleClass="bo-groups-selection-header">
+                            <children>
+                                <Label text="Groupe sélectionné:" styleClass="bo-groups-selection-title" />
+                                <Label fx:id="selectedGroupLabel" text="Aucun" styleClass="bo-groups-selection-value" />
+                                <Region HBox.hgrow="ALWAYS" />
+                                <Label fx:id="membersCountLabel" styleClass="count-pill" text="0 membre" />
+                                <Label fx:id="postsCountLabel" styleClass="count-pill" text="0 post" />
+                            </children>
+                        </HBox>
+
+                        <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+                            <tabs>
+                                <Tab text="Membres">
+                                    <content>
+                                        <VBox spacing="10.0" styleClass="bo-groups-panel">
+                                            <children>
+                                                <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                                                    <children>
+                                                        <TextField fx:id="memberSearchField" promptText="Rechercher membre..." prefWidth="220.0" />
+                                                        <ComboBox fx:id="memberSortFilter" prefWidth="150.0" promptText="Trier" />
+                                                        <Region HBox.hgrow="ALWAYS" />
+                                                        <Button mnemonicParsing="false" onAction="#handleAddMember" styleClass="bo-groups-primary-btn" text="+ Ajouter membre" />
+                                                        <Button mnemonicParsing="false" onAction="#handleUpdateMemberRole" styleClass="bo-groups-outline-btn" text="Changer rôle" />
+                                                        <Button mnemonicParsing="false" onAction="#handleRemoveMember" styleClass="bo-groups-danger-btn" text="Retirer" />
+                                                    </children>
+                                                </HBox>
+
+                                                <TableView fx:id="membersTable" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="memberUserCol" prefWidth="220.0" text="Utilisateur" />
+                                                        <TableColumn fx:id="memberRoleCol" prefWidth="120.0" text="Rôle" />
+                                                        <TableColumn fx:id="memberJoinedCol" prefWidth="180.0" text="Rejoint le" />
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                            </padding>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+
+                                <Tab text="Posts">
+                                    <content>
+                                        <VBox spacing="10.0" styleClass="bo-groups-panel">
+                                            <children>
+                                                <HBox alignment="CENTER_RIGHT" spacing="8.0">
+                                                    <children>
+                                                        <TextField fx:id="postSearchField" promptText="Rechercher post..." prefWidth="220.0" />
+                                                        <ComboBox fx:id="postSortFilter" prefWidth="150.0" promptText="Trier" />
+                                                        <Region HBox.hgrow="ALWAYS" />
+                                                        <Button mnemonicParsing="false" onAction="#handleAddPost" styleClass="bo-groups-primary-btn" text="+ Ajouter post" />
+                                                        <Button mnemonicParsing="false" onAction="#handleEditPost" styleClass="bo-groups-outline-btn" text="Modifier" />
+                                                        <Button mnemonicParsing="false" onAction="#handleDeletePost" styleClass="bo-groups-danger-btn" text="Supprimer" />
+                                                    </children>
+                                                </HBox>
+
+                                                <TableView fx:id="postsTable" VBox.vgrow="ALWAYS">
+                                                    <columns>
+                                                        <TableColumn fx:id="postTypeCol" prefWidth="110.0" text="Type" />
+                                                        <TableColumn fx:id="postTitleCol" prefWidth="220.0" text="Titre" />
+                                                        <TableColumn fx:id="postAuthorCol" prefWidth="190.0" text="Auteur" />
+                                                        <TableColumn fx:id="postCreatedCol" prefWidth="170.0" text="Créé le" />
+                                                    </columns>
+                                                </TableView>
+                                            </children>
+                                            <padding>
+                                                <Insets bottom="8.0" left="8.0" right="8.0" top="8.0" />
+                                            </padding>
+                                        </VBox>
+                                    </content>
+                                </Tab>
+                            </tabs>
+                        </TabPane>
+                    </children>
+                </VBox>
+            </items>
+        </SplitPane>
+    </children>
+
+    <padding>
+        <Insets bottom="24.0" left="24.0" right="24.0" top="24.0" />
+    </padding>
+</VBox>

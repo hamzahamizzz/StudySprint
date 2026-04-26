@@ -15,6 +15,7 @@ import javafx.scene.control.Dialog;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import com.example.studysprint.utils.SessionManager;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -130,7 +131,10 @@ public class GroupFormController {
         group.setLastActivity(now);
 
         if (group.getCreatedById() == null) {
-            group.setCreatedById(1);
+            var currentUser = SessionManager.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                group.setCreatedById(currentUser.getId());
+            }
         }
 
         return group;
