@@ -2,45 +2,60 @@
 
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
-<?import javafx.scene.web.WebView?>
 <?import javafx.scene.text.Font?>
+<?import javafx.scene.canvas.Canvas?>
 
-<VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" spacing="20.0" style="-fx-background-color: #f8fafc;" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.example.studysprint.modules.utilisateurs.controllers.FaceEnrollController">
+<VBox alignment="CENTER" prefHeight="700.0" prefWidth="900.0" spacing="20.0"
+      style="-fx-background-color: #f8fafc;"
+      xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.example.studysprint.modules.utilisateurs.controllers.FaceEnrollController">
    <children>
-      <VBox alignment="CENTER" spacing="10.0" style="-fx-background-color: white; -fx-padding: 20;">
+
+      <!-- Header -->
+      <VBox alignment="CENTER" spacing="8.0">
          <children>
             <Label text="Enregistrement Biométrique" textFill="#1e293b">
-               <font>
-                  <Font name="System Bold" size="24.0" />
-               </font>
+               <font><Font name="System Bold" size="26.0" /></font>
             </Label>
-            <Label text="Centrez votre visage. Une fois détecté, le descripteur sera sauvegardé." textFill="#64748b">
-               <font>
-                  <Font size="14.0" />
-               </font>
+            <Label text="Centrez votre visage dans l'ovale. L'IA détecte automatiquement." textFill="#64748b">
+               <font><Font size="13.0" /></font>
             </Label>
          </children>
       </VBox>
-      
-      <VBox alignment="CENTER" maxWidth="680.0" style="-fx-border-color: #8b5cf6; -fx-border-width: 4; -fx-border-radius: 15; -fx-background-radius: 15; -fx-overflow: hidden; -fx-background-color: black;">
+
+      <!-- Camera View -->
+      <StackPane style="-fx-border-color: #8b5cf6; -fx-border-width: 4; -fx-border-radius: 15; -fx-background-radius: 15; -fx-background-color: #0f172a;"
+                 maxWidth="644.0" maxHeight="484.0">
          <children>
-            <WebView fx:id="webView" minHeight="480.0" minWidth="640.0" prefHeight="480.0" prefWidth="640.0" />
+            <ImageView fx:id="cameraView" fitWidth="640.0" fitHeight="480.0"
+                       preserveRatio="false" smooth="true" />
+            <Canvas fx:id="overlayCanvas" width="640.0" height="480.0" />
          </children>
-      </VBox>
-      
-      <Label fx:id="statusLabel" text="Synchronisation des moteurs IA..." textFill="#8b5cf6">
-         <font>
-            <Font name="System Bold" size="16.0" />
-         </font>
+      </StackPane>
+
+      <!-- Status -->
+      <Label fx:id="statusLabel" text="Initialisation de la caméra..." textFill="#8b5cf6">
+         <font><Font name="System Bold" size="16.0" /></font>
       </Label>
-      
-      <Button fx:id="saveBtn" disable="true" mnemonicParsing="false" onAction="#handleSave" prefHeight="50.0" prefWidth="300.0" style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-background-radius: 25; -fx-cursor: hand;" text="Enregistrer mon visage">
-         <font>
-            <Font name="System Bold" size="14.0" />
-         </font>
+
+      <!-- Buttons -->
+      <Button fx:id="saveBtn" disable="true" mnemonicParsing="false"
+              onAction="#handleSave"
+              prefHeight="50.0" prefWidth="300.0"
+              style="-fx-background-color: #8b5cf6; -fx-text-fill: white; -fx-background-radius: 25; -fx-cursor: hand;"
+              text="Enregistrer mon visage">
+         <font><Font name="System Bold" size="14.0" /></font>
       </Button>
-      
-      <Button mnemonicParsing="false" onAction="#handleCancel" prefHeight="40.0" prefWidth="150.0" style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-cursor: hand;" text="Retour" />
+
+      <Button mnemonicParsing="false" onAction="#handleCancel"
+              prefHeight="40.0" prefWidth="150.0"
+              style="-fx-background-color: transparent; -fx-text-fill: #64748b; -fx-cursor: hand;"
+              text="Retour" />
+
    </children>
 </VBox>

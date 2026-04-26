@@ -46,6 +46,7 @@
                <children>
                   <Button maxWidth="Infinity" style="-fx-background-color: rgba(255,255,255,0.1); -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-padding: 10 20;" text="Mon Profil" />
                   <Button maxWidth="Infinity" onAction="#handleChangePassword" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-padding: 10 20; -fx-cursor: hand;" text="🔑  Changer le mot de passe" />
+                  <Button maxWidth="Infinity" onAction="#handleFaceId" style="-fx-background-color: transparent; -fx-text-fill: white; -fx-alignment: CENTER_LEFT; -fx-padding: 10 20; -fx-cursor: hand;" text="👁  Configurer mon Face ID" />
                </children>
                <padding>
                   <Insets left="20.0" right="20.0" />

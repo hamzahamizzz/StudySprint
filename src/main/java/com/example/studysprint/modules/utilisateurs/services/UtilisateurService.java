@@ -224,6 +224,9 @@ public class UtilisateurService implements IService<Utilisateur> {
     }
 
     public Utilisateur authenticate(String email, String password) {
+        if (cnx == null) {
+            throw new RuntimeException("Erreur : La connexion à la base de données n'est pas établie.");
+        }
         String req = "SELECT * FROM `user` WHERE LOWER(`email`) = LOWER(?)";
         try (PreparedStatement pst = cnx.prepareStatement(req)) {
             pst.setString(1, email);

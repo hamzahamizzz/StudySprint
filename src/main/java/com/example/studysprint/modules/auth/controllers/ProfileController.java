@@ -143,6 +143,11 @@ public class ProfileController implements Initializable {
     }
 
     @FXML
+    private void handleFaceId() {
+        switchScene("/fxml/utilisateurs/face-enroll.fxml", "Enregistrement Face ID - StudySprint");
+    }
+
+    @FXML
     private void handleChangePassword() {
         String email = currentUser.getEmail();
         

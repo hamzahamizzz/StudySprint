@@ -4,71 +4,130 @@
     <meta charset="UTF-8">
     <title>Scanner Facial StudySprint</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            margin: 0; padding: 0;
             background: #1e293b;
             color: white;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', sans-serif;
             overflow: hidden;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             height: 100vh;
+            gap: 12px;
         }
 
-        .container { position: relative; width: 640px; height: 480px; border-radius: 20px; overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
-        video { width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1); }
-        canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: scaleX(-1); z-index: 5; }
+        .status-bar {
+            width: 640px;
+            background: #0f172a;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: #8b5cf6;
+            text-transform: uppercase;
+            font-size: 13px;
+            border-radius: 10px;
+        }
 
-        /* HUD Styles */
-        .hud { position: absolute; inset: 0; pointer-events: none; z-index: 10; border: 2px solid rgba(139, 92, 246, 0.2); }
-        .hud-corner { position: absolute; width: 40px; height: 40px; border: 4px solid #8b5cf6; }
-        .tl { top: 20px; left: 20px; border-right: 0; border-bottom: 0; }
-        .tr { top: 20px; right: 20px; border-left: 0; border-bottom: 0; }
-        .bl { bottom: 20px; left: 20px; border-right: 0; border-top: 0; }
-        .br { bottom: 20px; right: 20px; border-left: 0; border-top: 0; }
+        .container {
+            position: relative;
+            width: 640px;
+            height: 480px;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
+        }
+
+        video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+            display: block;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            transform: scaleX(-1);
+            z-index: 5;
+        }
+
+        .hud {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        .hud-corner {
+            position: absolute;
+            width: 35px; height: 35px;
+            border: 3px solid #8b5cf6;
+        }
+        .tl { top: 15px; left: 15px; border-right: 0; border-bottom: 0; }
+        .tr { top: 15px; right: 15px; border-left: 0; border-bottom: 0; }
+        .bl { bottom: 15px; left: 15px; border-right: 0; border-top: 0; }
+        .br { bottom: 15px; right: 15px; border-left: 0; border-top: 0; }
 
         .scan-line {
-            position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
             background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
-            box-shadow: 0 0 15px #0ea5e9;
-            animation: scan 4s linear infinite;
-            opacity: 0.6;
+            box-shadow: 0 0 10px #0ea5e9;
+            animation: scan 3s linear infinite;
+            opacity: 0.7;
         }
 
         .guide-oval {
-            position: absolute; top: 50%; left: 50%;
+            position: absolute;
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 250px; height: 350px;
-            border: 2px dashed rgba(255, 255, 255, 0.3);
+            width: 220px; height: 300px;
+            border: 2px dashed rgba(255, 255, 255, 0.4);
             border-radius: 50% 50% 45% 45%;
-            box-shadow: 0 0 0 1000px rgba(0,0,0,0.4);
+            box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.35);
         }
 
-        @keyframes scan { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
-
-        .status-bar {
-            width: 100%; background: #0f172a; padding: 15px; text-align: center;
-            font-weight: bold; letter-spacing: 1px; color: #8b5cf6;
-            text-transform: uppercase; font-size: 14px;
+        @keyframes scan {
+            0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; }
         }
-        
-        #message { color: #94a3b8; margin-top: 10px; font-size: 12px; }
+
+        #message {
+            color: #94a3b8;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        #error-msg {
+            color: #ef4444;
+            font-size: 12px;
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="status-bar" id="status">INITIATING BIOMETRIC LINK...</div>
-    
+
     <div class="container">
         <video id="video" autoplay muted playsinline></video>
         <canvas id="overlay"></canvas>
         <div class="hud">
-            <div class="hud-corner tl"></div><div class="hud-corner tr"></div>
-            <div class="hud-corner bl"></div><div class="hud-corner br"></div>
+            <div class="hud-corner tl"></div>
+            <div class="hud-corner tr"></div>
+            <div class="hud-corner bl"></div>
+            <div class="hud-corner br"></div>
             <div class="scan-line"></div>
             <div class="guide-oval"></div>
         </div>
     </div>
-    
+
     <div id="message">Please center your face in the scanner.</div>
+    <div id="error-msg">Camera access denied. Please check permissions.</div>
 
     <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script>
@@ -76,96 +135,149 @@
         const status = document.getElementById('status');
         const message = document.getElementById('message');
         const overlay = document.getElementById('overlay');
-        
+        const errorMsg = document.getElementById('error-msg');
+
         const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
         let modelsLoaded = false;
+        let detecting = false;
+        let done = false;
+        let cameraStarted = false;
 
-        async function initModels() {
+        // ── 1. Load AI Models ──────────────────────────────────────────────
+        async function loadModels() {
             try {
                 status.innerText = "LOADING AI MODELS...";
-
                 await Promise.all([
                     faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
                     faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
                     faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
                 ]);
                 modelsLoaded = true;
-                status.innerText = "IA SYNCHRONIZED. WAITING FOR SENSOR...";
-                status.style.color = "#8b5cf6";
+                status.innerText = "AI READY. STARTING CAMERA...";
+                status.style.color = "#22c55e";
+                startCamera();
             } catch (err) {
-                console.error(err);
-                status.innerText = "MODELS LOAD ERROR";
+                status.innerText = "MODEL LOAD ERROR: " + err.message;
                 status.style.color = "#ef4444";
             }
         }
 
-        // Hidden image to hold the captured frame
-        const frameImg = new Image();
-        let isDetecting = false;
-        let successLocked = false;
-        
-        // Match canvas size to container
-        overlay.width = 640;
-        overlay.height = 480;
-
-        function loop() {
-            if (!modelsLoaded || successLocked) {
-                requestAnimationFrame(loop);
-                return;
+        // ── 2. Start Camera via getUserMedia (Direct — No Java Bridge) ────
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 640, height: 480, facingMode: 'user' },
+                    audio: false
+                });
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    overlay.width = video.videoWidth;
+                    overlay.height = video.videoHeight;
+                    cameraStarted = true;
+                    status.innerText = "SENSOR CONNECTED. SCANNING...";
+                    status.style.color = "#8b5cf6";
+                    detectLoop();
+                };
+            } catch (err) {
+                errorMsg.style.display = 'block';
+                status.innerText = "CAMERA ERROR";
+                status.style.color = "#ef4444";
+                // Fallback: wait for Java frames if camera unavailable
+                status.innerText = "WAITING FOR JAVA FRAME FEED...";
+                javaFrameLoop();
             }
-
-            if (!isDetecting && window.javaConnector) {
-                let base64Data = window.javaConnector.getLatestFrame();
-                if (base64Data) {
-                    isDetecting = true; // IMMEDIATELY lock to prevent queueing parallel heavy inferences!
-                    
-                    frameImg.onload = async () => {
-                        if (status.innerText.includes("WAITING")) {
-                            status.innerText = "SENSOR CONNECTED. SCANNING...";
-                            console.log("Sensor data received.");
-                        }
-
-                        const ctx = overlay.getContext('2d');
-                        ctx.drawImage(frameImg, 0, 0, overlay.width, overlay.height);
-
-                        // Detach from JavaFX UI thread to prevent JSException timeout crashes
-                        setTimeout(async () => {
-                            try {
-                                console.log("Detection started...");
-                                const detections = await faceapi.detectSingleFace(frameImg, new faceapi.TinyFaceDetectorOptions({ inputSize: 128, scoreThreshold: 0.1 }))
-                                    .withFaceLandmarks()
-                                    .withFaceDescriptor();
-
-                                console.log("Detection finished.");
-                                if (detections) {
-                                    successLocked = true;
-                                    message.innerText = "BIOMETRIC MATCH FOUND";
-                                    message.style.color = "#22c55e";
-                                    console.log("Face found! Terminating expensive background tasks.");
-                                    if (window.javaConnector) {
-                                        window.javaConnector.onFaceDetected(JSON.stringify(Array.from(detections.descriptor)));
-                                    }
-                                } else {
-                                    message.innerText = "SCANNING... CENTER YOUR FACE";
-                                    message.style.color = "#94a3b8";
-                                    console.log("No face detected in this frame.");
-                                }
-                            } catch (e) {
-                                console.log("AI Error: " + e.message);
-                            } finally {
-                                isDetecting = false;
-                            }
-                        }, 50);
-                    };
-                    frameImg.src = "data:image/jpeg;base64," + base64Data;
-                }
-            }
-            requestAnimationFrame(loop);
         }
 
-        requestAnimationFrame(loop);
+        // ── 3. Detection Loop on LIVE Video ──────────────────────────────
+        async function detectLoop() {
+            if (done) return;
+            if (!detecting && modelsLoaded && cameraStarted) {
+                detecting = true;
+                try {
+                    const det = await faceapi
+                        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
+                        .withFaceLandmarks()
+                        .withFaceDescriptor();
 
-        window.onload = initModels;
+                    const ctx = overlay.getContext('2d');
+                    ctx.clearRect(0, 0, overlay.width, overlay.height);
+
+                    if (det) {
+                        // Draw landmarks
+                        faceapi.draw.drawFaceLandmarks(overlay, det);
+                        done = true;
+                        message.innerText = "BIOMETRIC CAPTURED ✓";
+                        message.style.color = "#22c55e";
+                        status.innerText = "FACE IDENTIFIED";
+                        status.style.color = "#22c55e";
+
+                        // Send descriptor to Java
+                        if (window.javaConnector) {
+                            window.javaConnector.onFaceDetected(
+                                JSON.stringify(Array.from(det.descriptor))
+                            );
+                        }
+                        return; // Stop loop permanently
+                    } else {
+                        message.innerText = "CENTER YOUR FACE IN THE OVAL...";
+                        message.style.color = "#94a3b8";
+                    }
+                } catch (e) {
+                    // Silent — try next frame
+                } finally {
+                    detecting = false;
+                }
+            }
+            requestAnimationFrame(detectLoop);
+        }
+
+        // ── 4. Fallback: Java Frame Feed (if getUserMedia fails) ──────────
+        const frameImg = new Image();
+        let javaDetecting = false;
+        let latestJavaFrame = null;
+
+        // Called by Java if needed (legacy support)
+        window.drawJavaFrame = function(b64) { latestJavaFrame = b64; };
+
+        async function javaFrameLoop() {
+            if (done) return;
+            if (!javaDetecting && modelsLoaded && latestJavaFrame) {
+                javaDetecting = true;
+                const src = "data:image/jpeg;base64," + latestJavaFrame;
+                latestJavaFrame = null;
+                frameImg.onload = async () => {
+                    try {
+                        const det = await faceapi
+                            .detectSingleFace(frameImg, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.3 }))
+                            .withFaceLandmarks()
+                            .withFaceDescriptor();
+                        if (det) {
+                            done = true;
+                            message.innerText = "BIOMETRIC CAPTURED ✓";
+                            message.style.color = "#22c55e";
+                            status.innerText = "FACE IDENTIFIED";
+                            if (window.javaConnector) {
+                                window.javaConnector.onFaceDetected(
+                                    JSON.stringify(Array.from(det.descriptor))
+                                );
+                            }
+                            return;
+                        }
+                    } catch(e) {}
+                    finally { javaDetecting = false; }
+                    setTimeout(javaFrameLoop, 300);
+                };
+                frameImg.src = src;
+            } else {
+                setTimeout(javaFrameLoop, 300);
+            }
+        }
+
+        // Also expose getLatestFrame so old controller still works
+        window.javaConnectorReady = false;
+
+        // ── Start ──────────────────────────────────────────────────────────
+        loadModels();
     </script>
 </body>
 </html>

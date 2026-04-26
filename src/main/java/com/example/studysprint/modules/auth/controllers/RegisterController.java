@@ -107,13 +107,29 @@ public class RegisterController implements Initializable {
                 user.setEtablissement(etablissement);
             }
 
-            try {
-                userService.register(user, passwordField.getText());
-                showSuccess("Compte créé !", "Vous pouvez maintenant vous connecter.");
-                handleGoToLogin();
-            } catch (Exception e) {
-                showError("Erreur", "L'email est peut-être déjà utilisé.");
-            }
+            // Visual feedback
+            nomField.setDisable(true);
+            prenomField.setDisable(true);
+            emailField.setDisable(true);
+            passwordField.setDisable(true);
+
+            new Thread(() -> {
+                try {
+                    userService.register(user, passwordField.getText());
+                    Platform.runLater(() -> {
+                        showSuccess("Compte créé !", "Vous pouvez maintenant vous connecter.");
+                        handleGoToLogin();
+                    });
+                } catch (Exception e) {
+                    Platform.runLater(() -> {
+                        nomField.setDisable(false);
+                        prenomField.setDisable(false);
+                        emailField.setDisable(false);
+                        passwordField.setDisable(false);
+                        showError("Erreur", "L'email est peut-être déjà utilisé ou une erreur réseau est survenue.");
+                    });
+                }
+            }).start();
         }
     }
 
