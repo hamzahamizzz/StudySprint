@@ -30,17 +30,40 @@ public class MatiereListController {
 
     @FXML
     public void initialize() {
-        ajouterButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
-        searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-        // Différer le chargement des données jusqu'à ce que la scène soit prête
-        Platform.runLater(this::loadMatieres);
+        try {
+            System.out.println("🔧 [MatiereListController] Initialisation...");
+            ajouterButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
+            searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
+            System.out.println("✅ [MatiereListController] Initialisation complète - chargement des matières différé");
+            // Différer le chargement des données jusqu'à ce que la scène soit prête
+            Platform.runLater(() -> {
+                try {
+                    loadMatieres();
+                } catch (Exception e) {
+                    System.err.println("❌ [MatiereListController] EXCEPTION DANS Platform.runLater:");
+                    System.err.println("   " + e.getMessage());
+                    e.printStackTrace();
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("❌ [MatiereListController] EXCEPTION DURING INITIALIZE:");
+            System.err.println("   " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Erreur initialisation MatiereListController", e);
+        }
     }
 
     private void loadMatieres() {
         try {
+            System.out.println("📂 Chargement des matières depuis la base de données...");
             data.setAll(matiereService.getAll());
+            System.out.println("✅ " + data.size() + " matière(s) chargée(s)");
             renderCards();
         } catch (Exception e) {
+            System.err.println("❌ ERREUR lors du chargement des matières:");
+            System.err.println("   Erreur: " + e.getMessage());
+            System.err.println("   Classe: " + e.getClass().getName());
+            e.printStackTrace();
             showError("Chargement impossible", "Impossible de charger les matières.", e.getMessage());
         }
     }
@@ -194,10 +217,30 @@ public class MatiereListController {
     }
 
     private void showSuccess(String header, String content) {
-        GroupUiUtils.showSuccess(matieresCardsPane.getScene().getWindow(), MatiereListController.class, header, content);
+        try {
+            if (matieresCardsPane.getScene() != null) {
+                GroupUiUtils.showSuccess(matieresCardsPane.getScene().getWindow(), MatiereListController.class, header, content);
+            } else {
+                System.out.println("✅ " + header + ": " + content);
+            }
+        } catch (Exception e) {
+            System.out.println("✅ " + header + ": " + content);
+        }
     }
 
     private void showError(String header, String content, String details) {
-        GroupUiUtils.showError(matieresCardsPane.getScene().getWindow(), MatiereListController.class, header, content, details);
+        try {
+            if (matieresCardsPane.getScene() != null) {
+                GroupUiUtils.showError(matieresCardsPane.getScene().getWindow(), MatiereListController.class, header, content, details);
+            } else {
+                System.err.println("❌ " + header + ": " + content);
+                System.err.println("   Détails: " + details);
+            }
+        } catch (Exception e) {
+            System.err.println("❌ " + header + ": " + content);
+            System.err.println("   Détails: " + details);
+            System.err.println("   Erreur affichage dialogue: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }
