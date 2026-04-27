@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+
+<GridPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.example.studysprint.modules.matieres.controllers.ChapitreFormController"
+          hgap="10" vgap="10" styleClass="group-form-root">
+    <padding><Insets top="12" right="12" bottom="12" left="12"/></padding>
+
+    <Label text="Titre" GridPane.rowIndex="0" GridPane.columnIndex="0" styleClass="field-label"/>
+    <TextField fx:id="titleField" promptText="Titre du chapitre" GridPane.rowIndex="0" GridPane.columnIndex="1" styleClass="field-input"/>
+
+    <Label text="Ordre" GridPane.rowIndex="1" GridPane.columnIndex="0" styleClass="field-label"/>
+    <TextField fx:id="orderNoField" promptText="Numéro d'ordre (ex: 1)" GridPane.rowIndex="1" GridPane.columnIndex="1" styleClass="field-input"/>
+
+    <Label text="Résumé" GridPane.rowIndex="2" GridPane.columnIndex="0" styleClass="field-label"/>
+    <TextArea fx:id="summaryArea" promptText="Résumé du chapitre" prefRowCount="3" GridPane.rowIndex="2" GridPane.columnIndex="1" styleClass="field-input"/>
+
+    <Label text="Contenu" GridPane.rowIndex="3" GridPane.columnIndex="0" styleClass="field-label"/>
+    <TextArea fx:id="contentArea" promptText="Contenu complet (HTML/Markdown)" prefRowCount="6" GridPane.rowIndex="3" GridPane.columnIndex="1" styleClass="field-input"/>
+
+    <Label text="URL pièce jointe" GridPane.rowIndex="4" GridPane.columnIndex="0" styleClass="field-label"/>
+    <TextField fx:id="attachmentUrlField" promptText="Lien vers fichier ou ressource" GridPane.rowIndex="4" GridPane.columnIndex="1" styleClass="field-input"/>
+</GridPane>

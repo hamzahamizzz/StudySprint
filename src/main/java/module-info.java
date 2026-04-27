@@ -12,8 +12,14 @@ module com.example.studysprint {
 
     opens com.example.studysprint to javafx.fxml;
     opens com.example.studysprint.modules.groupes.controllers to javafx.fxml;
+    opens com.example.studysprint.modules.matieres.controllers to javafx.fxml;
     exports com.example.studysprint;
     exports com.example.studysprint.modules.groupes.controllers;
     exports com.example.studysprint.modules.groupes.models;
     exports com.example.studysprint.modules.groupes.services;
+
+    exports com.example.studysprint.modules.matieres.controllers;
+    exports com.example.studysprint.modules.matieres.models;
+    exports com.example.studysprint.modules.matieres.services;
+
 }
