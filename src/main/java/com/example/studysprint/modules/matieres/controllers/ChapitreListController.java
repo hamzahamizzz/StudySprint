@@ -4,14 +4,21 @@ import com.example.studysprint.modules.groupes.utils.GroupUiUtils;
 import com.example.studysprint.modules.matieres.models.Chapitre;
 import com.example.studysprint.modules.matieres.models.Matiere;
 import com.example.studysprint.modules.matieres.services.ChapitreService;
+import com.example.studysprint.modules.matieres.services.QrCodeService;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Optional;
 
 public class ChapitreListController {
@@ -19,10 +26,14 @@ public class ChapitreListController {
     @FXML private Label matiereNomLabel;
     @FXML private Button ajouterChapitreButton;
     @FXML private VBox chapitresListBox;
+    @FXML private Button resumePdfButton;
+
 
     private Matiere currentMatiere;
     private final ChapitreService chapitreService = new ChapitreService();
     private final ObservableList<Chapitre> chapitres = FXCollections.observableArrayList();
+
+
 
     public void setMatiere(Matiere matiere) {
         this.currentMatiere = matiere;
@@ -36,6 +47,8 @@ public class ChapitreListController {
     private void initialize() {
         ajouterChapitreButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
         ajouterChapitreButton.setOnAction(e -> onAjouterChapitre());
+        resumePdfButton.setGraphic(GroupUiUtils.icon("fas-file-pdf", "create-btn-icon"));
+        resumePdfButton.setOnAction(e -> onResumePdf());
     }
 
     private void loadChapitres() {
@@ -75,6 +88,14 @@ public class ChapitreListController {
             actions.getChildren().addAll(editBtn, deleteBtn);
             card.getChildren().addAll(title, summary, actions);
             chapitresListBox.getChildren().add(card);
+
+
+
+            Button qrBtn = new Button("QR Code");
+            qrBtn.getStyleClass().addAll("compose-cancel-btn");
+            qrBtn.setOnAction(e -> onGenererQrCode(c));
+
+            actions.getChildren().addAll(editBtn, deleteBtn, qrBtn);
         }
     }
 
@@ -116,4 +137,40 @@ public class ChapitreListController {
     private void showSuccess(String header, String content) {
         GroupUiUtils.showSuccess(chapitresListBox.getScene().getWindow(), ChapitreListController.class, header, content);
     }
+
+    private void onResumePdf() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/matieres/ChapitreSelectionView.fxml"));
+            Parent root = loader.load();
+            ChapitreSelectionController controller = loader.getController();
+            controller.setMatiere(currentMatiere);
+            Stage stage = (Stage) chapitresListBox.getScene().getWindow();
+            GroupUiUtils.switchScene(stage, root, "Résumé PDF - " + currentMatiere.getName());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    private void onGenererQrCode(Chapitre chapitre) {
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Enregistrer le QR code");
+        fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PNG images", "*.png"));
+        fileChooser.setInitialFileName("qrcode_chapitre_" + chapitre.getId() + ".png");
+        File file = fileChooser.showSaveDialog(ajouterChapitreButton.getScene().getWindow());
+        if (file == null) return;
+        try {
+            // Appel à l'API locale pour récupérer l'image (ou générer directement)
+            // On utilise le service local QrCodeService
+            String url = "http://localhost:4567/chapitre/" + chapitre.getId();
+            byte[] qrPng = new QrCodeService().genererQrCode(url, 300, 300);
+            try (FileOutputStream fos = new FileOutputStream(file)) {
+                fos.write(qrPng);
+            }
+            GroupUiUtils.showSuccess(null, getClass(), "QR code généré", "Enregistré sous " + file.getName());
+        } catch (Exception ex) {
+            GroupUiUtils.showError(null, getClass(), "Erreur", ex.getMessage(), null);
+        }
+    }
+
 }

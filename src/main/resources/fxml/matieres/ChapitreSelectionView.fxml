@@ -6,12 +6,11 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.example.studysprint.modules.matieres.controllers.ChapitreListController"
+            fx:controller="com.example.studysprint.modules.matieres.controllers.ChapitreSelectionController"
             stylesheets="@../../styles/groupes-light-blue.css"
             styleClass="group-page">
 
@@ -19,24 +18,22 @@
         <VBox spacing="0" styleClass="header-shell">
             <HBox spacing="12" alignment="CENTER_LEFT" styleClass="header-bar">
                 <padding><Insets top="10" right="24" bottom="10" left="24"/></padding>
-                <Label text="StudySprint - Chapitres" styleClass="header-title" />
+                <Label text="StudySprint - Résumé PDF" styleClass="header-title" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Button fx:id="ajouterChapitreButton" text="Ajouter un chapitre" styleClass="create-btn" />
-                <Button fx:id="resumePdfButton" text="Résumé PDF" styleClass="create-btn" />
             </HBox>
-
         </VBox>
     </top>
 
     <center>
-        <ScrollPane fitToWidth="true">
-            <content>
-                <VBox spacing="16" styleClass="content-area">
-                    <padding><Insets top="16" right="24" bottom="20" left="24"/></padding>
-                    <Label fx:id="matiereNomLabel" styleClass="group-title" />
-                    <VBox fx:id="chapitresListBox" spacing="12" />
-                </VBox>
-            </content>
-        </ScrollPane>
+        <VBox spacing="16" styleClass="content-area">
+            <padding><Insets top="16" right="24" bottom="20" left="24"/></padding>
+            <Label fx:id="matiereLabel" styleClass="group-title" />
+            <ScrollPane fitToWidth="true" styleClass="cards-scroll">
+                <content>
+                    <VBox fx:id="chapitresCheckBoxContainer" spacing="10" styleClass="detail-side-card" />
+                </content>
+            </ScrollPane>
+            <Button fx:id="genererPdfButton" text="Générer le PDF" onAction="#onGenererPdf" styleClass="create-btn" />
+        </VBox>
     </center>
 </BorderPane>
