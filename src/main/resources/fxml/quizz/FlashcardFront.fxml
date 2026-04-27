@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.studysprint.modules.quizz.controllers.FlashcardFrontController"
+            prefWidth="920" prefHeight="640"
+            style="-fx-background-color:#F7FFFC;">
+
+    <!-- ── HEADER ── -->
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              style="-fx-background-color:#FFFFFF;-fx-border-color:transparent transparent #E5EAF2 transparent;-fx-border-width:0 0 1 0;-fx-padding:16 24;">
+            <VBox spacing="2">
+                <Label text="FLASHCARDS" style="-fx-font-size:11;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                <Label text="Mémorise" style="-fx-font-size:20;-fx-font-weight:bold;-fx-text-fill:#4A5673;"/>
+            </VBox>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane>
+
+            <!-- ── LIST PANEL ── -->
+            <VBox fx:id="panelList" spacing="12" style="-fx-padding:20 24;">
+
+                <HBox spacing="8" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:8 12;">
+                    <TextField fx:id="txtDeckSearch" promptText="Rechercher un deck…"
+                               HBox.hgrow="ALWAYS"
+                               style="-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-width:0;-fx-padding:2 4;"/>
+                    <Button text="↺" onAction="#handleRefresh" styleClass="btn-secondary"
+                            style="-fx-padding:6 12;-fx-font-size:14;"/>
+                </HBox>
+
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background-color:transparent;-fx-border-color:transparent;">
+                    <VBox fx:id="decksContainer" spacing="8" style="-fx-padding:0 2 4 2;"/>
+                </ScrollPane>
+
+                <Label fx:id="lblListStatus" wrapText="true" style="-fx-font-size:12;"/>
+            </VBox>
+
+            <!-- ── STUDY PANEL ── -->
+            <VBox fx:id="panelStudy" spacing="0" visible="false" managed="false">
+
+                <!-- Study header -->
+                <HBox alignment="CENTER_LEFT" spacing="12"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:transparent transparent #E5EAF2 transparent;-fx-border-width:0 0 1 0;-fx-padding:14 24;">
+                    <Label fx:id="lblDeckTitle" styleClass="section-label" text=""/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblProgress" styleClass="subtitle-label"
+                           style="-fx-background-color:#F0F4F8;-fx-padding:4 12;-fx-background-radius:20;-fx-border-radius:20;-fx-font-size:12;"/>
+                </HBox>
+
+                <!-- Progress bar -->
+                <ProgressBar fx:id="progressBar" maxWidth="Infinity" progress="0"
+                             style="-fx-pref-height:3;-fx-background-color:#E5EAF2;"/>
+
+                <!-- Flip card zone -->
+                <VBox VBox.vgrow="ALWAYS" alignment="CENTER" spacing="28" style="-fx-padding:32 60;">
+
+                    <VBox fx:id="flipCard" spacing="12" alignment="CENTER"
+                          styleClass="flashcard-box"
+                          prefWidth="680" prefHeight="260"
+                          maxWidth="680">
+
+                        <Label text="RECTO" style="-fx-font-size:10;-fx-text-fill:#B0BBC8;-fx-font-weight:bold;-fx-letter-spacing:0.12em;"/>
+                        <Label fx:id="lblFront" wrapText="true"
+                               style="-fx-font-size:20;-fx-text-fill:#4A5673;-fx-font-weight:bold;"
+                               alignment="CENTER" maxWidth="600"/>
+                        <Separator style="-fx-pref-width:200;"/>
+                        <Label text="VERSO" style="-fx-font-size:10;-fx-text-fill:#B0BBC8;-fx-font-weight:bold;-fx-letter-spacing:0.12em;"/>
+                        <Label fx:id="lblBack" wrapText="true"
+                               style="-fx-font-size:14;-fx-text-fill:#4A5673;"
+                               alignment="CENTER" maxWidth="600"/>
+                        <Label fx:id="lblHint" wrapText="true"
+                               style="-fx-font-style:italic;-fx-text-fill:#B0BBC8;-fx-font-size:11;"
+                               alignment="CENTER"/>
+                    </VBox>
+
+                    <!-- Nav buttons -->
+                    <HBox spacing="12" alignment="CENTER">
+                        <Button text="◀" onAction="#handlePrev" styleClass="btn-secondary"
+                                style="-fx-padding:10 20;-fx-font-size:15;"/>
+                        <Button text="Retourner" onAction="#handleFlip" styleClass="btn-primary"
+                                prefWidth="140" style="-fx-padding:10 0;"/>
+                        <Button text="▶" onAction="#handleNext" styleClass="btn-secondary"
+                                style="-fx-padding:10 20;-fx-font-size:15;"/>
+                    </HBox>
+
+                    <Button text="← Retour à la liste" onAction="#handleBackToList"
+                            styleClass="btn-secondary" alignment="CENTER"/>
+                    <Label fx:id="lblStudyStatus" wrapText="true" style="-fx-font-size:12;" alignment="CENTER"/>
+                </VBox>
+            </VBox>
+
+        </StackPane>
+    </center>
+</BorderPane>

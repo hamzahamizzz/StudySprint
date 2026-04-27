@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.studysprint.modules.quizz.controllers.FlashcardBackController"
+            prefWidth="1060" prefHeight="720"
+            style="-fx-background-color:#F7FFFC;">
+
+    <!-- ── HEADER ── -->
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              style="-fx-background-color:#FFFFFF;-fx-border-color:transparent transparent #E5EAF2 transparent;-fx-border-width:0 0 1 0;-fx-padding:16 24;">
+            <VBox spacing="2">
+                <Label text="BACK-OFFICE" style="-fx-font-size:11;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                <Label text="Gestion des Flashcards" style="-fx-font-size:20;-fx-font-weight:bold;-fx-text-fill:#4A5673;"/>
+            </VBox>
+        </HBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.42">
+
+            <!-- ── LEFT : listes ── -->
+            <VBox spacing="10" style="-fx-padding:16;-fx-background-color:#F7FFFC;">
+
+                <Label text="DECKS" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                <HBox spacing="6"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:6 10;">
+                    <TextField fx:id="txtDeckSearch" promptText="Rechercher…" HBox.hgrow="ALWAYS"
+                               style="-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-width:0;"/>
+                </HBox>
+                <ScrollPane fitToWidth="true" prefHeight="220"
+                            style="-fx-background-color:transparent;-fx-border-color:transparent;">
+                    <VBox fx:id="deckListContainer" spacing="5" style="-fx-padding:0 0 4 0;"/>
+                </ScrollPane>
+
+                <Separator/>
+
+                <HBox alignment="CENTER_LEFT">
+                    <Label fx:id="lblCardSectionTitle" text="CARTES DU DECK"
+                           style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                </HBox>
+                <Label text="Glisse pour réordonner"
+                       style="-fx-font-size:10;-fx-text-fill:#B0BBC8;-fx-font-style:italic;"/>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background-color:transparent;-fx-border-color:transparent;">
+                    <VBox fx:id="cardListContainer" spacing="5" style="-fx-padding:0 0 4 0;"/>
+                </ScrollPane>
+
+                <Button text="↺  Rafraîchir" onAction="#handleRefreshDecks"
+                        maxWidth="Infinity" styleClass="btn-secondary"/>
+            </VBox>
+
+            <!-- ── RIGHT : forms ── -->
+            <ScrollPane fitToWidth="true"
+                        style="-fx-background-color:#F7FFFC;-fx-border-color:transparent;">
+                <VBox spacing="14" style="-fx-padding:20;">
+
+                    <!-- Deck form -->
+                    <VBox spacing="10" styleClass="card">
+                        <Label text="DECK" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                        <Label text="TITRE *" styleClass="subtitle-label"/>
+                        <TextField fx:id="txtDeckTitle" promptText="Nom du deck"/>
+                        <CheckBox fx:id="chkDeckPublished" text="Publier ce deck"/>
+                        <HBox spacing="8">
+                            <Button text="Ajouter"   onAction="#handleAddDeck"    styleClass="btn-primary"/>
+                            <Button text="Modifier"  onAction="#handleUpdateDeck" styleClass="btn-warning"/>
+                            <Button text="Supprimer" onAction="#handleDeleteDeck" styleClass="btn-danger"/>
+                            <Button text="Vider"     onAction="#handleClearDeck"  styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="lblDeckStatus" wrapText="true" style="-fx-font-size:12;"/>
+                    </VBox>
+
+                    <!-- Card form -->
+                    <VBox spacing="10" styleClass="card">
+                        <Label text="CARTE" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                        <Label text="RECTO *" styleClass="subtitle-label"/>
+                        <TextField fx:id="txtCardFront" promptText="Question / terme"/>
+                        <Label text="VERSO *" styleClass="subtitle-label"/>
+                        <TextField fx:id="txtCardBack" promptText="Réponse / définition"/>
+
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Label text="INDICE" styleClass="subtitle-label"/>
+                            <Region HBox.hgrow="ALWAYS"/>
+                            <Button fx:id="btnGenerateHint" text="💡  Hint IA"
+                                    onAction="#handleGenerateHint" styleClass="btn-secondary"
+                                    style="-fx-font-size:11;"/>
+                        </HBox>
+                        <TextField fx:id="txtCardHint" promptText="Indice optionnel…"/>
+
+                        <HBox spacing="8">
+                            <Button text="Ajouter"   onAction="#handleAddCard"    styleClass="btn-primary"/>
+                            <Button text="Modifier"  onAction="#handleUpdateCard" styleClass="btn-warning"/>
+                            <Button text="Supprimer" onAction="#handleDeleteCard" styleClass="btn-danger"/>
+                            <Button text="Vider"     onAction="#handleClearCard"  styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="lblCardStatus" wrapText="true" style="-fx-font-size:12;"/>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </SplitPane>
+    </center>
+</BorderPane>

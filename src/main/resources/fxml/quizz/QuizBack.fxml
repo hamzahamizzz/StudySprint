@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.studysprint.modules.quizz.controllers.QuizBackController"
+            prefWidth="1060" prefHeight="720"
+            style="-fx-background-color:#F7FFFC;">
+
+    <!-- ── HEADER ── -->
+    <top>
+        <HBox alignment="CENTER_LEFT"
+              style="-fx-background-color:#FFFFFF;-fx-border-color:transparent transparent #E5EAF2 transparent;-fx-border-width:0 0 1 0;-fx-padding:16 24;">
+            <VBox spacing="2">
+                <Label text="BACK-OFFICE" style="-fx-font-size:11;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                <Label text="Gestion des Quizzes" style="-fx-font-size:20;-fx-font-weight:bold;-fx-text-fill:#4A5673;"/>
+            </VBox>
+        </HBox>
+    </top>
+
+    <center>
+        <SplitPane dividerPositions="0.38">
+
+            <!-- ── LEFT : liste ── -->
+            <VBox spacing="10" style="-fx-padding:16;-fx-background-color:#F7FFFC;">
+                <HBox spacing="8" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:6;-fx-background-radius:6;-fx-padding:6 10;">
+                    <TextField fx:id="txtSearch" promptText="Rechercher…" HBox.hgrow="ALWAYS"
+                               style="-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-width:0;"/>
+                </HBox>
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background-color:transparent;-fx-border-color:transparent;">
+                    <VBox fx:id="quizListContainer" spacing="6" style="-fx-padding:0 0 8 0;"/>
+                </ScrollPane>
+                <Button text="↺  Rafraîchir" onAction="#handleRefresh"
+                        maxWidth="Infinity" styleClass="btn-secondary"/>
+            </VBox>
+
+            <!-- ── RIGHT : form ── -->
+            <ScrollPane fitToWidth="true"
+                        style="-fx-background-color:#F7FFFC;-fx-border-color:transparent;">
+                <VBox spacing="16" style="-fx-padding:20;">
+
+                    <!-- Quiz meta card -->
+                    <VBox spacing="10" styleClass="card">
+                        <Label text="MÉTADONNÉES" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                        <TextField fx:id="txtTitle" promptText="Titre du quiz / sujet pour l'IA"/>
+
+                        <HBox spacing="12">
+                            <VBox spacing="6" HBox.hgrow="ALWAYS">
+                                <Label text="DIFFICULTÉ" styleClass="subtitle-label"/>
+                                <ComboBox fx:id="cmbDifficulty" maxWidth="Infinity"/>
+                            </VBox>
+                            <VBox spacing="6" alignment="BOTTOM_LEFT">
+                                <CheckBox fx:id="chkPublished" text="Publié"/>
+                            </VBox>
+                        </HBox>
+
+                        <HBox spacing="8" alignment="CENTER_LEFT">
+                            <Button fx:id="btnGenerateAi" text="✨  Générer avec IA"
+                                    onAction="#handleGenerateAi" styleClass="btn-primary"/>
+                            <Label fx:id="lblAiStatus" style="-fx-text-fill:#6B7C94;-fx-font-size:11;"/>
+                        </HBox>
+                    </VBox>
+
+                    <!-- Question builder card -->
+                    <VBox spacing="10" styleClass="card">
+                        <Label text="CONSTRUCTEUR DE QUESTION" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+
+                        <TextField fx:id="txtQuestion" promptText="Texte de la question…"/>
+
+                        <HBox spacing="6">
+                            <TextField fx:id="txtOpt0" promptText="Option A" HBox.hgrow="ALWAYS"/>
+                            <TextField fx:id="txtOpt1" promptText="Option B" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+                        <HBox spacing="6">
+                            <TextField fx:id="txtOpt2" promptText="Option C" HBox.hgrow="ALWAYS"/>
+                            <TextField fx:id="txtOpt3" promptText="Option D" HBox.hgrow="ALWAYS"/>
+                        </HBox>
+
+                        <ComboBox fx:id="cmbCorrect" maxWidth="Infinity"
+                                  promptText="Bonne réponse…"/>
+
+                        <HBox spacing="8">
+                            <Button text="+ Ajouter" onAction="#handleAddQuestion" styleClass="btn-primary"/>
+                            <Button text="Retirer dernière" onAction="#handleRemoveLast" styleClass="btn-danger"/>
+                        </HBox>
+
+                        <Label fx:id="lblEditingQuestion"
+                               style="-fx-text-fill:#E09010;-fx-font-weight:bold;-fx-font-size:12;"
+                               visible="false" managed="false"/>
+                        <HBox spacing="8">
+                            <Button fx:id="btnUpdateQuestion" text="✏  Modifier"
+                                    onAction="#handleUpdateQuestion" styleClass="btn-warning" disable="true"/>
+                            <Button text="Annuler" onAction="#handleCancelEditQuestion" styleClass="btn-secondary"/>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="8">
+                            <Label fx:id="lblQCount" text="0 question(s)" styleClass="subtitle-label"/>
+                        </HBox>
+                        <ListView fx:id="listQuestions" prefHeight="110"/>
+                    </VBox>
+
+                    <!-- Save actions -->
+                    <VBox spacing="8" styleClass="card">
+                        <Label text="ACTIONS" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                        <HBox spacing="8">
+                            <Button text="Ajouter"   onAction="#handleAdd"    styleClass="btn-primary"/>
+                            <Button text="Modifier"  onAction="#handleUpdate" styleClass="btn-warning"/>
+                            <Button text="Supprimer" onAction="#handleDelete" styleClass="btn-danger"/>
+                            <Button text="Vider"     onAction="#handleClear"  styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="lblStatus" wrapText="true" style="-fx-font-size:12;"/>
+                    </VBox>
+
+                </VBox>
+            </ScrollPane>
+
+        </SplitPane>
+    </center>
+</BorderPane>

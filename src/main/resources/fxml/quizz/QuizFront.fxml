@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.example.studysprint.modules.quizz.controllers.QuizFrontController"
+            prefWidth="980" prefHeight="660"
+            style="-fx-background-color:#F7FFFC;">
+
+    <!-- ── HEADER ── -->
+    <top>
+        <HBox alignment="CENTER_LEFT" spacing="0"
+              style="-fx-background-color:#FFFFFF;-fx-border-color:transparent transparent #E5EAF2 transparent;-fx-border-width:0 0 1 0;-fx-padding:16 24;">
+            <VBox spacing="2">
+                <Label text="QUIZZES" style="-fx-font-size:11;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                <Label text="Entraîne-toi" style="-fx-font-size:20;-fx-font-weight:bold;-fx-text-fill:#4A5673;"/>
+            </VBox>
+        </HBox>
+    </top>
+
+    <center>
+        <StackPane>
+
+            <!-- ── LIST PANEL ── -->
+            <VBox fx:id="panelList" spacing="12" style="-fx-padding:20 24;">
+
+                <!-- Toolbar -->
+                <HBox spacing="10" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:8 12;">
+                    <TextField fx:id="txtSearch" promptText="Rechercher un quiz…"
+                               HBox.hgrow="ALWAYS"
+                               style="-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-width:0;-fx-padding:2 4;"/>
+                    <Separator orientation="VERTICAL" style="-fx-pref-height:20;"/>
+                    <ComboBox fx:id="cmbFilterDifficulty" prefWidth="130"
+                              style="-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-width:0;"/>
+                    <ComboBox fx:id="cmbSort" prefWidth="150"
+                              style="-fx-background-color:transparent;-fx-border-color:transparent;-fx-border-width:0;"/>
+                    <Button text="↺" onAction="#handleRefresh" styleClass="btn-secondary"
+                            style="-fx-padding:6 12;-fx-font-size:14;"/>
+                </HBox>
+
+                <!-- Cards list -->
+                <ScrollPane fitToWidth="true" VBox.vgrow="ALWAYS"
+                            style="-fx-background-color:transparent;-fx-border-color:transparent;">
+                    <VBox fx:id="cardsContainer" spacing="8" style="-fx-padding:0 2 4 2;"/>
+                </ScrollPane>
+
+                <!-- Bottom actions -->
+                <HBox spacing="10" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:10 14;">
+                    <Button text="▶  Lancer le quiz" onAction="#handleStartQuiz" styleClass="btn-primary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Note :" styleClass="subtitle-label"/>
+                    <Slider fx:id="sliderRating" min="1" max="5" value="3"
+                            majorTickUnit="1" minorTickCount="0"
+                            snapToTicks="true" showTickMarks="false" showTickLabels="false"
+                            prefWidth="140"/>
+                    <Label fx:id="lblRatingVal" text="3"
+                           style="-fx-font-weight:bold;-fx-text-fill:#5AAEEF;-fx-min-width:16;"/>
+                    <Button text="Noter" onAction="#handleRate" styleClass="btn-secondary"/>
+                </HBox>
+
+                <Label fx:id="lblListStatus" wrapText="true" style="-fx-font-size:12;"/>
+            </VBox>
+
+            <!-- ── QUIZ PANEL ── -->
+            <VBox fx:id="panelQuiz" spacing="0" visible="false" managed="false">
+
+                <!-- Quiz header bar -->
+                <HBox alignment="CENTER_LEFT" spacing="12"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:transparent transparent #E5EAF2 transparent;-fx-border-width:0 0 1 0;-fx-padding:14 24;">
+                    <Label fx:id="lblQuizTitle" styleClass="section-label" text=""/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label fx:id="lblDifficulty" styleClass="subtitle-label" text=""/>
+                    <Label fx:id="lblProgress" styleClass="subtitle-label" text="Q 1 / 5"
+                           style="-fx-background-color:#F0F4F8;-fx-padding:4 10;-fx-background-radius:20;-fx-border-radius:20;"/>
+                </HBox>
+
+                <!-- Question area -->
+                <VBox spacing="20" style="-fx-padding:32 48;" VBox.vgrow="ALWAYS">
+
+                    <Label fx:id="lblQuestion" wrapText="true"
+                           style="-fx-font-size:17;-fx-font-weight:bold;-fx-text-fill:#4A5673;-fx-line-spacing:4;"
+                           prefWidth="820"/>
+
+                    <VBox fx:id="vboxOptions" spacing="8"/>
+
+                    <Label fx:id="lblFeedback" wrapText="true"
+                           style="-fx-font-size:13;-fx-font-weight:bold;-fx-padding:10 16;-fx-background-radius:6;-fx-background-color:#F0F4F8;"
+                           visible="false" managed="false"/>
+
+                    <Region VBox.vgrow="ALWAYS"/>
+
+                    <HBox spacing="10" alignment="CENTER_LEFT">
+                        <Button fx:id="btnValidate" text="Valider la réponse" onAction="#handleValidate" styleClass="btn-primary"/>
+                        <Button fx:id="btnNext" text="Question suivante →" onAction="#handleNext"
+                                visible="false" managed="false" styleClass="btn-secondary"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button text="Abandonner" onAction="#handleAbort" styleClass="btn-danger"/>
+                    </HBox>
+
+                    <Label fx:id="lblQuizStatus" wrapText="true" style="-fx-font-size:12;"/>
+                </VBox>
+            </VBox>
+
+            <!-- ── SCORE PANEL ── -->
+            <VBox fx:id="panelScore" spacing="24" visible="false" managed="false"
+                  alignment="CENTER" style="-fx-padding:60 80;">
+
+                <Label text="RÉSULTAT" style="-fx-font-size:11;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.14em;"/>
+                <Label fx:id="lblScore"
+                       style="-fx-font-size:64;-fx-font-weight:bold;-fx-text-fill:#5AAEEF;" text=""/>
+                <Label fx:id="lblScoreDetail" styleClass="subtitle-label"
+                       style="-fx-font-size:14;-fx-text-fill:#6B7C94;"/>
+
+                <Separator style="-fx-pref-width:320;"/>
+
+                <TextArea fx:id="txtAiFeedback" editable="false" wrapText="true"
+                          prefWidth="560" prefHeight="100"
+                          style="-fx-font-style:italic;-fx-background-color:transparent;-fx-border-color:#E5EAF2;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:12 16;"
+                          visible="false" managed="false"/>
+
+                <Button text="← Retour à la liste" onAction="#handleBackToList" styleClass="btn-secondary"/>
+            </VBox>
+
+        </StackPane>
+    </center>
+</BorderPane>
