@@ -1,27 +1,84 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<?import javafx.collections.FXCollections?>
-<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import javafx.scene.control.*?>
 
-<BorderPane xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.projet.controller.TacheController">
-    <center>
-        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
-            <FlowPane fx:id="cardsContainer" hgap="15" vgap="15" style="-fx-padding: 20;" />
-        </ScrollPane>
-    </center>
-    <right>
-        <VBox spacing="10" style="-fx-padding: 10;" prefWidth="250">
-            <Label text="Ajouter / Modifier Tâche" style="-fx-font-weight: bold;" />
-            <TextField fx:id="txtTitre" promptText="Titre de la tâche" />
-            <TextField fx:id="txtDuree" promptText="Durée (en heures)" />
-            <ComboBox fx:id="cbPriorite" promptText="Priorité" prefWidth="150" />
-            <ComboBox fx:id="cbStatut" promptText="Statut" prefWidth="150" />
-            <ComboBox fx:id="cbObjectif" promptText="Sélectionner l'Objectif" prefWidth="200" />
-            <HBox spacing="10" alignment="CENTER">
-                <Button text="Ajouter" onAction="#handleAjouter" />
-                <Button text="Modifier" onAction="#handleModifier" />
-            </HBox>
-            <Button text="Annuler Sélection" onAction="#clearForm" />
+<VBox xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.projet.controller.TacheController"
+      spacing="16" stylesheets="@styles.css">
+
+    <!-- Header -->
+    <HBox alignment="CENTER_LEFT" spacing="12">
+        <Label text="Mes Tâches" styleClass="page-title" />
+        <Region HBox.hgrow="ALWAYS" />
+        <TextField fx:id="txtRecherche" promptText="🔍 Rechercher une tâche..."
+                   styleClass="search-field" />
+        <Button text="📄 Exporter PDF" styleClass="btn-success" onAction="#handleExportPDF" />
+        <Button text="+ Ajouter"       styleClass="btn-primary" onAction="#handleAjouter" />
+    </HBox>
+
+    <HBox spacing="16" VBox.vgrow="ALWAYS">
+
+        <!-- Table -->
+        <VBox styleClass="card" HBox.hgrow="ALWAYS" spacing="8">
+            <TableView fx:id="tableTaches" VBox.vgrow="ALWAYS" styleClass="table-view"
+                       style="-fx-pref-height: 500;">
+                <columns>
+                    <TableColumn fx:id="colTitre"    text="Titre"       prefWidth="150" />
+                    <TableColumn fx:id="colObjectif" text="Objectif"    prefWidth="130" />
+                    <TableColumn fx:id="colDuree"    text="Durée"       prefWidth="80"  />
+                    <TableColumn fx:id="colPriorite" text="Priorité"    prefWidth="90"  />
+                    <TableColumn fx:id="colStatut"   text="Statut"      prefWidth="100" />
+                    <TableColumn fx:id="colActions"  text="Actions"     prefWidth="210" />
+                </columns>
+                <placeholder>
+                    <Label text="Aucune tâche trouvée." style="-fx-text-fill: #9ca3af;" />
+                </placeholder>
+            </TableView>
         </VBox>
-    </right>
-</BorderPane>
+
+        <!-- Formulaire -->
+        <VBox styleClass="card" prefWidth="290" spacing="6">
+            <Label fx:id="lblFormTitle" text="Nouvelle Tâche"
+                   style="-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1f2937;" />
+            <Separator />
+
+            <!-- Titre -->
+            <Label text="Titre *" styleClass="form-label" />
+            <TextField fx:id="txtTitre" promptText="Titre de la tâche" styleClass="form-field" />
+            <Label fx:id="errTitre" text="" visible="false"
+                   style="-fx-text-fill: #ef4444; -fx-font-size: 11px;" wrapText="true" maxWidth="260" />
+
+            <!-- Durée -->
+            <Label text="Durée (minutes) *" styleClass="form-label" />
+            <TextField fx:id="txtDuree" promptText="Ex: 30" styleClass="form-field" />
+            <Label fx:id="errDuree" text="" visible="false"
+                   style="-fx-text-fill: #ef4444; -fx-font-size: 11px;" wrapText="true" maxWidth="260" />
+
+            <!-- Priorité -->
+            <Label text="Priorité *" styleClass="form-label" />
+            <ComboBox fx:id="cbPriorite" prefWidth="260" styleClass="form-field" />
+            <Label fx:id="errPriorite" text="" visible="false"
+                   style="-fx-text-fill: #ef4444; -fx-font-size: 11px;" />
+
+            <!-- Statut -->
+            <Label text="Statut *" styleClass="form-label" />
+            <ComboBox fx:id="cbStatut" prefWidth="260" styleClass="form-field" />
+            <Label fx:id="errStatut" text="" visible="false"
+                   style="-fx-text-fill: #ef4444; -fx-font-size: 11px;" />
+
+            <!-- Objectif -->
+            <Label text="Objectif *" styleClass="form-label" />
+            <ComboBox fx:id="cbObjectif" prefWidth="260" styleClass="form-field" />
+            <Label fx:id="errObjectif" text="" visible="false"
+                   style="-fx-text-fill: #ef4444; -fx-font-size: 11px;" wrapText="true" maxWidth="260" />
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <HBox spacing="8">
+                <Button fx:id="btnSave" text="Enregistrer" styleClass="btn-primary"
+                        onAction="#handleSave" HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                <Button text="Annuler" styleClass="btn-light" onAction="#clearForm" />
+            </HBox>
+        </VBox>
+    </HBox>
+</VBox>

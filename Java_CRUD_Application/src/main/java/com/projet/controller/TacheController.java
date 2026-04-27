@@ -4,159 +4,242 @@ import com.projet.entity.Objectif;
 import com.projet.entity.Tache;
 import com.projet.service.ObjectifService;
 import com.projet.service.TacheService;
+import com.projet.service.AuthService;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.properties.UnitValue;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
-import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.geometry.Pos;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.HBox;
+import javafx.stage.FileChooser;
 import javafx.util.StringConverter;
+
+import java.io.File;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class TacheController {
-    @FXML private FlowPane cardsContainer;
+public class TacheController implements NavigationAware {
 
-    @FXML private TextField txtTitre;
-    @FXML private TextField txtDuree;
-    @FXML private ComboBox<String> cbPriorite;
-    @FXML private ComboBox<String> cbStatut;
+    @FXML private TableView<Tache>           tableTaches;
+    @FXML private TableColumn<Tache, String> colTitre;
+    @FXML private TableColumn<Tache, String> colObjectif;
+    @FXML private TableColumn<Tache, String> colDuree;
+    @FXML private TableColumn<Tache, String> colPriorite;
+    @FXML private TableColumn<Tache, String> colStatut;
+    @FXML private TableColumn<Tache, Void>   colActions;
+
+    @FXML private TextField        txtRecherche;
+    @FXML private TextField        txtTitre;
+    @FXML private TextField        txtDuree;
+    @FXML private ComboBox<String>  cbPriorite;
+    @FXML private ComboBox<String>  cbStatut;
     @FXML private ComboBox<Objectif> cbObjectif;
+    @FXML private Button            btnSave;
+    @FXML private Label             lblFormTitle;
 
-    private TacheService tacheService;
+    // Labels d'erreur inline
+    @FXML private Label errTitre;
+    @FXML private Label errDuree;
+    @FXML private Label errPriorite;
+    @FXML private Label errStatut;
+    @FXML private Label errObjectif;
+
+    private TacheService    tacheService;
     private ObjectifService objectifService;
     private ObservableList<Objectif> objectifsList;
-    
-    // Tracks which Tache is currently selected for editing
-    private Tache selectedTache = null;
+    private Tache           selectedTache = null;
+    private MainController  mainController;
 
     @FXML
     public void initialize() {
-        tacheService = new TacheService();
+        tacheService    = new TacheService();
         objectifService = new ObjectifService();
-        
-        cbPriorite.setItems(FXCollections.observableArrayList("Basse", "Moyenne", "Haute"));
+
+        cbPriorite.setItems(FXCollections.observableArrayList("BASSE", "MOYENNE", "HAUTE"));
         cbPriorite.getSelectionModel().selectFirst();
-        cbStatut.setItems(FXCollections.observableArrayList("A faire", "En cours", "Terminée"));
+        cbStatut.setItems(FXCollections.observableArrayList("A_FAIRE", "EN_COURS", "TERMINE"));
         cbStatut.getSelectionModel().selectFirst();
 
-        objectifsList = FXCollections.observableArrayList(objectifService.findAll());
+        objectifsList = FXCollections.observableArrayList();
         cbObjectif.setItems(objectifsList);
-        cbObjectif.setConverter(new StringConverter<Objectif>() {
-            @Override
-            public String toString(Objectif o) {
-                return o == null ? "" : o.getTitre();
-            }
-            @Override
-            public Objectif fromString(String string) {
-                return null;
-            }
+        cbObjectif.setConverter(new StringConverter<>() {
+            @Override public String toString(Objectif o)    { return o == null ? "" : o.getTitre(); }
+            @Override public Objectif fromString(String s)  { return null; }
         });
 
+        setupColumns();
+        // loadData() sera appelé dans setMainController()
+
+        txtRecherche.textProperty().addListener((obs, o, n) -> filterData(n));
+
+        // Effacer erreurs à la saisie
+        txtTitre.textProperty().addListener((o, a, b)    -> clearError(txtTitre,    errTitre));
+        txtDuree.textProperty().addListener((o, a, b)    -> clearError(txtDuree,    errDuree));
+        cbPriorite.valueProperty().addListener((o, a, b) -> clearError(cbPriorite,  errPriorite));
+        cbStatut.valueProperty().addListener((o, a, b)   -> clearError(cbStatut,    errStatut));
+        cbObjectif.valueProperty().addListener((o, a, b) -> clearError(cbObjectif,  errObjectif));
+    }
+
+    @Override
+    public void setMainController(MainController mc) {
+        this.mainController = mc;
         loadData();
     }
 
-    private void loadData() {
-        cardsContainer.getChildren().clear();
-        List<Tache> taches = tacheService.findAll();
-        
-        for (Tache t : taches) {
-            VBox card = new VBox(8);
-            card.setStyle("-fx-background-color: white; -fx-padding: 15; -fx-background-radius: 10; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.15), 10, 0, 0, 5);");
-            card.setPrefWidth(220);
+    // ─── Colonnes ────────────────────────────────────────────────────────────
 
-            Label lblTitre = new Label(t.getTitre());
-            lblTitre.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+    private void setupColumns() {
+        colTitre.setCellValueFactory(new PropertyValueFactory<>("titre"));
+        colObjectif.setCellValueFactory(c -> new SimpleStringProperty(
+            c.getValue().getObjectifTitre() != null ? c.getValue().getObjectifTitre() : ""));
+        colDuree.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().getDuree() + " min"));
+        colPriorite.setCellValueFactory(new PropertyValueFactory<>("priorite"));
+        colStatut.setCellValueFactory(new PropertyValueFactory<>("statut"));
 
-            Label lblDuree = new Label("Durée : " + t.getDuree() + "h");
-            
-            Label lblPriorite = new Label("Priorité : " + t.getPriorite());
-            if ("Haute".equals(t.getPriorite())) lblPriorite.setTextFill(Color.RED);
-            else if ("Moyenne".equals(t.getPriorite())) lblPriorite.setTextFill(Color.ORANGE);
-            else lblPriorite.setTextFill(Color.GREEN);
+        colPriorite.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setGraphic(null); return; }
+                Label b = new Label(item); b.getStyleClass().add(prioriteBadge(item));
+                setGraphic(b); setText(null);
+            }
+        });
 
-            Label lblStatut = new Label("Statut : " + t.getStatut());
+        colStatut.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setGraphic(null); return; }
+                Label b = new Label(item); b.getStyleClass().add(statutBadge(item));
+                setGraphic(b); setText(null);
+            }
+        });
 
-            String objName = objectifsList.stream()
-                .filter(o -> o.getId().equals(t.getObjectifId()))
-                .findFirst()
-                .map(Objectif::getTitre)
-                .orElse("Objectif inconnu");
-            Label lblObj = new Label("Objectif : " + objName);
-            lblObj.setStyle("-fx-text-fill: #7f8c8d; -fx-font-style: italic;");
+        colObjectif.setCellFactory(col -> new TableCell<>() {
+            @Override protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) { setGraphic(null); return; }
+                Label b = new Label(item); b.getStyleClass().add("badge-info");
+                setGraphic(b); setText(null);
+            }
+        });
 
-            HBox actions = new HBox(10);
-            actions.setAlignment(Pos.CENTER_LEFT);
-            actions.setStyle("-fx-padding: 10 0 0 0;");
-            
-            Button btnEdit = new Button("Modifier");
-            btnEdit.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-cursor: hand;");
-            btnEdit.setOnAction(e -> fillForm(t));
-
-            Button btnDelete = new Button("Supprimer");
-            btnDelete.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-cursor: hand;");
-            btnDelete.setOnAction(e -> deleteTache(t));
-
-            actions.getChildren().addAll(btnEdit, btnDelete);
-
-            card.getChildren().addAll(lblTitre, lblDuree, lblPriorite, lblStatut, lblObj, actions);
-            cardsContainer.getChildren().add(card);
-        }
+        colActions.setCellFactory(col -> new TableCell<>() {
+            final Button btnToggle = new Button("✓");
+            final Button btnEdit   = new Button("✏ Modifier");
+            final Button btnDelete = new Button("🗑 Supprimer");
+            final HBox   box       = new HBox(4, btnToggle, btnEdit, btnDelete);
+            {
+                btnEdit.getStyleClass().add("btn-warning");
+                btnDelete.getStyleClass().add("btn-danger");
+                btnEdit.setOnAction(e   -> fillForm(getTableView().getItems().get(getIndex())));
+                btnDelete.setOnAction(e -> confirmDelete(getTableView().getItems().get(getIndex())));
+                btnToggle.setOnAction(e -> toggleStatut(getTableView().getItems().get(getIndex())));
+            }
+            @Override protected void updateItem(Void item, boolean empty) {
+                super.updateItem(item, empty);
+                if (!empty && getIndex() < getTableView().getItems().size()) {
+                    Tache t = getTableView().getItems().get(getIndex());
+                    if ("TERMINE".equals(t.getStatut())) {
+                        btnToggle.setText("↩"); btnToggle.getStyleClass().setAll("btn-secondary");
+                    } else {
+                        btnToggle.setText("✓"); btnToggle.getStyleClass().setAll("btn-success");
+                    }
+                }
+                setGraphic(empty ? null : box);
+            }
+        });
     }
+
+    // ─── Données ─────────────────────────────────────────────────────────────
+
+    private void loadData() {
+        int userId = AuthService.getCurrentUser() != null ? AuthService.getCurrentUser().getId() : 0;
+        System.out.println("[TacheController.loadData] userId=" + userId);
+        List<Tache> list = userId == 0
+            ? tacheService.findAll()
+            : tacheService.findByEtudiantId(userId);
+        tableTaches.setItems(FXCollections.observableArrayList(list));
+        List<Objectif> objList = userId == 0
+            ? objectifService.findAll()
+            : objectifService.findByEtudiantId(userId);
+        objectifsList.setAll(objList);
+    }
+
+    private void filterData(String kw) {
+        if (kw == null || kw.trim().isEmpty()) { loadData(); return; }
+        int userId = AuthService.getCurrentUser() != null ? AuthService.getCurrentUser().getId() : 0;
+        String lower = kw.toLowerCase();
+        List<Tache> source = userId == 0
+            ? tacheService.findAll()
+            : tacheService.findByEtudiantId(userId);
+        List<Tache> filtered = source.stream()
+            .filter(t -> (t.getTitre() != null && t.getTitre().toLowerCase().contains(lower))
+                      || (t.getObjectifTitre() != null && t.getObjectifTitre().toLowerCase().contains(lower)))
+            .collect(Collectors.toList());
+        tableTaches.setItems(FXCollections.observableArrayList(filtered));
+    }
+
+    // ─── Formulaire ──────────────────────────────────────────────────────────
 
     private void fillForm(Tache t) {
         selectedTache = t;
+        lblFormTitle.setText("Modifier la tâche");
+        btnSave.setText("Mettre à jour");
         txtTitre.setText(t.getTitre());
         txtDuree.setText(String.valueOf(t.getDuree()));
         cbPriorite.setValue(t.getPriorite());
         cbStatut.setValue(t.getStatut());
-        
-        Objectif assigned = objectifsList.stream()
-                .filter(o -> o.getId().equals(t.getObjectifId()))
-                .findFirst()
-                .orElse(null);
-        cbObjectif.setValue(assigned);
+        cbObjectif.setValue(objectifsList.stream()
+            .filter(o -> o.getId().equals(t.getObjectifId()))
+            .findFirst().orElse(null));
+        clearAllErrors();
     }
 
-    private void deleteTache(Tache t) {
-        tacheService.delete(t.getId());
-        if (selectedTache != null && selectedTache.getId().equals(t.getId())) {
-            clearForm();
-        }
+    private void toggleStatut(Tache t) {
+        t.setStatut("TERMINE".equals(t.getStatut()) ? "EN_COURS" : "TERMINE");
+        tacheService.update(t);
         loadData();
     }
 
+    @FXML public void handleAjouter() { clearForm(); }
+
     @FXML
-    public void handleAjouter() {
+    public void handleSave() {
         if (!validateInput()) return;
-        Tache t = new Tache(
-            null,
-            txtTitre.getText(),
-            Integer.parseInt(txtDuree.getText()),
-            cbPriorite.getValue(),
-            cbStatut.getValue(),
-            cbObjectif.getValue().getId()
-        );
-        tacheService.create(t);
-        loadData();
-        clearForm();
-    }
 
-    @FXML
-    public void handleModifier() {
+        String titre      = txtTitre.getText().trim();
+        int    duree      = Integer.parseInt(txtDuree.getText().trim());
+        int    objectifId = cbObjectif.getValue().getId();
+
         if (selectedTache == null) {
-            showAlert("Veuillez d'abord cliquer sur 'Modifier' sur une des cartes.");
-            return;
+            // Unicité : même titre dans le même objectif
+            if (tacheService.existsByTitreAndObjectif(titre, objectifId, null)) {
+                markError(txtTitre, errTitre, "Une tâche avec ce titre existe déjà dans cet objectif.");
+                return;
+            }
+            tacheService.create(new Tache(null, titre, duree,
+                cbPriorite.getValue(), cbStatut.getValue(), objectifId));
+            showSuccess("Tâche ajoutée avec succès !");
+        } else {
+            if (tacheService.existsByTitreAndObjectif(titre, objectifId, selectedTache.getId())) {
+                markError(txtTitre, errTitre, "Une tâche avec ce titre existe déjà dans cet objectif.");
+                return;
+            }
+            selectedTache.setTitre(titre);
+            selectedTache.setDuree(duree);
+            selectedTache.setPriorite(cbPriorite.getValue());
+            selectedTache.setStatut(cbStatut.getValue());
+            selectedTache.setObjectifId(objectifId);
+            tacheService.update(selectedTache);
+            showSuccess("Tâche modifiée avec succès !");
         }
-        if (!validateInput()) return;
-
-        selectedTache.setTitre(txtTitre.getText());
-        selectedTache.setDuree(Integer.parseInt(txtDuree.getText()));
-        selectedTache.setPriorite(cbPriorite.getValue());
-        selectedTache.setStatut(cbStatut.getValue());
-        selectedTache.setObjectifId(cbObjectif.getValue().getId());
-
-        tacheService.update(selectedTache);
         loadData();
         clearForm();
     }
@@ -164,41 +247,153 @@ public class TacheController {
     @FXML
     public void clearForm() {
         selectedTache = null;
+        lblFormTitle.setText("Nouvelle Tâche");
+        btnSave.setText("Enregistrer");
         txtTitre.clear();
         txtDuree.clear();
-        cbObjectif.getSelectionModel().clearSelection();
         cbPriorite.getSelectionModel().selectFirst();
         cbStatut.getSelectionModel().selectFirst();
+        cbObjectif.getSelectionModel().clearSelection();
+        clearAllErrors();
     }
+
+    private void confirmDelete(Tache t) {
+        Alert a = new Alert(Alert.AlertType.CONFIRMATION);
+        a.setTitle("Confirmation de suppression");
+        a.setHeaderText("Supprimer la tâche : " + t.getTitre());
+        a.setContentText("Cette action est irréversible. Continuer ?");
+        a.showAndWait().ifPresent(btn -> {
+            if (btn == ButtonType.OK) {
+                tacheService.delete(t.getId());
+                if (selectedTache != null && selectedTache.getId().equals(t.getId())) clearForm();
+                loadData();
+                showSuccess("Tâche supprimée.");
+            }
+        });
+    }
+
+    // ─── Validation ──────────────────────────────────────────────────────────
 
     private boolean validateInput() {
+        clearAllErrors();
+        boolean valid = true;
+
+        // Titre
         if (txtTitre.getText() == null || txtTitre.getText().trim().isEmpty()) {
-            showAlert("Le titre ne doit pas être vide.");
-            return false;
+            markError(txtTitre, errTitre, "Le titre est obligatoire."); valid = false;
+        } else if (txtTitre.getText().trim().length() < 2) {
+            markError(txtTitre, errTitre, "Le titre doit contenir au moins 2 caractères."); valid = false;
+        } else if (txtTitre.getText().trim().length() > 255) {
+            markError(txtTitre, errTitre, "Le titre ne doit pas dépasser 255 caractères."); valid = false;
         }
-        int duree;
-        try {
-            duree = Integer.parseInt(txtDuree.getText());
-            if (duree <= 0) {
-                showAlert("La durée doit être supérieure à 0.");
-                return false;
+
+        // Durée
+        if (txtDuree.getText() == null || txtDuree.getText().trim().isEmpty()) {
+            markError(txtDuree, errDuree, "La durée est obligatoire."); valid = false;
+        } else {
+            try {
+                int d = Integer.parseInt(txtDuree.getText().trim());
+                if (d <= 0)    { markError(txtDuree, errDuree, "La durée doit être supérieure à 0."); valid = false; }
+                else if (d > 1440) { markError(txtDuree, errDuree, "La durée ne peut pas dépasser 1440 min (24h)."); valid = false; }
+            } catch (NumberFormatException e) {
+                markError(txtDuree, errDuree, "La durée doit être un nombre entier."); valid = false;
             }
-        } catch (NumberFormatException e) {
-            showAlert("La durée doit être un nombre valide.");
-            return false;
         }
+
+        // Priorité
+        if (cbPriorite.getValue() == null) {
+            markError(cbPriorite, errPriorite, "La priorité est obligatoire."); valid = false;
+        }
+
+        // Statut
+        if (cbStatut.getValue() == null) {
+            markError(cbStatut, errStatut, "Le statut est obligatoire."); valid = false;
+        }
+
+        // Objectif
         if (cbObjectif.getValue() == null) {
-            showAlert("Veuillez sélectionner un Objectif !");
-            return false;
+            markError(cbObjectif, errObjectif, "Veuillez sélectionner un objectif."); valid = false;
         }
-        return true;
+
+        return valid;
     }
 
-    private void showAlert(String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle("Erreur");
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.showAndWait();
+    // ─── Helpers visuels ─────────────────────────────────────────────────────
+
+    private void markError(Control field, Label errLabel, String msg) {
+        field.setStyle("-fx-border-color: #ef4444; -fx-border-width: 1.5; -fx-border-radius: 8; -fx-background-radius: 8;");
+        if (errLabel != null) { errLabel.setText("⚠ " + msg); errLabel.setVisible(true); }
+    }
+
+    private void clearError(Control field, Label errLabel) {
+        field.setStyle("");
+        if (errLabel != null) { errLabel.setText(""); errLabel.setVisible(false); }
+    }
+
+    private void clearAllErrors() {
+        clearError(txtTitre,   errTitre);
+        clearError(txtDuree,   errDuree);
+        clearError(cbPriorite, errPriorite);
+        clearError(cbStatut,   errStatut);
+        clearError(cbObjectif, errObjectif);
+    }
+
+    private void showSuccess(String msg) {
+        Alert a = new Alert(Alert.AlertType.INFORMATION);
+        a.setTitle("Succès"); a.setHeaderText(null); a.setContentText(msg);
+        a.showAndWait();
+    }
+
+    // ─── Export PDF ──────────────────────────────────────────────────────────
+
+    @FXML
+    public void handleExportPDF() {
+        FileChooser fc = new FileChooser();
+        fc.setTitle("Exporter les tâches en PDF");
+        fc.setInitialFileName("liste_taches.pdf");
+        fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF", "*.pdf"));
+        File file = fc.showSaveDialog(tableTaches.getScene().getWindow());
+        if (file == null) return;
+
+        try {
+            Document doc = new Document(new PdfDocument(new PdfWriter(file.getAbsolutePath())));
+            doc.add(new Paragraph("Liste des Tâches — StudySprint").setBold().setFontSize(18).setMarginBottom(16));
+
+            Table table = new Table(new float[]{3, 2, 1, 1, 1});
+            table.setWidth(UnitValue.createPercentValue(100));
+            for (String h : new String[]{"Titre", "Objectif", "Durée (min)", "Priorité", "Statut"})
+                table.addHeaderCell(new com.itextpdf.layout.element.Cell().add(new Paragraph(h).setBold()));
+
+            for (Tache t : tacheService.findAll()) {
+                table.addCell(t.getTitre() != null ? t.getTitre() : "");
+                table.addCell(t.getObjectifTitre() != null ? t.getObjectifTitre() : "");
+                table.addCell(String.valueOf(t.getDuree()));
+                table.addCell(t.getPriorite() != null ? t.getPriorite() : "");
+                table.addCell(t.getStatut()   != null ? t.getStatut()   : "");
+            }
+            doc.add(table);
+            doc.close();
+            showSuccess("PDF exporté avec succès !");
+        } catch (Exception e) {
+            Alert err = new Alert(Alert.AlertType.ERROR);
+            err.setContentText("Erreur PDF : " + e.getMessage());
+            err.showAndWait();
+        }
+    }
+
+    private String prioriteBadge(String p) {
+        return switch (p) {
+            case "HAUTE"   -> "badge-danger";
+            case "MOYENNE" -> "badge-warning";
+            default        -> "badge-secondary";
+        };
+    }
+
+    private String statutBadge(String s) {
+        return switch (s) {
+            case "TERMINE"  -> "badge-success";
+            case "EN_COURS" -> "badge-primary";
+            default         -> "badge-secondary";
+        };
     }
 }
