@@ -19,6 +19,7 @@
         <VBox spacing="0" styleClass="header-shell">
             <HBox spacing="12" alignment="CENTER_LEFT" styleClass="header-bar">
                 <padding><Insets top="10" right="24" bottom="10" left="24"/></padding>
+                <Button fx:id="retourButton" text="Retour" styleClass="create-btn" />
                 <Label text="StudySprint - Chapitres" styleClass="header-title" />
                 <Region HBox.hgrow="ALWAYS" />
                 <Button fx:id="ajouterChapitreButton" text="Ajouter un chapitre" styleClass="create-btn" />

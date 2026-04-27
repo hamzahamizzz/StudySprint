@@ -1,81 +1,55 @@
 package com.example.studysprint;
 
 import com.example.studysprint.api.ApiServer;
-import com.example.studysprint.utils.DatabaseCheck;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 
-import java.io.IOException;
-
 public class HelloApplication extends Application {
+
     @Override
-    public void start(Stage stage) throws IOException {
-        System.out.println("\n=== 🚀 DÉMARRAGE DE STUDYSPRINT ===\n");
-        
-        // Ajouter un gestionnaire global d'exceptions non attrapées
-        Thread.setDefaultUncaughtExceptionHandler((thread, throwable) -> {
-            System.err.println("\n❌ EXCEPTION NON ATTRAPÉE DANS LE THREAD: " + thread.getName());
-            System.err.println("   Erreur: " + throwable.getMessage());
-            System.err.println("   Classe: " + throwable.getClass().getName());
-            throwable.printStackTrace();
-        });
-        
-        try {
-            // Vérifier la connexion à la base de données en premier
-            System.out.println("🔍 Vérification de la connexion à la base de données...");
-            if (!DatabaseCheck.checkConnection()) {
-                System.err.println("\n❌ ERREUR CRITIQUE: Connection à MySQL impossible!");
-                System.err.println("   L'application ne peut pas démarrer.");
-                System.exit(1);
-                return;
+    public void start(Stage stage) {
+        // Démarrer l'API REST
+        new Thread(() -> {
+            try {
+                ApiServer.start();
+                System.out.println("✅ API REST démarrée sur http://localhost:4567");
+            } catch (Exception e) {
+                System.err.println("❌ Erreur API: " + e.getMessage());
+                e.printStackTrace();
             }
+        }).start();
 
-            // Démarrer l'API dans un thread séparé
-            Thread apiThread = new Thread(() -> {
-                try {
-                    ApiServer.start();
-                    System.out.println("✅ API REST démarrée sur http://localhost:4567");
-                } catch (Exception e) {
-                    System.err.println("❌ Erreur démarrage API: " + e.getMessage());
-                    e.printStackTrace();
-                }
-            }, "APIThread");
-            apiThread.setDaemon(false);
-            apiThread.start();
-
-            System.out.println("📂 Chargement de l'interface MatiereListView.fxml...");
-            FXMLLoader fxmlLoader = new FXMLLoader(HelloApplication.class.getResource("/fxml/matieres/MatiereListView.fxml"));
-            Scene scene = new Scene(fxmlLoader.load());
-            System.out.println("✅ Interface chargée avec succès!");
-            
+        // Charger l'interface avec gestion d'erreur
+        try {
+            System.out.println("📂 Chargement de MatiereListView.fxml...");
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/matieres/MatiereListView.fxml"));
+            Scene scene = new Scene(loader.load());
             stage.setTitle("StudySprint - Matières");
+            stage.setScene(scene);
             stage.setMaximized(true);
             stage.show();
-            
-            System.out.println("✅ Application démarrée avec succès!\n");
-
-            stage.setOnCloseRequest(e -> {
-                System.out.println("🔄 Fermeture de l'application...");
-                System.exit(0);
-            });
-        } catch (IOException e) {
-            System.err.println("\n❌ ERREUR CRITIQUE: Impossible de charger l'interface FXML");
-            System.err.println("   Fichier: " + e.getMessage());
-            e.printStackTrace();
-            System.exit(1);
+            System.out.println("✅ Interface affichée.");
         } catch (Exception e) {
-            System.err.println("\n❌ ERREUR CRITIQUE au démarrage!");
-            System.err.println("   Erreur: " + e.getMessage());
-            System.err.println("   Classe: " + e.getClass().getName());
+            System.err.println("❌ ERREUR FATALE au chargement de l'interface :");
             e.printStackTrace();
-            System.exit(1);
+            // Afficher une boîte de dialogue d'erreur
+            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+            alert.setTitle("Erreur de démarrage");
+            alert.setHeaderText("Impossible de charger l'interface");
+            alert.setContentText(e.getClass().getSimpleName() + " : " + e.getMessage());
+            alert.showAndWait();
+            // Fermeture propre
+            stage.close();
         }
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    @Override
+    public void stop() throws Exception {
+        // Arrêter le serveur Spark proprement
+        spark.Spark.stop();
+        // S'assurer que tous les threads restants (y compris Jetty) sont tués
+        System.exit(0);
     }
 }
-

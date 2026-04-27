@@ -20,6 +20,7 @@ public class ChapitreSelectionController {
     @FXML private Label matiereLabel;
     @FXML private VBox chapitresCheckBoxContainer;
     @FXML private Button genererPdfButton;
+    @FXML private Button retourButton;
 
     private Matiere currentMatiere;
     private List<Chapitre> allChapitres;
@@ -30,6 +31,28 @@ public class ChapitreSelectionController {
         this.currentMatiere = matiere;
         matiereLabel.setText("Sélectionnez les chapitres à résumer : " + matiere.getName());
         loadChapitres();
+    }
+
+    @FXML
+    private void initialize() {
+        if (retourButton != null) {
+            retourButton.setGraphic(GroupUiUtils.icon("fas-arrow-left", "create-btn-icon"));
+            retourButton.setOnAction(e -> onRetour());
+        }
+    }
+
+    private void onRetour() {
+        try {
+            javafx.fxml.FXMLLoader loader = new javafx.fxml.FXMLLoader(getClass().getResource("/fxml/matieres/ChapitreListView.fxml"));
+            javafx.scene.Parent root = loader.load();
+            ChapitreListController controller = loader.getController();
+            controller.setMatiere(currentMatiere);
+            Stage stage = (Stage) retourButton.getScene().getWindow();
+            GroupUiUtils.switchScene(stage, root, "Chapitres - " + currentMatiere.getName());
+        } catch (Exception e) {
+            e.printStackTrace();
+            GroupUiUtils.showError(retourButton.getScene().getWindow(), getClass(), "Navigation impossible", "Impossible de retourner aux chapitres.", e.getMessage());
+        }
     }
 
     private void loadChapitres() {

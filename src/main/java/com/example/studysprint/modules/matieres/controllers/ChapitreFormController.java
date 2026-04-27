@@ -45,8 +45,14 @@ public class ChapitreFormController {
             GroupUiUtils.applyDialogStyle(pane, ChapitreFormController.class);
             Button saveButton = (Button) pane.lookupButton(saveType);
             if (saveButton != null) {
+                saveButton.setDisable(!controller.isFormValid(false));
+                controller.titleField.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+                controller.orderNoField.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+                controller.summaryArea.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+                controller.contentArea.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+
                 saveButton.addEventFilter(ActionEvent.ACTION, e -> {
-                    if (!controller.validateForm()) e.consume();
+                    if (!controller.isFormValid(true)) e.consume();
                 });
             }
             Optional<ButtonType> result = dialog.showAndWait();
@@ -58,19 +64,58 @@ public class ChapitreFormController {
         }
     }
 
-    private boolean validateForm() {
-        if (titleField.getText() == null || titleField.getText().trim().isEmpty()) {
-            GroupUiUtils.showWarning(titleField.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le titre est obligatoire.");
+    private boolean isFormValid(boolean showWarning) {
+        String title = titleField.getText();
+        String orderText = orderNoField.getText();
+        String summary = summaryArea.getText();
+        String content = contentArea.getText();
+        
+        if (title == null || title.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(titleField.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le titre du chapitre est obligatoire.");
             return false;
         }
-        if (orderNoField.getText() != null && !orderNoField.getText().trim().isEmpty()) {
-            try {
-                Integer.parseInt(orderNoField.getText().trim());
-            } catch (NumberFormatException e) {
-                GroupUiUtils.showWarning(orderNoField.getScene().getWindow(), ChapitreFormController.class, "Validation", "L'ordre doit être un nombre.");
+        if (title.trim().length() < 2) {
+            if (showWarning) GroupUiUtils.showWarning(titleField.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le titre doit contenir au moins 2 caractères.");
+            return false;
+        }
+        if (title.trim().length() > 150) {
+            if (showWarning) GroupUiUtils.showWarning(titleField.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le titre est trop long (maximum 150 caractères).");
+            return false;
+        }
+        
+        if (orderText == null || orderText.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(orderNoField.getScene().getWindow(), ChapitreFormController.class, "Validation", "L'ordre du chapitre est obligatoire.");
+            return false;
+        }
+        try {
+            int order = Integer.parseInt(orderText.trim());
+            if (order < 0) {
+                if (showWarning) GroupUiUtils.showWarning(orderNoField.getScene().getWindow(), ChapitreFormController.class, "Validation", "L'ordre ne peut pas être négatif.");
                 return false;
             }
+        } catch (NumberFormatException e) {
+            if (showWarning) GroupUiUtils.showWarning(orderNoField.getScene().getWindow(), ChapitreFormController.class, "Validation", "L'ordre doit être un nombre entier valide.");
+            return false;
         }
+        
+        if (summary == null || summary.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(summaryArea.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le résumé est obligatoire.");
+            return false;
+        }
+        if (summary.length() > 1000) {
+            if (showWarning) GroupUiUtils.showWarning(summaryArea.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le résumé est trop long (maximum 1000 caractères).");
+            return false;
+        }
+        
+        if (content == null || content.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(contentArea.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le contenu est obligatoire.");
+            return false;
+        }
+        if (content.length() > 50000) {
+            if (showWarning) GroupUiUtils.showWarning(contentArea.getScene().getWindow(), ChapitreFormController.class, "Validation", "Le contenu est trop long.");
+            return false;
+        }
+        
         return true;
     }
 

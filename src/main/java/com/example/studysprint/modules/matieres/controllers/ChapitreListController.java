@@ -27,6 +27,7 @@ public class ChapitreListController {
     @FXML private Button ajouterChapitreButton;
     @FXML private VBox chapitresListBox;
     @FXML private Button resumePdfButton;
+    @FXML private Button retourButton;
 
 
     private Matiere currentMatiere;
@@ -45,10 +46,25 @@ public class ChapitreListController {
 
     @FXML
     private void initialize() {
+        if (retourButton != null) {
+            retourButton.setGraphic(GroupUiUtils.icon("fas-arrow-left", "create-btn-icon"));
+            retourButton.setOnAction(e -> onRetour());
+        }
         ajouterChapitreButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
         ajouterChapitreButton.setOnAction(e -> onAjouterChapitre());
         resumePdfButton.setGraphic(GroupUiUtils.icon("fas-file-pdf", "create-btn-icon"));
         resumePdfButton.setOnAction(e -> onResumePdf());
+    }
+
+    private void onRetour() {
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/matieres/MatiereListView.fxml"));
+            Parent root = loader.load();
+            Stage stage = (Stage) retourButton.getScene().getWindow();
+            GroupUiUtils.switchScene(stage, root, "StudySprint - Matières");
+        } catch (IOException e) {
+            GroupUiUtils.showError(retourButton.getScene().getWindow(), getClass(), "Navigation impossible", "Impossible de retourner aux matières.", e.getMessage());
+        }
     }
 
     private void loadChapitres() {
@@ -85,17 +101,14 @@ public class ChapitreListController {
             deleteBtn.getStyleClass().addAll("detail-danger-btn");
             deleteBtn.setOnAction(e -> onDeleteChapitre(c));
 
-            actions.getChildren().addAll(editBtn, deleteBtn);
-            card.getChildren().addAll(title, summary, actions);
-            chapitresListBox.getChildren().add(card);
-
-
-
             Button qrBtn = new Button("QR Code");
             qrBtn.getStyleClass().addAll("compose-cancel-btn");
             qrBtn.setOnAction(e -> onGenererQrCode(c));
 
             actions.getChildren().addAll(editBtn, deleteBtn, qrBtn);
+            
+            card.getChildren().addAll(title, summary, actions);
+            chapitresListBox.getChildren().add(card);
         }
     }
 

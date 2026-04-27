@@ -40,8 +40,13 @@ public class MatiereFormController {
             GroupUiUtils.applyDialogStyle(pane, MatiereFormController.class);
             Button saveButton = (Button) pane.lookupButton(saveType);
             if (saveButton != null) {
+                saveButton.setDisable(!controller.isFormValid(false));
+                controller.nameField.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+                controller.codeField.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+                controller.descriptionField.textProperty().addListener((obs, old, val) -> saveButton.setDisable(!controller.isFormValid(false)));
+
                 saveButton.addEventFilter(ActionEvent.ACTION, e -> {
-                    if (!controller.validateForm()) e.consume();
+                    if (!controller.isFormValid(true)) e.consume();
                 });
             }
             Optional<ButtonType> result = dialog.showAndWait();
@@ -53,11 +58,50 @@ public class MatiereFormController {
         }
     }
 
-    private boolean validateForm() {
-        if (nameField.getText() == null || nameField.getText().trim().isEmpty()) {
-            GroupUiUtils.showWarning(nameField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le nom est obligatoire.");
+    private boolean isFormValid(boolean showWarning) {
+        String name = nameField.getText();
+        String code = codeField.getText();
+        String desc = descriptionField.getText();
+
+        if (name == null || name.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(nameField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le nom de la matière est obligatoire.");
             return false;
         }
+        if (name.trim().length() < 2) {
+            if (showWarning) GroupUiUtils.showWarning(nameField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le nom doit contenir au moins 2 caractères.");
+            return false;
+        }
+        if (name.trim().length() > 100) {
+            if (showWarning) GroupUiUtils.showWarning(nameField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le nom est trop long (maximum 100 caractères).");
+            return false;
+        }
+
+        if (code == null || code.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(codeField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le code de la matière est obligatoire.");
+            return false;
+        }
+        if (code.trim().length() > 20) {
+            if (showWarning) GroupUiUtils.showWarning(codeField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le code est trop long (maximum 20 caractères).");
+            return false;
+        }
+        if (code.trim().contains(" ")) {
+            if (showWarning) GroupUiUtils.showWarning(codeField.getScene().getWindow(), MatiereFormController.class, "Validation", "Le code ne doit pas contenir d'espaces.");
+            return false;
+        }
+
+        if (desc == null || desc.trim().isEmpty()) {
+            if (showWarning) GroupUiUtils.showWarning(descriptionField.getScene().getWindow(), MatiereFormController.class, "Validation", "La description est obligatoire.");
+            return false;
+        }
+        if (desc.trim().length() < 5) {
+            if (showWarning) GroupUiUtils.showWarning(descriptionField.getScene().getWindow(), MatiereFormController.class, "Validation", "La description doit contenir au moins 5 caractères.");
+            return false;
+        }
+        if (desc.length() > 500) {
+            if (showWarning) GroupUiUtils.showWarning(descriptionField.getScene().getWindow(), MatiereFormController.class, "Validation", "La description est trop longue (maximum 500 caractères).");
+            return false;
+        }
+
         return true;
     }
 

@@ -34,17 +34,12 @@ public class MatiereListController {
             System.out.println("🔧 [MatiereListController] Initialisation...");
             ajouterButton.setGraphic(GroupUiUtils.icon("fas-plus", "create-btn-icon"));
             searchField.textProperty().addListener((obs, oldVal, newVal) -> applyFilter());
-            System.out.println("✅ [MatiereListController] Initialisation complète - chargement des matières différé");
-            // Différer le chargement des données jusqu'à ce que la scène soit prête
-            Platform.runLater(() -> {
-                try {
-                    loadMatieres();
-                } catch (Exception e) {
-                    System.err.println("❌ [MatiereListController] EXCEPTION DANS Platform.runLater:");
-                    System.err.println("   " + e.getMessage());
-                    e.printStackTrace();
-                }
-            });
+            
+            // Appeler directement loadMatieres() sans Platform.runLater pour éviter 
+            // les bugs de layout et de clics non détectés
+            loadMatieres();
+            
+            System.out.println("✅ [MatiereListController] Initialisation complète");
         } catch (Exception e) {
             System.err.println("❌ [MatiereListController] EXCEPTION DURING INITIALIZE:");
             System.err.println("   " + e.getMessage());
@@ -155,7 +150,9 @@ public class MatiereListController {
 
             Stage stage = (Stage) matieresCardsPane.getScene().getWindow();
             GroupUiUtils.switchScene(stage, root, "Chapitres - " + matiere.getName());
-        } catch (IOException e) {
+        } catch (Exception e) {
+            System.err.println("❌ Erreur critique lors de l'ouverture des chapitres:");
+            e.printStackTrace();
             showError("Navigation impossible", "Impossible d'ouvrir les chapitres.", e.getMessage());
         }
     }

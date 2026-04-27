@@ -20,25 +20,13 @@ public final class GroupUiUtils {
 
     // Switch scene while keeping the current window size/state.
     public static void switchScene(Stage stage, Parent root, String title) {
-        double width = stage.getWidth();
-        double height = stage.getHeight();
-        double x = stage.getX();
-        double y = stage.getY();
-        boolean maximized = stage.isMaximized();
-        boolean fullscreen = stage.isFullScreen();
-
-        stage.setScene(new Scene(root));
-        stage.setTitle(title);
-
-        if (!maximized && !fullscreen) {
-            stage.setWidth(width);
-            stage.setHeight(height);
-            stage.setX(x);
-            stage.setY(y);
+        Scene currentScene = stage.getScene();
+        if (currentScene != null) {
+            currentScene.setRoot(root);
+        } else {
+            stage.setScene(new Scene(root));
         }
-
-        stage.setMaximized(maximized);
-        stage.setFullScreen(fullscreen);
+        stage.setTitle(title);
     }
 
     // Apply the shared CSS stylesheet to a dialog.
