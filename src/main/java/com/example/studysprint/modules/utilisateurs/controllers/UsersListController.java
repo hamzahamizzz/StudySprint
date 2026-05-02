@@ -26,7 +26,6 @@ import java.util.ResourceBundle;
 public class UsersListController implements Initializable {
 
     @FXML private TableView<Utilisateur> usersTable;
-    @FXML private TableColumn<Utilisateur, Integer> idCol;
     @FXML private TableColumn<Utilisateur, String> nomCol;
     @FXML private TableColumn<Utilisateur, String> prenomCol;
     @FXML private TableColumn<Utilisateur, String> emailCol;
@@ -48,7 +47,6 @@ public class UsersListController implements Initializable {
     }
 
     private void setupTable() {
-        idCol.setCellValueFactory(new PropertyValueFactory<>("id"));
         nomCol.setCellValueFactory(new PropertyValueFactory<>("nom"));
         prenomCol.setCellValueFactory(new PropertyValueFactory<>("prenom"));
         emailCol.setCellValueFactory(new PropertyValueFactory<>("email"));

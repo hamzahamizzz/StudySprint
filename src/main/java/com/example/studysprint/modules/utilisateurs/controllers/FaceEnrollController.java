@@ -122,8 +122,25 @@ public class FaceEnrollController implements Initializable {
 
         new Thread(() -> {
             try {
-                double[] descriptor = FaceDescriptorUtil.computeDescriptor(frame);
-                String descriptorJson = FaceDescriptorUtil.toJson(descriptor);
+                // Average descriptors over 5 consecutive frames for robustness
+                final int SAMPLE_COUNT = 5;
+                double[] averaged = null;
+
+                for (int i = 0; i < SAMPLE_COUNT; i++) {
+                    BufferedImage f = latestFrame;
+                    if (f == null) throw new Exception("Aucune image disponible.");
+                    double[] desc = FaceDescriptorUtil.computeDescriptor(f);
+                    if (averaged == null) {
+                        averaged = desc.clone();
+                    } else {
+                        for (int j = 0; j < averaged.length; j++) averaged[j] += desc[j];
+                    }
+                    Thread.sleep(100); // wait 100ms between samples
+                }
+                // Divide by count to get mean
+                for (int j = 0; j < averaged.length; j++) averaged[j] /= SAMPLE_COUNT;
+
+                String descriptorJson = FaceDescriptorUtil.toJson(averaged);
 
                 Utilisateur currentUser = SessionManager.getInstance().getCurrentUser();
                 if (currentUser != null) {

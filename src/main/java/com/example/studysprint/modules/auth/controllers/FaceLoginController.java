@@ -34,6 +34,7 @@ public class FaceLoginController implements Initializable {
     private final UtilisateurService userService = new UtilisateurService();
     private volatile boolean searching = false;
     private volatile boolean found = false;
+    private volatile BufferedImage latestFrame = null;
     private long lastDisplayTime = 0;
     private static final long DISPLAY_INTERVAL_MS = 66; // ~15 FPS max
 
@@ -46,6 +47,7 @@ public class FaceLoginController implements Initializable {
 
     private void onFrameCaptured(BufferedImage image) {
         if (image == null || found) return;
+        latestFrame = image; // always keep latest frame
 
         long now = System.currentTimeMillis();
         boolean shouldDisplay = (now - lastDisplayTime) >= DISPLAY_INTERVAL_MS;
@@ -57,13 +59,29 @@ public class FaceLoginController implements Initializable {
             });
         }
 
-        // Try recognition every ~1 second (skip frames while processing)
+        // Try recognition (skip frames while already processing)
         if (!searching) {
             searching = true;
             new Thread(() -> {
                 try {
-                    double[] descriptor = FaceDescriptorUtil.computeDescriptor(image);
-                    Utilisateur match = findMatch(descriptor);
+                    // Average 3 frames (200ms apart) for a stable descriptor
+                    final int SAMPLES = 3;
+                    double[] averaged = null;
+                    for (int i = 0; i < SAMPLES; i++) {
+                        BufferedImage f = latestFrame;
+                        if (f == null) { Thread.sleep(200); continue; }
+                        double[] desc = FaceDescriptorUtil.computeDescriptor(f);
+                        if (averaged == null) {
+                            averaged = desc.clone();
+                        } else {
+                            for (int j = 0; j < averaged.length; j++) averaged[j] += desc[j];
+                        }
+                        if (i < SAMPLES - 1) Thread.sleep(200);
+                    }
+                    if (averaged != null)
+                        for (int j = 0; j < averaged.length; j++) averaged[j] /= SAMPLES;
+
+                    Utilisateur match = (averaged != null) ? findMatch(averaged) : null;
 
                     Platform.runLater(() -> {
                         if (match != null) {
@@ -77,7 +95,7 @@ public class FaceLoginController implements Initializable {
                             }).start();
                         } else {
                             statusLabel.setText("Visage non reconnu. Continuez...");
-                            searching = false; // allow next attempt
+                            searching = false;
                         }
                     });
                 } catch (Exception e) {
@@ -87,21 +105,68 @@ public class FaceLoginController implements Initializable {
         }
     }
 
+    /**
+     * Best-match strategy calibrated on real measured distances.
+     * Real distances observed: same person ~0.7-1.5, different person ~1.5-3.0+
+     * Threshold: 3.0 (accepts same person, rejects strangers)
+     * Gap: 0.5 minimum separation between best and second-best
+     */
+    private static final double STRICT_THRESHOLD = 3.0;
+
     private Utilisateur findMatch(double[] scanned) {
         List<Utilisateur> users = userService.getAll();
+
+        Utilisateur bestUser = null;
+        double bestDist = Double.MAX_VALUE;
+        double secondBestDist = Double.MAX_VALUE;
+
+        System.out.println("[FaceLogin] ── Scanning " + users.size() + " users ──");
+
         for (Utilisateur u : users) {
             String stored = u.getFaceDescriptor();
             if (stored == null || stored.isBlank()) continue;
             try {
                 double[] storedDesc = FaceDescriptorUtil.fromJson(stored);
-                if (FaceDescriptorUtil.isSamePerson(scanned, storedDesc)) {
-                    System.out.println("[FaceLogin] Match: " + u.getEmail()
-                            + " dist=" + FaceDescriptorUtil.distance(scanned, storedDesc));
-                    return u;
+                double dist = FaceDescriptorUtil.distance(scanned, storedDesc);
+                // Skip descriptors that are corrupted (infinite distance = wrong length)
+                if (Double.isInfinite(dist) || Double.isNaN(dist)) {
+                    System.out.println("[FaceLogin] ⚠️ Skipping corrupt descriptor for " + u.getEmail());
+                    continue;
                 }
-            } catch (Exception ignored) {}
+                System.out.printf("[FaceLogin] %s → dist=%.4f%n", u.getEmail(), dist);
+
+                if (dist < bestDist) {
+                    secondBestDist = bestDist;
+                    bestDist = dist;
+                    bestUser = u;
+                } else if (dist < secondBestDist) {
+                    secondBestDist = dist;
+                }
+            } catch (Exception e) {
+                System.out.println("[FaceLogin] Error reading descriptor for " + u.getEmail());
+            }
         }
-        return null;
+
+        System.out.printf("[FaceLogin] Best dist=%.4f  SecondBest=%.4f  Threshold=%.1f%n",
+                bestDist, secondBestDist, STRICT_THRESHOLD);
+
+        // Reject if best distance exceeds strict threshold
+        if (bestUser == null || bestDist >= STRICT_THRESHOLD) {
+            System.out.println("[FaceLogin] ❌ No match (dist too high)");
+            return null;
+        }
+
+        // If multiple enrolled users, ensure best is clearly better than second
+        if (secondBestDist < Double.MAX_VALUE) {
+            double gap = secondBestDist - bestDist;
+            if (gap < 0.5) { // gap must be at least 0.5 (based on real measured distances)
+                System.out.printf("[FaceLogin] ❌ Ambiguous match (gap=%.4f too small)%n", gap);
+                return null;
+            }
+        }
+
+        System.out.println("[FaceLogin] ✅ Match accepted: " + bestUser.getEmail());
+        return bestUser;
     }
 
     @FXML

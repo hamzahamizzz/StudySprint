@@ -47,7 +47,6 @@
         </VBox>
         <TableView fx:id="usersTable" VBox.vgrow="ALWAYS">
             <columns>
-                <TableColumn fx:id="idCol" prefWidth="50.0" text="ID" />
                 <TableColumn fx:id="nomCol" prefWidth="120.0" text="Nom" />
                 <TableColumn fx:id="prenomCol" prefWidth="120.0" text="Prénom" />
                 <TableColumn fx:id="emailCol" prefWidth="180.0" text="Email" />

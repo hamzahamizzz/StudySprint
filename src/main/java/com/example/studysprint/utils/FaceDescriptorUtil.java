@@ -53,9 +53,11 @@ public class FaceDescriptorUtil {
         return Math.sqrt(sum);
     }
 
-    /** Recommended threshold for same-person match */
+    /** Recommended threshold for same-person match.
+     *  18.0 is strict enough to avoid false positives between different people
+     *  while still tolerating minor lighting/angle variations. */
     public static boolean isSamePerson(double[] a, double[] b) {
-        return distance(a, b) < 35.0;
+        return distance(a, b) < 18.0;
     }
 
     public static String toJson(double[] descriptor) {
