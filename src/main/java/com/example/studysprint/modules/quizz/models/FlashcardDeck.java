@@ -22,6 +22,7 @@ public class FlashcardDeck {
         this.ownerId   = ownerId;
         this.subjectId = subjectId;
         this.title     = title;
+        this.cards     = "[]";
     }
 
     // ── Getters & Setters ──────────────────────────────────────────────

@@ -98,6 +98,32 @@
                         <Label fx:id="lblCardStatus" wrapText="true" style="-fx-font-size:12;"/>
                     </VBox>
 
+                    <!-- AI text-to-flashcards -->
+                    <VBox spacing="10" styleClass="card">
+                        <Separator/>
+                        <Label text="Générer depuis votre cours :"
+                               style="-fx-font-weight:bold;-fx-text-fill:#4A5673;"/>
+                        <TextArea fx:id="courseTextArea"
+                                  promptText="Colle ici un paragraphe…"
+                                  prefRowCount="6"
+                                  wrapText="true"/>
+                        <HBox spacing="10" alignment="CENTER_LEFT">
+                            <Label text="Nombre de flashcards :"/>
+                            <Spinner fx:id="countSpinner" min="3" max="15" initialValue="5"
+                                     prefWidth="80" editable="true"/>
+                        </HBox>
+                        <Button fx:id="generateFromTextBtn"
+                                text="📚 Générer depuis le cours"
+                                onAction="#handleGenerateFromText"
+                                maxWidth="Infinity"
+                                style="-fx-background-color:#4CAF50;-fx-text-fill:white;-fx-font-weight:bold;-fx-background-radius:6;-fx-padding:8 14;"/>
+                        <Label fx:id="generateStatusLabel"
+                               wrapText="true"
+                               visible="false"
+                               managed="false"
+                               style="-fx-font-size:12;"/>
+                    </VBox>
+
                 </VBox>
             </ScrollPane>
 

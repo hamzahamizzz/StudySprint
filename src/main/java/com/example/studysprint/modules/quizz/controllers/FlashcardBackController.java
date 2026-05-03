@@ -4,6 +4,8 @@ import com.example.studysprint.modules.quizz.models.Flashcard;
 import com.example.studysprint.modules.quizz.models.FlashcardDeck;
 import com.example.studysprint.modules.quizz.services.FlashcardService;
 import com.example.studysprint.utils.OllamaService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -21,6 +23,9 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -50,6 +55,14 @@ public class FlashcardBackController implements Initializable {
     @FXML private TextField txtCardHint;
     @FXML private Button    btnGenerateHint;
     @FXML private Label     lblCardStatus;
+
+    // ── AI text-to-flashcards ───────────────────────────────────────────
+    @FXML private TextArea  courseTextArea;
+    @FXML private Spinner<Integer> countSpinner;
+    @FXML private Button    generateFromTextBtn;
+    @FXML private Label     generateStatusLabel;
+
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final FlashcardService service = new FlashcardService();
     private final OllamaService    ollama  = new OllamaService();
@@ -86,9 +99,15 @@ public class FlashcardBackController implements Initializable {
             btnGenerateHint.setDisable(true);
             txtCardFront.textProperty().addListener((o, a, b) -> updateHintBtnState());
             txtCardBack.textProperty().addListener((o, a, b) -> updateHintBtnState());
-            checkOllamaAvailability();
         }
 
+        if (countSpinner != null) {
+            SpinnerValueFactory<Integer> svf =
+                    new SpinnerValueFactory.IntegerSpinnerValueFactory(3, 15, 5);
+            countSpinner.setValueFactory(svf);
+        }
+
+        checkOllamaAvailability();
         loadDecks();
     }
 
@@ -101,11 +120,19 @@ public class FlashcardBackController implements Initializable {
             boolean ok = ollama.isAvailable();
             Platform.runLater(() -> {
                 if (!ok) {
-                    btnGenerateHint.setDisable(true);
-                    btnGenerateHint.setTooltip(new Tooltip("Ollama non disponible (http://localhost:11434)"));
+                    if (btnGenerateHint != null) {
+                        btnGenerateHint.setDisable(true);
+                        btnGenerateHint.setTooltip(new Tooltip("Ollama non disponible (http://localhost:11434)"));
+                    }
+                    if (generateFromTextBtn != null) {
+                        generateFromTextBtn.setDisable(true);
+                        generateFromTextBtn.setTooltip(new Tooltip("Ollama non disponible"));
+                    }
                 } else {
-                    btnGenerateHint.setTooltip(new Tooltip("Génère un indice via Mistral local"));
-                    updateHintBtnState();
+                    if (btnGenerateHint != null) {
+                        btnGenerateHint.setTooltip(new Tooltip("Génère un indice via Mistral local"));
+                        updateHintBtnState();
+                    }
                 }
             });
         }, "ollama-check");
@@ -290,7 +317,11 @@ public class FlashcardBackController implements Initializable {
 
     private HBox buildCardRow(Flashcard c) {
         Label lblHandle = new Label("⋮⋮");
-        lblHandle.setStyle("-fx-text-fill:#B0BBC8;-fx-font-size:14;-fx-cursor:move;");
+        lblHandle.setStyle("-fx-text-fill:#5AAEEF;-fx-font-size:16;-fx-font-weight:bold;-fx-cursor:open-hand;-fx-padding:0 4 0 4;");
+        lblHandle.setTooltip(new Tooltip("Glisser pour réordonner"));
+
+        Label lblPos = new Label(String.valueOf(c.getPosition()));
+        lblPos.setStyle("-fx-text-fill:#B0BBC8;-fx-font-size:10;-fx-min-width:18;");
 
         Label lblFront = new Label(c.getFront());
         lblFront.setFont(Font.font("Segoe UI", FontWeight.BOLD, 12));
@@ -306,7 +337,7 @@ public class FlashcardBackController implements Initializable {
         HBox.setHgrow(lblBack, Priority.ALWAYS);
         lblBack.setMaxWidth(160);
 
-        HBox row = new HBox(8, lblHandle, lblFront, sep, lblBack);
+        HBox row = new HBox(8, lblHandle, lblPos, lblFront, sep, lblBack);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(7, 12, 7, 12));
         row.getProperties().put("cardId", c.getId());
@@ -330,32 +361,42 @@ public class FlashcardBackController implements Initializable {
             applyCardRowStyle(row, true);
         });
 
-        // Drag & drop reorder
-        installDragAndDrop(row, c);
+        // Drag & drop reorder — déclenché uniquement depuis le handle
+        installDragAndDrop(row, lblHandle, c);
 
         return row;
     }
 
-    private void installDragAndDrop(HBox row, Flashcard c) {
-        row.setOnDragDetected((MouseEvent ev) -> {
+    private void installDragAndDrop(HBox row, Label handle, Flashcard c) {
+        // Le drag est initié uniquement quand on commence depuis le handle
+        handle.setOnDragDetected((MouseEvent ev) -> {
             draggedCard = c;
             Dragboard db = row.startDragAndDrop(TransferMode.MOVE);
             ClipboardContent content = new ClipboardContent();
             content.putString(String.valueOf(c.getId()));
             db.setContent(content);
+            row.setOpacity(0.4);
             ev.consume();
         });
+
+        // La row entière accepte les drops
         row.setOnDragOver((DragEvent ev) -> {
-            if (ev.getGestureSource() != row && ev.getDragboard().hasString()) {
+            if (ev.getGestureSource() != row && ev.getDragboard().hasString() && draggedCard != null) {
                 ev.acceptTransferModes(TransferMode.MOVE);
             }
             ev.consume();
         });
-        row.setOnDragEntered(ev -> row.setStyle("-fx-background-color:#DCEEFC;-fx-border-color:#5AAEEF;-fx-border-width:2;"
-                + "-fx-border-radius:8;-fx-background-radius:8;"));
+        row.setOnDragEntered(ev -> {
+            if (draggedCard != null && draggedCard.getId() != c.getId()) {
+                row.setStyle("-fx-background-color:#DCEEFC;-fx-border-color:#5AAEEF;-fx-border-width:2;"
+                        + "-fx-border-radius:8;-fx-background-radius:8;");
+            }
+            ev.consume();
+        });
         row.setOnDragExited(ev -> {
             boolean sel = (selectedCard != null && selectedCard.getId() == c.getId());
             applyCardRowStyle(row, sel);
+            ev.consume();
         });
         row.setOnDragDropped((DragEvent ev) -> {
             boolean ok = false;
@@ -366,14 +407,33 @@ public class FlashcardBackController implements Initializable {
                     Flashcard moved = currentDeckCards.remove(from);
                     currentDeckCards.add(to, moved);
                     persistNewPositions();
-                    if (selectedDeck != null) loadCards(selectedDeck.getId());
+                    // Re-render local sans recharger depuis la base (évite la course)
+                    rerenderCardList();
                     ok = true;
                 }
             }
             ev.setDropCompleted(ok);
             ev.consume();
         });
-        row.setOnDragDone(ev -> draggedCard = null);
+        row.setOnDragDone(ev -> {
+            row.setOpacity(1.0);
+            draggedCard = null;
+            ev.consume();
+        });
+    }
+
+    /** Re-render la liste des cartes depuis currentDeckCards sans appel DB. */
+    private void rerenderCardList() {
+        cardListContainer.getChildren().clear();
+        if (currentDeckCards.isEmpty()) {
+            Label empty = new Label("Aucune carte dans ce deck.");
+            empty.setStyle("-fx-text-fill:#B0BBC8;-fx-font-size:13;");
+            cardListContainer.getChildren().add(empty);
+            return;
+        }
+        for (Flashcard c : currentDeckCards) {
+            cardListContainer.getChildren().add(buildCardRow(c));
+        }
     }
 
     private int indexOfCard(long id) {
@@ -384,19 +444,23 @@ public class FlashcardBackController implements Initializable {
     }
 
     private void persistNewPositions() {
-        for (int i = 0; i < currentDeckCards.size(); i++) {
-            Flashcard fc = currentDeckCards.get(i);
-            int newPos = i + 1;
-            if (fc.getPosition() != newPos) {
-                try {
-                    service.updatePosition(fc.getId(), newPos);
-                    fc.setPosition(newPos);
-                } catch (SQLException e) {
-                    showCardStatus("Erreur reorder : " + e.getMessage(), true);
-                }
+        // Étape 1 : positions temporaires (offset 10000) pour éviter tout conflit UNIQUE
+        try {
+            for (int i = 0; i < currentDeckCards.size(); i++) {
+                Flashcard fc = currentDeckCards.get(i);
+                service.updatePosition(fc.getId(), 10000 + i + 1);
             }
+            // Étape 2 : positions finales 1..N
+            for (int i = 0; i < currentDeckCards.size(); i++) {
+                Flashcard fc = currentDeckCards.get(i);
+                int newPos = i + 1;
+                service.updatePosition(fc.getId(), newPos);
+                fc.setPosition(newPos);
+            }
+            showCardStatus("Ordre mis à jour.", false);
+        } catch (SQLException e) {
+            showCardStatus("Erreur reorder : " + e.getMessage(), true);
         }
-        showCardStatus("Ordre mis à jour.", false);
     }
 
     private void applyCardRowStyle(HBox row, boolean selected) {
@@ -564,5 +628,105 @@ public class FlashcardBackController implements Initializable {
         lblCardStatus.setText(msg);
         lblCardStatus.getStyleClass().removeAll("status-success", "status-error");
         lblCardStatus.getStyleClass().add(error ? "status-error" : "status-success");
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  IA — text-to-flashcards
+    // ═══════════════════════════════════════════════════════════════════
+
+    @FXML
+    private void handleGenerateFromText() {
+        // 1. Validate
+        if (!ollama.isAvailable()) {
+            showGenerateStatus("❌ Ollama non disponible. Vérifiez que le serveur tourne sur localhost:11434.", true);
+            return;
+        }
+        String text = courseTextArea.getText().trim();
+        if (text.isBlank()) {
+            showGenerateStatus("❌ Le champ cours est vide.", true);
+            return;
+        }
+        long deckId = selectedDeck != null ? selectedDeck.getId() : 0L;
+        if (deckId == 0) {
+            showGenerateStatus("❌ Sélectionnez un deck avant de générer.", true);
+            return;
+        }
+
+        int count = countSpinner.getValue();
+
+        // 2. Disable + feedback
+        generateFromTextBtn.setDisable(true);
+        generateFromTextBtn.setText("Mistral génère…");
+        generateStatusLabel.setVisible(false);
+        generateStatusLabel.setManaged(false);
+
+        Thread t = new Thread(() -> {
+            try {
+                // 3. Call AI
+                String raw = ollama.generateFlashcardsFromText(text, count);
+                String json = raw.replaceAll("```json", "").replaceAll("```", "").trim();
+
+                JsonNode arr = MAPPER.readTree(json);
+                if (!arr.isArray()) throw new RuntimeException("Réponse IA invalide (pas un tableau JSON).");
+
+                int nextPos = getNextPosition(deckId);
+                int added = 0;
+                for (JsonNode node : arr) {
+                    String front = node.path("front").asText("").trim();
+                    String back  = node.path("back").asText("").trim();
+                    String hint  = node.path("hint").asText("").trim();
+                    if (front.isBlank() || back.isBlank()) continue;
+                    Flashcard c = new Flashcard(deckId, front, back, nextPos++);
+                    c.setHint(hint.isBlank() ? null : hint);
+                    service.addFlashcard(c);
+                    added++;
+                }
+
+                final int finalAdded = added;
+                // 4. Success
+                Platform.runLater(() -> {
+                    generateFromTextBtn.setText("📚 Générer depuis le cours");
+                    generateFromTextBtn.setDisable(false);
+                    courseTextArea.clear();
+                    showGenerateStatus("✅ " + finalAdded + " flashcard(s) générée(s) !", false);
+                    if (selectedDeck != null) {
+                        loadCards(selectedDeck.getId());
+                        try {
+                            int newCount = service.countFlashcardsByDeck(selectedDeck.getId());
+                            refreshDeckCountLabel(selectedDeck.getId(), newCount);
+                        } catch (SQLException ignored) {}
+                    }
+                });
+            } catch (Exception ex) {
+                // 5. Error
+                Platform.runLater(() -> {
+                    generateFromTextBtn.setText("📚 Générer depuis le cours");
+                    generateFromTextBtn.setDisable(false);
+                    showGenerateStatus("❌ " + ex.getMessage(), true);
+                });
+            }
+        }, "ollama-text-gen");
+        t.setDaemon(true);
+        t.start();
+    }
+
+    private int getNextPosition(long deckId) throws SQLException {
+        String sql = "SELECT COALESCE(MAX(position)+1,1) FROM flashcards WHERE deck_id=?";
+        try (Connection conn = com.example.studysprint.utils.MyDatabase.getInstance().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setLong(1, deckId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() ? rs.getInt(1) : 1;
+            }
+        }
+    }
+
+    private void showGenerateStatus(String msg, boolean error) {
+        generateStatusLabel.setText(msg);
+        generateStatusLabel.setStyle(error
+                ? "-fx-text-fill:#D32F2F;-fx-font-size:12;"
+                : "-fx-text-fill:#388E3C;-fx-font-size:12;");
+        generateStatusLabel.setVisible(true);
+        generateStatusLabel.setManaged(true);
     }
 }

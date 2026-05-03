@@ -41,6 +41,18 @@
                         style="-fx-background-color:#F7FFFC;-fx-border-color:transparent;">
                 <VBox spacing="16" style="-fx-padding:20;">
 
+                    <!-- Save actions (en haut) -->
+                    <VBox spacing="8" styleClass="card">
+                        <Label text="ACTIONS" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                        <HBox spacing="8">
+                            <Button text="Ajouter"   onAction="#handleAdd"    styleClass="btn-primary"/>
+                            <Button text="Modifier"  onAction="#handleUpdate" styleClass="btn-warning"/>
+                            <Button text="Supprimer" onAction="#handleDelete" styleClass="btn-danger"/>
+                            <Button text="Vider"     onAction="#handleClear"  styleClass="btn-secondary"/>
+                        </HBox>
+                        <Label fx:id="lblStatus" wrapText="true" style="-fx-font-size:12;"/>
+                    </VBox>
+
                     <!-- Quiz meta card -->
                     <VBox spacing="10" styleClass="card">
                         <Label text="MÉTADONNÉES" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
@@ -99,18 +111,6 @@
                             <Label fx:id="lblQCount" text="0 question(s)" styleClass="subtitle-label"/>
                         </HBox>
                         <ListView fx:id="listQuestions" prefHeight="110"/>
-                    </VBox>
-
-                    <!-- Save actions -->
-                    <VBox spacing="8" styleClass="card">
-                        <Label text="ACTIONS" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
-                        <HBox spacing="8">
-                            <Button text="Ajouter"   onAction="#handleAdd"    styleClass="btn-primary"/>
-                            <Button text="Modifier"  onAction="#handleUpdate" styleClass="btn-warning"/>
-                            <Button text="Supprimer" onAction="#handleDelete" styleClass="btn-danger"/>
-                            <Button text="Vider"     onAction="#handleClear"  styleClass="btn-secondary"/>
-                        </HBox>
-                        <Label fx:id="lblStatus" wrapText="true" style="-fx-font-size:12;"/>
                     </VBox>
 
                 </VBox>

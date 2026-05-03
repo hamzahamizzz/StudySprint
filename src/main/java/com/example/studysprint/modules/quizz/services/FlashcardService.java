@@ -4,7 +4,10 @@ import com.example.studysprint.modules.quizz.models.Flashcard;
 import com.example.studysprint.modules.quizz.models.FlashcardDeck;
 import com.example.studysprint.utils.MyDatabase;
 
+import com.example.studysprint.utils.SM2Algorithm.SM2Result;
+
 import java.sql.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -79,6 +82,10 @@ public class FlashcardService {
     }
 
     public void deleteDeck(long id) throws SQLException {
+        try (PreparedStatement ps = conn().prepareStatement("DELETE FROM flashcards WHERE deck_id=?")) {
+            ps.setLong(1, id);
+            ps.executeUpdate();
+        }
         try (PreparedStatement ps = conn().prepareStatement("DELETE FROM flashcard_decks WHERE id=?")) {
             ps.setLong(1, id);
             ps.executeUpdate();
@@ -223,6 +230,67 @@ public class FlashcardService {
         c.setHint(rs.getString("hint"));
         c.setPosition(rs.getInt("position"));
         c.setCreatedAt(rs.getObject("created_at", LocalDateTime.class));
+        // SM-2 fields — tolerate missing columns if migration not yet run
+        try { c.setEaseFactor(rs.getFloat("ease_factor")); } catch (SQLException ignored) {}
+        try { c.setRepetitions(rs.getInt("repetitions")); } catch (SQLException ignored) {}
+        try { c.setIntervalDays(rs.getInt("interval_days")); } catch (SQLException ignored) {}
+        try {
+            java.sql.Date d = rs.getDate("next_review");
+            if (d != null) c.setNextReview(d.toLocalDate());
+        } catch (SQLException ignored) {}
         return c;
+    }
+
+    // ═══════════════════════════════════════════
+    // SM-2 SPACED REPETITION
+    // ═══════════════════════════════════════════
+
+    public void updateSM2(long id, SM2Result r) throws SQLException {
+        String sql = "UPDATE flashcards SET ease_factor=?, interval_days=?, repetitions=?, next_review=? WHERE id=?";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setFloat(1, r.newEaseFactor());
+            ps.setInt(2, r.newIntervalDays());
+            ps.setInt(3, r.newRepetitions());
+            ps.setDate(4, java.sql.Date.valueOf(r.nextReview()));
+            ps.setLong(5, id);
+            ps.executeUpdate();
+        }
+    }
+
+    public List<Flashcard> getDueFlashcards(long deckId) throws SQLException {
+        List<Flashcard> list = new ArrayList<>();
+        String sql = "SELECT * FROM flashcards WHERE deck_id=? AND next_review<=CURDATE() ORDER BY next_review ASC";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setLong(1, deckId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapCard(rs));
+            }
+        }
+        return list;
+    }
+
+    public int getDueCount(long deckId) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM flashcards WHERE deck_id=? AND next_review<=CURDATE()";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setLong(1, deckId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        }
+        return 0;
+    }
+
+    public LocalDate getNextSessionDate(long deckId) throws SQLException {
+        String sql = "SELECT MIN(next_review) FROM flashcards WHERE deck_id=? AND next_review>CURDATE()";
+        try (PreparedStatement ps = conn().prepareStatement(sql)) {
+            ps.setLong(1, deckId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Date d = rs.getDate(1);
+                    return d != null ? d.toLocalDate() : null;
+                }
+            }
+        }
+        return null;
     }
 }

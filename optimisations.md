@@ -1,4 +1,4 @@
-# Optimisations du code — StudySprint
+c# Optimisations du code — StudySprint
 
 ## 1. IDs `int` → `long` dans tous les modèles
 

@@ -8,7 +8,13 @@ module com.example.studysprint {
 
     requires java.sql;
     requires java.net.http;
+    requires java.desktop;
+    requires java.naming;
     requires com.fasterxml.jackson.databind;
+
+    // iText 5 and JavaMail are non-modular jars — opened via unnamed module
+    requires itextpdf;
+    requires java.mail;
 
     opens com.example.studysprint to javafx.fxml;
     exports com.example.studysprint;

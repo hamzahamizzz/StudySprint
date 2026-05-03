@@ -24,7 +24,32 @@
             <!-- ── LIST PANEL ── -->
             <VBox fx:id="panelList" spacing="12" style="-fx-padding:20 24;">
 
-                <!-- Toolbar -->
+                <!-- CRUD étudiant -->
+                <HBox spacing="8" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:10 14;">
+                    <Label text="MES QUIZ" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Créer" onAction="#handleCreateMyQuiz" styleClass="btn-primary"/>
+                    <Button text="✏ Modifier" onAction="#handleEditMyQuiz" styleClass="btn-warning"/>
+                    <Button text="🗑 Supprimer" onAction="#handleDeleteMyQuiz" styleClass="btn-danger"/>
+                </HBox>
+
+                <!-- Actions sur quiz sélectionné -->
+                <HBox spacing="10" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:10 14;">
+                    <Button text="▶  Lancer le quiz" onAction="#handleStartQuiz" styleClass="btn-primary"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Label text="Note :" styleClass="subtitle-label"/>
+                    <Slider fx:id="sliderRating" min="1" max="5" value="3"
+                            majorTickUnit="1" minorTickCount="0"
+                            snapToTicks="true" showTickMarks="false" showTickLabels="false"
+                            prefWidth="140"/>
+                    <Label fx:id="lblRatingVal" text="3"
+                           style="-fx-font-weight:bold;-fx-text-fill:#5AAEEF;-fx-min-width:16;"/>
+                    <Button text="Noter" onAction="#handleRate" styleClass="btn-secondary"/>
+                </HBox>
+
+                <!-- Toolbar recherche -->
                 <HBox spacing="10" alignment="CENTER_LEFT"
                       style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:8 12;">
                     <TextField fx:id="txtSearch" promptText="Rechercher un quiz…"
@@ -44,21 +69,6 @@
                             style="-fx-background-color:transparent;-fx-border-color:transparent;">
                     <VBox fx:id="cardsContainer" spacing="8" style="-fx-padding:0 2 4 2;"/>
                 </ScrollPane>
-
-                <!-- Bottom actions -->
-                <HBox spacing="10" alignment="CENTER_LEFT"
-                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:10 14;">
-                    <Button text="▶  Lancer le quiz" onAction="#handleStartQuiz" styleClass="btn-primary"/>
-                    <Region HBox.hgrow="ALWAYS"/>
-                    <Label text="Note :" styleClass="subtitle-label"/>
-                    <Slider fx:id="sliderRating" min="1" max="5" value="3"
-                            majorTickUnit="1" minorTickCount="0"
-                            snapToTicks="true" showTickMarks="false" showTickLabels="false"
-                            prefWidth="140"/>
-                    <Label fx:id="lblRatingVal" text="3"
-                           style="-fx-font-weight:bold;-fx-text-fill:#5AAEEF;-fx-min-width:16;"/>
-                    <Button text="Noter" onAction="#handleRate" styleClass="btn-secondary"/>
-                </HBox>
 
                 <Label fx:id="lblListStatus" wrapText="true" style="-fx-font-size:12;"/>
             </VBox>
@@ -120,7 +130,19 @@
                           style="-fx-font-style:italic;-fx-background-color:transparent;-fx-border-color:#E5EAF2;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:12 16;"
                           visible="false" managed="false"/>
 
-                <Button text="← Retour à la liste" onAction="#handleBackToList" styleClass="btn-secondary"/>
+                <HBox spacing="12" alignment="CENTER">
+                    <Button fx:id="btnExportPdf"
+                            text="📄 Exporter PDF"
+                            onAction="#handleExportPdf"
+                            style="-fx-background-color:#E65100;-fx-text-fill:white;
+                                   -fx-font-weight:bold;-fx-background-radius:6;-fx-padding:8 18;"/>
+                    <Button fx:id="btnEmailResult"
+                            text="📧 Envoyer par email"
+                            onAction="#handleEmailResult"
+                            style="-fx-background-color:#1976D2;-fx-text-fill:white;
+                                   -fx-font-weight:bold;-fx-background-radius:6;-fx-padding:8 18;"/>
+                    <Button text="← Retour à la liste" onAction="#handleBackToList" styleClass="btn-secondary"/>
+                </HBox>
             </VBox>
 
         </StackPane>

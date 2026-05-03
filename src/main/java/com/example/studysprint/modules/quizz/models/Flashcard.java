@@ -1,5 +1,6 @@
 package com.example.studysprint.modules.quizz.models;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 /**
@@ -15,6 +16,12 @@ public class Flashcard {
     private String hint;            // nullable
     private int position;
     private LocalDateTime createdAt;
+
+    // SM-2 spaced-repetition fields
+    private float     easeFactor   = 2.5f;
+    private int       repetitions  = 0;
+    private int       intervalDays = 1;
+    private LocalDate nextReview   = LocalDate.now();
 
     public Flashcard() {}
 
@@ -48,6 +55,18 @@ public class Flashcard {
 
     public LocalDateTime getCreatedAt()           { return createdAt; }
     public void setCreatedAt(LocalDateTime t)     { this.createdAt = t; }
+
+    public float getEaseFactor()                  { return easeFactor; }
+    public void setEaseFactor(float easeFactor)   { this.easeFactor = easeFactor; }
+
+    public int getRepetitions()                   { return repetitions; }
+    public void setRepetitions(int repetitions)   { this.repetitions = repetitions; }
+
+    public int getIntervalDays()                  { return intervalDays; }
+    public void setIntervalDays(int intervalDays) { this.intervalDays = intervalDays; }
+
+    public LocalDate getNextReview()              { return nextReview; }
+    public void setNextReview(LocalDate nextReview) { this.nextReview = nextReview; }
 
     @Override
     public String toString() {

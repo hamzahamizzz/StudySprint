@@ -1,5 +1,6 @@
 package com.example.studysprint;
 
+import com.example.studysprint.modules.quizz.controllers.DashboardController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -18,6 +19,7 @@ public class MainApp extends Application {
         TabPane tabPane = new TabPane();
 
         tabPane.getTabs().addAll(
+                loadDashboardTab(),
                 loadTab("Quiz — Étudiant",      "/fxml/quizz/QuizFront.fxml"),
                 loadTab("Quiz — Admin",          "/fxml/quizz/QuizBack.fxml"),
                 loadTab("Flashcards — Étudiant", "/fxml/quizz/FlashcardFront.fxml"),
@@ -37,6 +39,17 @@ public class MainApp extends Application {
         stage.setTitle("StudySprint — Quiz & Flashcards");
         stage.setScene(scene);
         stage.show();
+    }
+
+    private Tab loadDashboardTab() throws IOException {
+        URL resource = getClass().getResource("/fxml/quizz/Dashboard.fxml");
+        if (resource == null) throw new IOException("FXML non trouvé : Dashboard.fxml");
+        FXMLLoader loader = new FXMLLoader(resource);
+        Tab tab = new Tab("📊 Dashboard", loader.load());
+        tab.setClosable(false);
+        DashboardController ctrl = loader.getController();
+        ctrl.initDashboard(1L);
+        return tab;
     }
 
     private Tab loadTab(String title, String fxmlPath) throws IOException {

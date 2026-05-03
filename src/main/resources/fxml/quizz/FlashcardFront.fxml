@@ -38,6 +38,16 @@
                     <VBox fx:id="decksContainer" spacing="8" style="-fx-padding:0 2 4 2;"/>
                 </ScrollPane>
 
+                <!-- CRUD étudiant -->
+                <HBox spacing="8" alignment="CENTER_LEFT"
+                      style="-fx-background-color:#FFFFFF;-fx-border-color:#E5EAF2;-fx-border-width:1;-fx-border-radius:8;-fx-background-radius:8;-fx-padding:10 14;">
+                    <Label text="MES DECKS" style="-fx-font-size:10;-fx-font-weight:bold;-fx-text-fill:#B0BBC8;-fx-letter-spacing:0.12em;"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button text="+ Créer" onAction="#handleCreateMyDeck" styleClass="btn-primary"/>
+                    <Button text="✏ Modifier" onAction="#handleEditMyDeck" styleClass="btn-warning"/>
+                    <Button text="🗑 Supprimer" onAction="#handleDeleteMyDeck" styleClass="btn-danger"/>
+                </HBox>
+
                 <Label fx:id="lblListStatus" wrapText="true" style="-fx-font-size:12;"/>
             </VBox>
 

@@ -12,7 +12,14 @@
       "Bash(grep -E \"\\\\.\\(err|log\\)$\")",
       "Bash(find:*)",
       "Bash(./mvnw.cmd -q -DskipTests compile)",
-      "Bash(C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe *)"
+      "Bash(C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe *)",
+      "Bash(mvn -q -o compile)",
+      "Bash(./mvnw -q -o compile)",
+      "Bash(echo \"EXIT=$?\")",
+      "Bash(./mvnw -q -o test-compile)",
+      "Bash(./mvnw -q -o test -Dtest='*UnitTest')",
+      "Bash(./mvnw -q -o compile test-compile)",
+      "Bash(mvn compile *)"
     ]
   }
 }
