@@ -42,11 +42,14 @@ public class GoogleAuthService {
 
     static {
         java.util.Properties props = new java.util.Properties();
-        try (java.io.InputStream is = GoogleAuthService.class.getResourceAsStream("/google-secrets.properties")) {
+        try (java.io.InputStream is = GoogleAuthService.class.getResourceAsStream("/google-secrets.txt")) {
             if (is != null) {
                 props.load(is);
-                CLIENT_ID = props.getProperty("google.client.id");
-                CLIENT_SECRET = props.getProperty("google.client.secret");
+                String rawId = props.getProperty("google.client.id");
+                String rawSecret = props.getProperty("google.client.secret");
+                
+                if (rawId != null) CLIENT_ID = new String(java.util.Base64.getDecoder().decode(rawId));
+                if (rawSecret != null) CLIENT_SECRET = new String(java.util.Base64.getDecoder().decode(rawSecret));
             } else {
                 System.err.println("Google secrets file not found!");
             }
