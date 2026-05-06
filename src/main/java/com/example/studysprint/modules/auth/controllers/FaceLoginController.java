@@ -1,5 +1,6 @@
 package com.example.studysprint.modules.auth.controllers;
 
+import com.example.studysprint.modules.auth.controllers.ProfileController;
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
 import com.example.studysprint.utils.FaceDescriptorUtil;
@@ -106,66 +107,53 @@ public class FaceLoginController implements Initializable {
     }
 
     /**
-     * Best-match strategy calibrated on real measured distances.
-     * Real distances observed: same person ~0.7-1.5, different person ~1.5-3.0+
-     * Threshold: 3.0 (accepts same person, rejects strangers)
-     * Gap: 0.5 minimum separation between best and second-best
+     * Seuil recommandé par FaceDescriptorUtil : 18.0
      */
-    private static final double STRICT_THRESHOLD = 3.0;
+    private static final double STRICT_THRESHOLD = 28.0;
 
     private Utilisateur findMatch(double[] scanned) {
+        if (scanned == null) return null;
+
         List<Utilisateur> users = userService.getAll();
 
         Utilisateur bestUser = null;
         double bestDist = Double.MAX_VALUE;
-        double secondBestDist = Double.MAX_VALUE;
-
-        System.out.println("[FaceLogin] ── Scanning " + users.size() + " users ──");
 
         for (Utilisateur u : users) {
             String stored = u.getFaceDescriptor();
-            if (stored == null || stored.isBlank()) continue;
+            if (stored == null || stored.isBlank() || stored.length() < 100) continue;
+            
             try {
                 double[] storedDesc = FaceDescriptorUtil.fromJson(stored);
+                if (storedDesc == null || storedDesc.length != scanned.length) continue;
+
                 double dist = FaceDescriptorUtil.distance(scanned, storedDesc);
-                // Skip descriptors that are corrupted (infinite distance = wrong length)
-                if (Double.isInfinite(dist) || Double.isNaN(dist)) {
-                    System.out.println("[FaceLogin] ⚠️ Skipping corrupt descriptor for " + u.getEmail());
-                    continue;
-                }
-                System.out.printf("[FaceLogin] %s → dist=%.4f%n", u.getEmail(), dist);
+                if (Double.isInfinite(dist) || Double.isNaN(dist)) continue;
 
                 if (dist < bestDist) {
-                    secondBestDist = bestDist;
                     bestDist = dist;
                     bestUser = u;
-                } else if (dist < secondBestDist) {
-                    secondBestDist = dist;
                 }
             } catch (Exception e) {
-                System.out.println("[FaceLogin] Error reading descriptor for " + u.getEmail());
+                e.printStackTrace();
             }
         }
 
-        System.out.printf("[FaceLogin] Best dist=%.4f  SecondBest=%.4f  Threshold=%.1f%n",
-                bestDist, secondBestDist, STRICT_THRESHOLD);
+        final double finalBestDist = bestDist;
+        final Utilisateur finalBestUser = bestUser;
+        
+        Platform.runLater(() -> {
+            if (finalBestUser != null) {
+                statusLabel.setText(String.format("Distance: %.2f (Cible: %s)", finalBestDist, finalBestUser.getEmail()));
+            } else {
+                statusLabel.setText("Visage inconnu.");
+            }
+        });
 
-        // Reject if best distance exceeds strict threshold
         if (bestUser == null || bestDist >= STRICT_THRESHOLD) {
-            System.out.println("[FaceLogin] ❌ No match (dist too high)");
             return null;
         }
 
-        // If multiple enrolled users, ensure best is clearly better than second
-        if (secondBestDist < Double.MAX_VALUE) {
-            double gap = secondBestDist - bestDist;
-            if (gap < 0.5) { // gap must be at least 0.5 (based on real measured distances)
-                System.out.printf("[FaceLogin] ❌ Ambiguous match (gap=%.4f too small)%n", gap);
-                return null;
-            }
-        }
-
-        System.out.println("[FaceLogin] ✅ Match accepted: " + bestUser.getEmail());
         return bestUser;
     }
 
@@ -176,20 +164,36 @@ public class FaceLoginController implements Initializable {
     }
 
     private void handleSuccessfulLogin(Utilisateur user) {
-        SessionManager.getInstance().setCurrentUser(user);
-        String fxmlPath = "ROLE_ADMIN".equals(user.getRole())
-                ? "/fxml/utilisateurs/main-admin-layout.fxml"
-                : "/fxml/auth/profile.fxml";
-        switchScene(fxmlPath, "StudySprint");
+        Platform.runLater(() -> {
+            SessionManager.getInstance().setCurrentUser(user);
+            String fxmlPath = "ROLE_ADMIN".equals(user.getRole())
+                    ? "/fxml/utilisateurs/main-admin-layout.fxml"
+                    : "/fxml/auth/profile.fxml";
+            String title = "ROLE_ADMIN".equals(user.getRole()) ? "Administration - StudySprint" : "Mon Profil - StudySprint";
+            switchScene(fxmlPath, title);
+        });
     }
 
     private void switchScene(String path, String title) {
-        try {
-            Parent root = FXMLLoader.load(getClass().getResource(path));
-            Stage stage = (Stage) cameraView.getScene().getWindow();
-            stage.setTitle(title);
-            stage.setScene(new Scene(root));
-        } catch (IOException e) { e.printStackTrace(); }
+        Platform.runLater(() -> {
+            try {
+                FXMLLoader loader = new FXMLLoader(getClass().getResource(path));
+                Parent root = loader.load();
+                
+                // Si on va vers le profil, on s'assure que le controleur reçoit l'utilisateur
+                if (path.contains("profile.fxml")) {
+                    ProfileController controller = loader.getController();
+                    controller.setTempUser(SessionManager.getInstance().getCurrentUser());
+                }
+
+                Stage stage = (Stage) cameraView.getScene().getWindow();
+                stage.setTitle(title);
+                stage.setScene(new Scene(root));
+            } catch (IOException e) {
+                e.printStackTrace();
+                statusLabel.setText("Erreur de chargement de l'interface.");
+            }
+        });
     }
 
     private void drawOverlay() {

@@ -20,11 +20,11 @@ import java.util.regex.Pattern;
 
 public class RegisterController implements Initializable {
 
-    @FXML private TextField nomField, prenomField, emailField, ageField, experienceField;
+    @FXML private TextField nomField, prenomField, emailField, ageField, experienceField, telephoneField;
     @FXML private PasswordField passwordField, confirmPasswordField;
     @FXML private ComboBox<String> roleCombo, sexeCombo, etablissementCombo, niveauField, specialiteField, niveauEnseignementField;
     @FXML private ComboBox<ExternalApiService.Country> paysCombo;
-    @FXML private Label nomError, prenomError, emailError, passwordError, confirmPasswordError, paysError;
+    @FXML private Label nomError, prenomError, emailError, passwordError, confirmPasswordError, paysError, telephoneError;
     @FXML private VBox studentFields, professorFields;
 
     private final UtilisateurService userService = new UtilisateurService();
@@ -95,8 +95,10 @@ public class RegisterController implements Initializable {
                     ? etablissementCombo.getValue()
                     : etablissementCombo.getEditor().getText().trim();
 
+            user.setTelephone(telephoneField.getText().trim());
+
             if ("Étudiant".equals(roleCombo.getValue())) {
-                if (!ageField.getText().isEmpty()) user.setAge(Integer.parseInt(ageField.getText()));
+                if (!ageField.getText().isEmpty()) user.setAge(Integer.parseInt(ageField.getText().trim()));
                 user.setSexe(sexeCombo.getValue());
                 user.setEtablissement(etablissement);
                 user.setNiveau(niveauField.getValue());
@@ -126,7 +128,7 @@ public class RegisterController implements Initializable {
                         prenomField.setDisable(false);
                         emailField.setDisable(false);
                         passwordField.setDisable(false);
-                        showError("Erreur", "L'email est peut-être déjà utilisé ou une erreur réseau est survenue.");
+                        showInlineError(emailField, emailError, "Email déjà utilisé ou erreur réseau.");
                     });
                 }
             }).start();
@@ -137,6 +139,8 @@ public class RegisterController implements Initializable {
     private void handleGoToLogin() {
         switchScene("/fxml/auth/login.fxml", "Connexion - StudySprint");
     }
+
+    @FXML private Label ageError; // Add ageError
 
     private boolean validate() {
         boolean isValid = true;
@@ -149,80 +153,109 @@ public class RegisterController implements Initializable {
 
         // ── Champs de base ────────────────────────────────────────────────
         if (nomField.getText().trim().isEmpty()) {
-            nomError.setText("Nom requis"); nomError.setVisible(true); isValid = false;
+            showInlineError(nomField, nomError, "Nom requis"); isValid = false;
         }
         if (prenomField.getText().trim().isEmpty()) {
-            prenomError.setText("Prénom requis"); prenomError.setVisible(true); isValid = false;
+            showInlineError(prenomField, prenomError, "Prénom requis"); isValid = false;
         }
         if (email.isEmpty() || !Pattern.matches("^[A-Za-z0-9+_.-]+@(.+)$", email)) {
-            emailError.setText("Email invalide"); emailError.setVisible(true); isValid = false;
+            showInlineError(emailField, emailError, "Email invalide"); isValid = false;
         }
 
         // ── Mot de passe ─────────────────────────────────────────────────
         String passRegex = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).{8,}$";
         if (!Pattern.matches(passRegex, password)) {
-            passwordError.setText("⚠ Le mot de passe doit contenir au minimum 8 caractères,\nune lettre majuscule (A-Z), une lettre minuscule (a-z) et un chiffre (0-9).");
-            passwordError.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 11px;");
-            passwordError.setVisible(true);
-            isValid = false;
+            showInlineError(passwordField, passwordError, "Min 8 caractères, 1 Majuscule, 1 minuscule, 1 chiffre."); isValid = false;
         } else if (!password.equals(confirm)) {
-            confirmPasswordError.setText("Ne correspond pas");
-            confirmPasswordError.setVisible(true);
-            isValid = false;
+            showInlineError(confirmPasswordField, confirmPasswordError, "Les mots de passe ne correspondent pas."); isValid = false;
         }
 
         // ── Pays ─────────────────────────────────────────────────────────
         if (paysCombo.getValue() == null) {
-            paysError.setText("Pays requis"); paysError.setVisible(true); isValid = false;
+            showInlineError(paysCombo, paysError, "Le pays est requis"); isValid = false;
         }
 
-        // Stop here if basic fields are invalid
-        if (!isValid) return false;
-
         // ── Établissement ────────────────────────────────────────────────
-        // Accept either a dropdown selection OR typed text
         String etablissement = etablissementCombo.getValue() != null
                 ? etablissementCombo.getValue()
                 : etablissementCombo.getEditor().getText().trim();
         if (etablissement == null || etablissement.isEmpty()) {
-            showError("Champ manquant", "Veuillez sélectionner ou saisir votre établissement.");
-            return false;
+            etablissementCombo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;"); isValid = false;
+        } else {
+            etablissementCombo.setStyle("");
+        }
+
+        // ── Téléphone (Optionnel) ────────────────
+        String phone = telephoneField.getText().trim();
+        if (!phone.isEmpty() && !Pattern.matches("^\\d{8}$", phone)) {
+            showInlineError(telephoneField, telephoneError, "Doit contenir 8 chiffres"); isValid = false;
         }
 
         // ── Champs spécifiques au rôle ───────────────────────────────────
         if (isStudent) {
-            if (ageField.getText().trim().isEmpty()) {
-                showError("Champ manquant", "L'âge est obligatoire."); return false;
+            String ageStr = ageField.getText().trim();
+            if (ageStr.isEmpty()) {
+                showInlineError(ageField, ageError, "S'il vous plaît, l'âge est obligatoire."); isValid = false;
+            } else {
+                try {
+                    int age = Integer.parseInt(ageStr);
+                    if (age <= 13) {
+                        showInlineError(ageField, ageError, "S'il vous plaît, l'âge est obligatoire et supérieur à 13.");
+                        isValid = false;
+                    }
+                } catch (NumberFormatException e) {
+                    showInlineError(ageField, ageError, "Format invalide."); isValid = false;
+                }
             }
+
             if (sexeCombo.getValue() == null) {
-                showError("Champ manquant", "Le sexe est obligatoire."); return false;
-            }
+                sexeCombo.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;"); isValid = false;
+            } else { sexeCombo.setStyle(""); }
+
             if (niveauField.getValue() == null) {
-                showError("Champ manquant", "Le niveau d'étude est obligatoire. \nSi la liste est vide, attendez quelques secondes le chargement.");
-                return false;
-            }
+                niveauField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;"); isValid = false;
+            } else { niveauField.setStyle(""); }
+
         } else {
             if (specialiteField.getValue() == null) {
-                showError("Champ manquant", "La spécialité est obligatoire."); return false;
-            }
+                specialiteField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;"); isValid = false;
+            } else { specialiteField.setStyle(""); }
+
             if (niveauEnseignementField.getValue() == null) {
-                showError("Champ manquant", "Le niveau d'enseignement est obligatoire."); return false;
-            }
+                niveauEnseignementField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;"); isValid = false;
+            } else { niveauEnseignementField.setStyle(""); }
+
             if (experienceField.getText().trim().isEmpty()) {
-                showError("Champ manquant", "Les années d'expérience sont obligatoires."); return false;
-            }
+                experienceField.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;"); isValid = false;
+            } else { experienceField.setStyle(""); }
         }
 
-        return true;
+        return isValid;
+    }
+
+    private void showInlineError(Control field, Label errorLabel, String message) {
+        field.setStyle("-fx-border-color: #e74c3c; -fx-border-width: 1px;");
+        if (errorLabel != null) {
+            errorLabel.setText(message);
+            errorLabel.setStyle("-fx-text-fill: #e74c3c; -fx-font-size: 11px;");
+            errorLabel.setVisible(true);
+            errorLabel.setManaged(true);
+        }
     }
 
     private void resetErrors() {
-        nomError.setVisible(false);
-        prenomError.setVisible(false);
-        emailError.setVisible(false);
-        passwordError.setVisible(false);
-        confirmPasswordError.setVisible(false);
-        paysError.setVisible(false);
+        Control[] fields = {nomField, prenomField, emailField, passwordField, confirmPasswordField, paysCombo, telephoneField, ageField, etablissementCombo, sexeCombo, niveauField, specialiteField, niveauEnseignementField, experienceField};
+        for (Control field : fields) {
+            if (field != null) field.setStyle("");
+        }
+        
+        Label[] errors = {nomError, prenomError, emailError, passwordError, confirmPasswordError, paysError, telephoneError, ageError};
+        for (Label error : errors) {
+            if (error != null) {
+                error.setVisible(false);
+                error.setManaged(false);
+            }
+        }
     }
 
     private void switchScene(String fxmlPath, String title) {
@@ -239,13 +272,6 @@ public class RegisterController implements Initializable {
 
     private void showSuccess(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setContentText(message);
-        alert.showAndWait();
-    }
-
-    private void showError(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setContentText(message);
         alert.showAndWait();

@@ -78,7 +78,7 @@
                               <Label text="Gérez vos informations personnelles et académiques." textFill="#636e72" />
                            </children>
                         </VBox>
-                        <Button mnemonicParsing="false" onAction="#handleUpdate" prefHeight="45.0" prefWidth="180.0" text="Enregistrer les modifications" />
+                        <Button fx:id="updateButton" mnemonicParsing="false" onAction="#handleUpdate" prefHeight="45.0" prefWidth="180.0" text="Enregistrer les modifications" />
                      </children>
                   </HBox>
                   
@@ -98,24 +98,28 @@
                                  <children>
                                     <Label text="Nom" textFill="#636e72" />
                                     <TextField fx:id="nomField" prefHeight="40.0" />
+                                    <Label fx:id="nomError" style="-fx-text-fill: #e74c3c; -fx-font-size: 11px;" visible="false" managed="false" />
                                  </children>
                               </VBox>
                               <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
                                  <children>
                                     <Label text="Prénom" textFill="#636e72" />
                                     <TextField fx:id="prenomField" prefHeight="40.0" />
+                                    <Label fx:id="prenomError" style="-fx-text-fill: #e74c3c; -fx-font-size: 11px;" visible="false" managed="false" />
                                  </children>
                               </VBox>
                               <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
                                  <children>
                                     <Label text="Email" textFill="#636e72" />
-                                    <TextField fx:id="emailField" prefHeight="40.0" />
+                                    <TextField fx:id="emailField" prefHeight="40.0" styleClass="form-field" />
+                                    <Label fx:id="emailError" managed="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 11px;" visible="false" />
                                  </children>
                               </VBox>
                               <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
                                  <children>
                                     <Label text="Téléphone" textFill="#636e72" />
-                                    <TextField fx:id="telephoneField" prefHeight="40.0" />
+                                    <TextField fx:id="telephoneField" prefHeight="40.0" styleClass="form-field" />
+                                    <Label fx:id="telephoneError" managed="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 11px;" visible="false" />
                                  </children>
                               </VBox>
                            </children>
@@ -166,8 +170,9 @@
                            <children>
                               <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="0">
                                  <children>
-                                    <Label text="Age" textFill="#636e72" />
-                                    <TextField fx:id="ageField" prefHeight="40.0" />
+                                    <Label text="Âge" textFill="#636e72" />
+                                    <TextField fx:id="ageField" prefHeight="40.0" promptText="Âge (> 13)" />
+                                    <Label fx:id="ageError" managed="false" style="-fx-text-fill: #e74c3c; -fx-font-size: 11px;" visible="false" />
                                  </children>
                               </VBox>
                               <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
@@ -179,7 +184,7 @@
                               <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.columnSpan="2">
                                  <children>
                                     <Label text="Niveau" textFill="#636e72" />
-                                    <TextField fx:id="niveauField" prefHeight="40.0" />
+                                    <ComboBox fx:id="niveauCombo" maxWidth="Infinity" prefHeight="40.0" promptText="Sélectionnez votre niveau" />
                                  </children>
                               </VBox>
                            </children>

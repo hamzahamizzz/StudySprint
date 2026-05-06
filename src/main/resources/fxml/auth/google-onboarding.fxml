@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.shape.Rectangle?>
+
+<VBox alignment="CENTER" spacing="30.0" prefHeight="500.0" prefWidth="700.0" 
+      style="-fx-background-color: #f8f9fa; -fx-font-family: 'Segoe UI', system-ui;"
+      xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" 
+      fx:controller="com.example.studysprint.modules.auth.controllers.GoogleOnboardingController">
+    
+    <padding>
+        <Insets bottom="40.0" left="40.0" right="40.0" top="40.0" />
+    </padding>
+
+    <VBox alignment="CENTER" spacing="10.0">
+        <Text text="Bienvenue sur StudySprint !" style="-fx-fill: #6c5ce7; -fx-font-size: 28px; -fx-font-weight: bold;" />
+        <Text text="Pour personnaliser votre expérience, dites-nous qui vous êtes :" style="-fx-fill: #636e72; -fx-font-size: 16px;" />
+    </VBox>
+
+    <HBox alignment="CENTER" spacing="30.0">
+        <!-- Carte Étudiant -->
+        <VBox fx:id="studentCard" onMouseClicked="#selectStudent" alignment="CENTER" spacing="15.0" 
+              style="-fx-background-color: white; -fx-background-radius: 20; -fx-border-color: #dfe6e9; -fx-border-radius: 20; -fx-cursor: hand; -fx-padding: 30;">
+            <Text text="🎓" style="-fx-font-size: 50px;" />
+            <Text text="Étudiant" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #2d3436;" />
+            <Text text="Je veux apprendre et suivre mes cours" textAlignment="CENTER" wrappingWidth="150.0" style="-fx-fill: #b2bec3; -fx-font-size: 13px;" />
+        </VBox>
+
+        <!-- Carte Enseignant -->
+        <VBox fx:id="teacherCard" onMouseClicked="#selectTeacher" alignment="CENTER" spacing="15.0" 
+              style="-fx-background-color: white; -fx-background-radius: 20; -fx-border-color: #dfe6e9; -fx-border-radius: 20; -fx-cursor: hand; -fx-padding: 30;">
+            <Text text="👨‍🏫" style="-fx-font-size: 50px;" />
+            <Text text="Enseignant" style="-fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #2d3436;" />
+            <Text text="Je veux partager mes connaissances" textAlignment="CENTER" wrappingWidth="150.0" style="-fx-fill: #b2bec3; -fx-font-size: 13px;" />
+        </VBox>
+    </HBox>
+
+    <Button fx:id="confirmButton" onAction="#handleConfirm" text="Confirmer et Commencer" disable="true"
+            style="-fx-background-color: #6c5ce7; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold; -fx-padding: 12 40; -fx-background-radius: 10; -fx-cursor: hand;" />
+
+</VBox>

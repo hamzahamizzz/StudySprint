@@ -229,8 +229,27 @@ public class UserFormController implements Initializable {
             return false;
         }
 
-        if (ageField.getText().isEmpty() || telField.getText().isEmpty()) {
-            showError("Champs vides", "L'âge et le téléphone sont obligatoires.");
+        // ── Validation Age (> 13) ─────────────────────────────────────────
+        String ageStr = ageField.getText().trim();
+        if (ageStr.isEmpty()) {
+            showError("Champs vides", "L'âge est obligatoire.");
+            return false;
+        }
+        try {
+            int age = Integer.parseInt(ageStr);
+            if (age <= 13) {
+                showError("Validation Age", "L'utilisateur doit avoir plus de 13 ans.");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            showError("Validation Age", "L'âge doit être un nombre valide.");
+            return false;
+        }
+
+        // ── Validation Téléphone (Optionnel mais 8 chiffres si rempli) ───
+        String tel = telField.getText().trim();
+        if (!tel.isEmpty() && !Pattern.matches("^\\d{8}$", tel)) {
+            showError("Validation Téléphone", "Le téléphone doit contenir exactement 8 chiffres.");
             return false;
         }
 

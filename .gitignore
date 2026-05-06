@@ -38,4 +38,4 @@ build/
 .DS_Store
 
 # Secrets
-src/main/resources/google-secrets.properties
+# google-secrets.properties is shared with collaborators (private repo only)

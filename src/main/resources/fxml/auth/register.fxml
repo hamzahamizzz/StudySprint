@@ -77,27 +77,34 @@
                               <Label fx:id="emailError" styleClass="error-label" visible="false" />
                            </children>
                         </VBox>
-                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2">
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.columnSpan="2">
+                           <children>
+                              <Label text="Téléphone (Optionnel)" />
+                              <TextField fx:id="telephoneField" prefHeight="40.0" promptText="8 chiffres (Ex: 55123456)" />
+                              <Label fx:id="telephoneError" styleClass="error-label" visible="false" />
+                           </children>
+                        </VBox>
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="3">
                            <children>
                               <Label text="Mot de passe" />
                               <PasswordField fx:id="passwordField" prefHeight="40.0" />
                               <Label fx:id="passwordError" styleClass="error-label" visible="false" />
                            </children>
                         </VBox>
-                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="2">
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
                            <children>
                               <Label text="Confirmer" />
                               <PasswordField fx:id="confirmPasswordField" prefHeight="40.0" />
                               <Label fx:id="confirmPasswordError" styleClass="error-label" visible="false" />
                            </children>
                         </VBox>
-                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="3">
+                        <VBox spacing="5.0" GridPane.columnIndex="0" GridPane.rowIndex="4">
                            <children>
                               <Label text="Rôle" />
                               <ComboBox fx:id="roleCombo" prefHeight="40.0" prefWidth="250.0" />
                            </children>
                         </VBox>
-                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="3">
+                        <VBox spacing="5.0" GridPane.columnIndex="1" GridPane.rowIndex="4">
                            <children>
                               <Label text="Pays" />
                               <ComboBox fx:id="paysCombo" prefHeight="40.0" prefWidth="250.0" promptText="Sélectionnez un pays" />
@@ -121,8 +128,9 @@
                            <children>
                               <VBox spacing="5.0" HBox.hgrow="ALWAYS">
                                  <children>
-                                    <Label text="Age" />
-                                    <TextField fx:id="ageField" prefHeight="40.0" />
+                                    <Label text="Âge" />
+                                    <TextField fx:id="ageField" prefHeight="40.0" promptText="Âge (> 13)" />
+                                    <Label fx:id="ageError" styleClass="error-label" visible="false" managed="false" />
                                  </children>
                               </VBox>
                               <VBox spacing="5.0" HBox.hgrow="ALWAYS">

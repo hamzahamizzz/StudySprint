@@ -1,15 +1,17 @@
 package com.example.studysprint.modules.auth.controllers;
 
-import com.example.studysprint.modules.auth.services.GoogleAuthService;
 import com.example.studysprint.modules.utilisateurs.models.Utilisateur;
 import com.example.studysprint.modules.utilisateurs.services.UtilisateurService;
+import com.example.studysprint.modules.auth.services.GoogleAuthService;
 import com.example.studysprint.utils.SessionManager;
 import com.google.api.services.oauth2.model.Userinfo;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -17,8 +19,10 @@ import javafx.scene.control.TextField;
 import javafx.stage.Stage;
 
 import java.io.IOException;
+import java.net.URL;
+import java.util.ResourceBundle;
 
-public class LoginController {
+public class LoginController implements Initializable {
 
     @FXML private TextField emailField;
     @FXML private PasswordField passwordField;
@@ -27,113 +31,105 @@ public class LoginController {
 
     private final UtilisateurService userService = new UtilisateurService();
 
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        emailError.setVisible(false);
+        passwordError.setVisible(false);
+    }
+
     @FXML
     private void handleLogin() {
-        if (validate()) {
-            String email = emailField.getText().trim();
-            String password = passwordField.getText().trim();
+        if (!validate()) return;
 
-            // Prevent double clicks and show visual feedback
-            loginButton.setDisable(true);
-            loginButton.setText("Connexion en cours...");
-            passwordError.setVisible(false);
+        String email = emailField.getText();
+        String password = passwordField.getText();
 
-            // Run authentication in background thread to prevent UI freeze
-            new Thread(() -> {
-                try {
-                    Utilisateur user = userService.authenticate(email, password);
-
-                    javafx.application.Platform.runLater(() -> {
-                        loginButton.setDisable(false);
-                        loginButton.setText("Se connecter");
-
-                        if (user != null) {
-                            String status = user.getStatut();
-                            if (status == null || status.isEmpty() || "actif".equalsIgnoreCase(status)) {
-                                SessionManager.getInstance().setCurrentUser(user);
-                                System.out.println("Login successful for: " + user.getEmail());
-                                loadMainApp(user);
-                            } else if ("desactif".equalsIgnoreCase(status) || "inactif".equalsIgnoreCase(status)) {
-                                SessionManager.getInstance().setCurrentUser(user);
-                                switchScene("/fxml/auth/account-deactivated.fxml", "Compte Désactivé - StudySprint");
-                            } else {
-                                passwordError.setText("Compte " + status + ". Contactez un administrateur.");
-                                passwordError.setVisible(true);
-                            }
-                        } else {
-                            passwordError.setText("Identifiants incorrects ou compte inexistant.");
-                            passwordError.setVisible(true);
-                        }
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    javafx.application.Platform.runLater(() -> {
-                        loginButton.setDisable(false);
-                        loginButton.setText("Se connecter");
-                        passwordError.setText("Erreur de connexion : Vérifiez votre base de données.");
-                        passwordError.setVisible(true);
-                    });
-                }
-            }).start();
+        Utilisateur user = userService.authenticate(email, password);
+        if (user != null) {
+            if ("actif".equalsIgnoreCase(user.getStatut()) || user.getStatut() == null || user.getStatut().isEmpty()) {
+                SessionManager.getInstance().setCurrentUser(user);
+                loadMainApp(user);
+            } else {
+                SessionManager.getInstance().setCurrentUser(user);
+                switchScene("/fxml/auth/account-deactivated.fxml", "Compte Suspendu - StudySprint");
+            }
+        } else {
+            passwordError.setText("Email ou mot de passe incorrect.");
+            passwordError.setVisible(true);
         }
     }
 
     @FXML
-    private void handleGoToRegister() {
-        switchScene("/fxml/auth/register.fxml", "Inscription - StudySprint");
-    }
-
-    @FXML
-    private void handleForgotPassword() {
-        switchScene("/fxml/auth/forgot-password.fxml", "Mot de passe oublié - StudySprint");
-    }
-
-    @FXML
-    private void handleFaceLogin() {
-        switchScene("/fxml/auth/face-login.fxml", "Connexion par Reconnaissance Faciale - StudySprint");
-    }
-
-    @FXML
     private void handleGoogleLogin() {
-        loginButton.setDisable(true);
         String originalText = loginButton.getText();
-        loginButton.setText("Connexion Google...");
+        loginButton.setDisable(true);
+        loginButton.setText("Authentification Google...");
         passwordError.setVisible(false);
 
         new Thread(() -> {
             try {
-                Userinfo info = GoogleAuthService.authenticate();
+                Userinfo userInfo = GoogleAuthService.authenticate();
                 
-                Platform.runLater(() -> {
-                    if (info != null && info.getEmail() != null) {
-                        Utilisateur user = userService.findByEmail(info.getEmail());
-                        if (user != null) {
-                            SessionManager.getInstance().setCurrentUser(user);
-                            System.out.println("Google login successful for: " + user.getEmail());
-                            loadMainApp(user);
+                if (userInfo != null && userInfo.getEmail() != null) {
+                    Utilisateur user = userService.findByEmail(userInfo.getEmail());
+
+                    Platform.runLater(() -> {
+                        if (user == null) {
+                            System.out.println("Google login failed: Account not found for " + userInfo.getEmail());
+                            showError("Compte introuvable", "Aucun compte n'est associé à cette adresse Google. Veuillez d'abord vous inscrire manuellement.");
+                            resetLoginButton(originalText);
                         } else {
-                            loginButton.setDisable(false);
-                            loginButton.setText(originalText);
-                            passwordError.setText("Aucun compte StudySprint lié à " + info.getEmail());
-                            passwordError.setVisible(true);
+                            if ("actif".equalsIgnoreCase(user.getStatut()) || user.getStatut() == null || user.getStatut().isEmpty()) {
+                                System.out.println("Google login success for: " + userInfo.getEmail());
+                                SessionManager.getInstance().setCurrentUser(user);
+                                loadMainApp(user);
+                            } else {
+                                SessionManager.getInstance().setCurrentUser(user);
+                                switchScene("/fxml/auth/account-deactivated.fxml", "Compte Suspendu - StudySprint");
+                            }
                         }
-                    } else {
-                        loginButton.setDisable(false);
-                        loginButton.setText(originalText);
-                        passwordError.setText("Échec de la récupération du profil Google.");
-                        passwordError.setVisible(true);
-                    }
-                });
+                    });
+                } else {
+                    System.out.println("Authentification Google annulée ou échouée.");
+                    Platform.runLater(() -> resetLoginButton(originalText));
+                }
             } catch (Exception e) {
-                e.printStackTrace();
                 Platform.runLater(() -> {
-                    loginButton.setDisable(false);
-                    loginButton.setText(originalText);
-                    passwordError.setText("Erreur Google Sign-In : " + e.getMessage());
+                    e.printStackTrace();
+                    resetLoginButton(originalText);
+                    passwordError.setText("Erreur Google : Connexion impossible.");
                     passwordError.setVisible(true);
                 });
             }
         }).start();
+    }
+
+    private void resetLoginButton(String text) {
+        loginButton.setDisable(false);
+        loginButton.setText(text);
+    }
+
+    @FXML
+    private void handleGoToRegister() {
+        Platform.runLater(() -> switchScene("/fxml/auth/register.fxml", "Inscription - StudySprint"));
+    }
+
+    @FXML
+    private void handleFaceLogin() {
+        // Pour Face ID, on s'assure aussi que le changement de scène est propre
+        Platform.runLater(() -> {
+            try {
+                switchScene("/fxml/auth/face-login.fxml", "Connexion Face ID - StudySprint");
+            } catch (Exception e) {
+                e.printStackTrace();
+                showError("Erreur Face ID", "Impossible de charger l'interface de reconnaissance faciale.");
+            }
+        });
+    }
+
+    @FXML
+    private void handleForgotPassword() {
+        Platform.runLater(() -> switchScene("/fxml/auth/forgot-password.fxml", "Mot de passe oublié - StudySprint"));
     }
 
     private boolean validate() {
@@ -174,5 +170,13 @@ public class LoginController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void showError(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 }

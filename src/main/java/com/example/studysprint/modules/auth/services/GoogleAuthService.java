@@ -9,28 +9,20 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.HttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
-import com.google.api.client.util.store.FileDataStoreFactory;
+import com.google.api.services.oauth2.Oauth2;
+import com.google.api.services.oauth2.model.Userinfo;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
-import com.google.api.services.oauth2.Oauth2;
-import com.google.api.services.oauth2.model.Userinfo;
+import java.util.Properties;
 
 public class GoogleAuthService {
 
     private static final String APPLICATION_NAME = "StudySprint";
     private static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
-    private static final String TOKENS_DIRECTORY_PATH = "tokens";
-
-    // Scopes required for user profile and email
     private static final List<String> SCOPES = Arrays.asList(
             "openid",
             "https://www.googleapis.com/auth/userinfo.email",
@@ -41,19 +33,17 @@ public class GoogleAuthService {
     private static String CLIENT_SECRET;
 
     static {
-        java.util.Properties props = new java.util.Properties();
-        try (java.io.InputStream is = GoogleAuthService.class.getResourceAsStream("/google-secrets.txt")) {
+        Properties props = new Properties();
+        try (InputStream is = GoogleAuthService.class.getResourceAsStream("/google-secrets.properties")) {
             if (is != null) {
                 props.load(is);
-                String rawId = props.getProperty("google.client.id");
-                String rawSecret = props.getProperty("google.client.secret");
-                
-                if (rawId != null) CLIENT_ID = new String(java.util.Base64.getDecoder().decode(rawId));
-                if (rawSecret != null) CLIENT_SECRET = new String(java.util.Base64.getDecoder().decode(rawSecret));
+                CLIENT_ID = props.getProperty("google.client.id");
+                CLIENT_SECRET = props.getProperty("google.client.secret");
+                System.out.println("Google secrets loaded successfully.");
             } else {
                 System.err.println("Google secrets file not found!");
             }
-        } catch (java.io.IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -61,38 +51,23 @@ public class GoogleAuthService {
     public static Userinfo authenticate() throws IOException, GeneralSecurityException {
         final HttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
 
-        // Manual construction of client secrets since we don't have the JSON file locally
         GoogleClientSecrets.Details web = new GoogleClientSecrets.Details();
         web.setClientId(CLIENT_ID);
         web.setClientSecret(CLIENT_SECRET);
         GoogleClientSecrets clientSecrets = new GoogleClientSecrets();
         clientSecrets.setInstalled(web);
 
-        // Build flow without a persistent data store to force new login every time if desired,
-        // and add a prompt to force account selection.
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
                 httpTransport, JSON_FACTORY, clientSecrets, SCOPES)
                 .setAccessType("offline")
                 .build();
 
-        LocalServerReceiver receiver = new LocalServerReceiver.Builder().build(); // Use a random free port
+        // On laisse Google choisir le port libre ou on utilise celui configuré
+        LocalServerReceiver receiver = new LocalServerReceiver.Builder().setPort(8888).build();
         
-        // Custom authorization app to inject the "prompt" parameter
-        AuthorizationCodeInstalledApp authApp = new AuthorizationCodeInstalledApp(flow, receiver) {
-            @Override
-            protected void onAuthorization(com.google.api.client.auth.oauth2.AuthorizationCodeRequestUrl authorizationUrl) {
-                try {
-                    authorizationUrl.set("prompt", "select_account");
-                    super.onAuthorization(authorizationUrl);
-                } catch (java.io.IOException e) {
-                    throw new RuntimeException("Échec de l'ouverture du navigateur pour l'authentification Google", e);
-                }
-            }
-        };
-        
+        AuthorizationCodeInstalledApp authApp = new AuthorizationCodeInstalledApp(flow, receiver);
         Credential credential = authApp.authorize("user");
 
-        // Use the credential to get user info
         Oauth2 oauth2 = new Oauth2.Builder(httpTransport, JSON_FACTORY, credential)
                 .setApplicationName(APPLICATION_NAME)
                 .build();
